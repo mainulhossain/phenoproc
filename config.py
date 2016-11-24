@@ -11,13 +11,13 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'phenoproc@gmail.com' #os.environ.get('MAIL_USERNAME') or 'phenoproc@gmail.com'
     MAIL_PASSWORD = '!phenoproc!' #os.environ.get('MAIL_PASSWORD') or '!phenoproc@gmail.com!'
-    FLASKY_MAIL_SUBJECT_PREFIX = '[Phenoproc]'
-    FLASKY_MAIL_SENDER = 'Phenoproc Admin <phenoproc@gmail.com>'
-    FLASKY_ADMIN = os.environ.get('PHENOPROC_ADMIN')         
-    FLASKY_POSTS_PER_PAGE = 20
-    FLASKY_FOLLOWERS_PER_PAGE = 50
-    FLASKY_COMMENTS_PER_PAGE = 30
-    FLASKY_SLOW_DB_QUERY_TIME=0.5
+    PHENOPROC_MAIL_SUBJECT_PREFIX = '[Phenoproc]'
+    PHENOPROC_MAIL_SENDER = 'Phenoproc Admin <phenoproc@gmail.com>'
+    PHENOPROC_ADMIN = os.environ.get('PHENOPROC_ADMIN')         
+    PHENOPROC_POSTS_PER_PAGE = 20
+    PHENOPROC_FOLLOWERS_PER_PAGE = 50
+    PHENOPROC_COMMENTS_PER_PAGE = 30
+    PHENOPROC_SLOW_DB_QUERY_TIME=0.5
 
     @staticmethod
     def init_app(app):
@@ -56,9 +56,9 @@ class ProductionConfig(Config):
                 secure = ()
         mail_handler = SMTPHandler(
             mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
-            fromaddr=cls.FLASKY_MAIL_SENDER,
-            toaddrs=[cls.FLASKY_ADMIN],
-            subject=cls.FLASKY_MAIL_SUBJECT_PREFIX + ' Application Error',
+            fromaddr=cls.PHENOPROC_MAIL_SENDER,
+            toaddrs=[cls.PHENOPROC_ADMIN],
+            subject=cls.PHENOPROC_MAIL_SUBJECT_PREFIX + ' Application Error',
             credentials=credentials,
             secure=secure)
         mail_handler.setLevel(logging.ERROR)
