@@ -268,3 +268,11 @@ def moderate_disable(id):
     db.session.add(comment)
     return redirect(url_for('.moderate',
                             page=request.args.get('page', 1, type=int)))
+
+@main.route('/about')
+def about():
+    return render_template('about.html')
+
+@main.route('/contact')
+def contact():
+    return render_template('contact.html')
