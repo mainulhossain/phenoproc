@@ -489,8 +489,8 @@ class WorkItem(db.Model):
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'))
     name = db.Column(db.String(100))
     desc = db.Column(db.Text)
-#    inputs = db.relationship('Data', secondary='operation_data_link')
-#    outputs = db.relationship('Data', secondary='operation_data_link')
+#    inputs = db.relationship('Data', secondary='workitem_data_link')
+#    outputs = db.relationship('Data', secondary='workitem_data_link')
     
     def to_json(self):
         json_post = {
@@ -507,3 +507,16 @@ class WorkItem(db.Model):
         if name is None or name == '':
             raise ValidationError('WorkItem does not have a name')
         return WorkItem(name=name)
+    
+#class OperationDataLink(db.Model):
+#    __table_name__ = "workitem_data_link"
+#    workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'), primary_key=True)
+#    data_id = db.Column(db.Integer, db.ForeignKey('data.id'), primary_key=True)
+    
+class Data(db.Model):
+    __tablename__ = 'data'
+    id = db.Column(db.Integer, primary_key=True)
+    data_source = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
+#    operations = db.relationship('WorkItem', secondary='workitem_data_link')
+    datatype = db.Column(db.Integer)
+    url = db.Column(db.Text)
