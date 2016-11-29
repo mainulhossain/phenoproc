@@ -430,3 +430,80 @@ class OperationSource(db.Model):
 
     def __repr__(self):
         return '<OperationSource %r>' % self.name
+
+class Operation(db.Model):
+    __tablename__ = 'operations'
+    id = db.Column(db.Integer, primary_key=True)
+    operationsource_id = db.Column(db.Integer, db.ForeignKey('operationsources.id'))
+    name = db.Column(db.String(100))
+    desc = db.Column(db.Text)
+    example = db.Column(db.Text)
+    
+    def to_json(self):
+        json_post = {
+            'operationsource' : self.operationsource_id,
+            'name': self.name,
+            'desc': self.desc,
+            'example': self.desc,
+        }
+        return json_post
+
+    @staticmethod
+    def from_json(json_post):
+        name = json_post.get('name')
+        if name is None or name == '':
+            raise ValidationError('Operation does not have a name')
+        return Operation(name=name)
+
+class Workflow(db.Model):
+    __tablename__ = "workflows"
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    name = db.Column(db.String(100))
+    desc = db.Column(db.Text)
+#    comments = db.relationship('Comment', backref='post', lazy='dynamic')
+    public = db.Column(db.Boolean, default=False)
+#    operations = db.relationship('Operation', backref='workflow', lazy='dynamic')
+    
+    def to_json(self):
+        json_post = {
+            'name': self.name,
+            'desc': self.desc,
+            'timestamp': self.timestamp,
+            'user': url_for('api.get_user', id=self.user_id, _external=True)
+        }
+        return json_post
+
+    @staticmethod
+    def from_json(json_post):
+        name = json_post.get('name')
+        if name is None or body == '':
+            raise ValidationError('workflow does not have a name')
+        return Workflow(name=name)
+
+class WorkItem(db.Model):
+    __tablename__ = 'workitems'
+    id = db.Column(db.Integer, primary_key=True)
+    parent_id = db.Column(db.Integer, default=-1)
+    workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'))
+    name = db.Column(db.String(100))
+    desc = db.Column(db.Text)
+#    inputs = db.relationship('Data', secondary='operation_data_link')
+#    outputs = db.relationship('Data', secondary='operation_data_link')
+    
+    def to_json(self):
+        json_post = {
+            'url': url_for('api.get_post', id=self.id, _external=True),
+            'name': self.name,
+            'desc': self.desc,
+            'timestamp': self.timestamp,
+        }
+        return json_post
+
+    @staticmethod
+    def from_json(json_post):
+        name = json_post.get('name')
+        if name is None or name == '':
+            raise ValidationError('WorkItem does not have a name')
+        return WorkItem(name=name)
