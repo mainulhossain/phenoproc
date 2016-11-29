@@ -14,7 +14,9 @@ class Permission:
     FOLLOW = 0x01
     COMMENT = 0x02
     WRITE_ARTICLES = 0x04
-    MODERATE_COMMENTS = 0x08
+    WRITE_WORKFLOWS = 0x08
+    MODERATE_COMMENTS = 0x10
+    MODERATE_WORKFLOWS = 0x20
     ADMINISTER = 0x80
 
 
@@ -31,11 +33,14 @@ class Role(db.Model):
         roles = {
             'User': (Permission.FOLLOW |
                      Permission.COMMENT |
-                     Permission.WRITE_ARTICLES, True),
+                     Permission.WRITE_ARTICLES |
+                     Permission.WRITE_WORKFLOWS, True),
             'Moderator': (Permission.FOLLOW |
                           Permission.COMMENT |
                           Permission.WRITE_ARTICLES |
-                          Permission.MODERATE_COMMENTS, False),
+                          Permission.WRITE_WORKFLOWS |
+                          Permission.MODERATE_COMMENTS |
+                          Permission.MODERATE_WORKFLOWS, False),
             'Administrator': (0xff, False)
         }
         for r in roles:
@@ -383,3 +388,45 @@ class Comment(db.Model):
 
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+  
+#Phenodoop,Folder, Custom
+class DataSource(db.Model):
+    __tablename__ = 'datasources'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    type = db.Column(db.String(30), nullable=True)
+    url = db.Column(db.Text, nullable=True)
+    
+    @staticmethod
+    def insert_datasources():
+        datasrc = DataSource(name='Phenodoop', type='Hadoop', url='hdfs://sr-p2irc-big1.usask.ca:8020')
+        db.session.add(datasrc)
+        datasrc = DataSource(name='Folder', type='FileSystem', url='/var/www/phenoproc/userdata')
+        db.session.add(datasrc)
+        datasrc = DataSource(name='One Drive', type='Cloud', url='sr-p2irc-big6.usask.ca:8020')
+        db.session.add(datasrc)
+        db.session.commit()
+
+    def __repr__(self):
+        return '<DataSource %r>' % self.name
+
+class OperationSource(db.Model):
+    __tablename__ = 'operationsources'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    desc = db.Column(db.Text, nullable=True)
+   
+    @staticmethod
+    def insert_operationsources():
+        opsrc = OperationSource(name='Phenodoop', desc='Various operations run primarily on Hadoop scheduler.')
+        db.session.add(opsrc)
+        opsrc = OperationSource(name='QIIME', desc='Various QIIME operations.')
+        db.session.add(opsrc)
+        opsrc = OperationSource(name='Mothur', desc='Various Mothur.')
+        db.session.add(opsrc)
+        opsrc = OperationSource(name='Custom', desc='Various custom operations.')
+        db.session.add(opsrc)
+        db.session.commit()
+
+    def __repr__(self):
+        return '<OperationSource %r>' % self.name
