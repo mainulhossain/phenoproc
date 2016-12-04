@@ -1,6 +1,6 @@
 Dear {{ user.username }},
 
-Welcome to PhenoProc!
+Welcome to PhenoProc! Thanks for registration.
 
 To confirm your account please click on the following link:
 
@@ -9,5 +9,3 @@ To confirm your account please click on the following link:
 Sincerely,
 
 The PhenoProc Team
-
-Note: replies to this email address are not monitored.
