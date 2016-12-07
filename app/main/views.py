@@ -6,7 +6,7 @@ from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
     CommentForm
 from .. import db
-from ..models import Permission, Role, User, Post, Comment
+from ..models import Permission, Role, User, Post, Comment, Workflow
 from ..decorators import admin_required, permission_required
 
 
@@ -135,7 +135,11 @@ def post(id):
     return render_template('post.html', posts=[post], form=form,
                            comments=comments, pagination=pagination)
 
-
+@main.route('/workflow/<int:id>', methods=['GET', 'POST'])
+def workflow(id):
+    workflow = Workflow.query.get_or_404(id)
+    return render_template('workflow.html', workflows=[workflow])
+                           
 @main.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):

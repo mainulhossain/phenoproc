@@ -80,6 +80,8 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    workflows = db.relationship('Workflow', backref='user', lazy='dynamic')
+    datasource_allocation = db.relationship('DataSourceAllocation', backref='user', lazy='dynamic')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
@@ -462,9 +464,8 @@ class Workflow(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     name = db.Column(db.String(100))
     desc = db.Column(db.Text)
-#    comments = db.relationship('Comment', backref='post', lazy='dynamic')
     public = db.Column(db.Boolean, default=False)
-#    operations = db.relationship('Operation', backref='workflow', lazy='dynamic')
+#    workitems = db.relationship('WorkItem', backref='workitem', lazy='dynamic')
     
     def to_json(self):
         json_post = {
@@ -481,6 +482,8 @@ class Workflow(db.Model):
         if name is None or body == '':
             raise ValidationError('workflow does not have a name')
         return Workflow(name=name)
+    
+#db.event.listen(Workflow.body, 'set', Workflow.on_changed_body)
 
 class WorkItem(db.Model):
     __tablename__ = 'workitems'
@@ -512,7 +515,24 @@ class WorkItem(db.Model):
 #    __table_name__ = "workitem_data_link"
 #    workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'), primary_key=True)
 #    data_id = db.Column(db.Integer, db.ForeignKey('data.id'), primary_key=True)
+
+class DataType:
+    Folder = 0x01
+    File = 0x02
+    Image = 0x04
+    Video = 0x08
+    Binary = 0x10
+    Text = 0x20
+    CSV = 0x40
+    SQL = 0x80
     
+class DataSourceAllocation(db.Model):
+     __tablename__ = 'datasource_allocations'  
+     id = db.Column(db.Integer, primary_key=True)
+     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'))
+     url = db.Column(db.Text) # part added to the data source url
+
 class Data(db.Model):
     __tablename__ = 'data'
     id = db.Column(db.Integer, primary_key=True)
