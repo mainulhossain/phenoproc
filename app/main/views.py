@@ -60,7 +60,7 @@ def make_hdfs_tree(client, path):
         for name in lst:
             fn = os.path.join(path, name[0])
             if name[1]['type'] == "DIRECTORY":
-                tree['children'].append(make_hdfs_tree(fn))
+                tree['children'].append(make_hdfs_tree(client, fn))
             else:
                 tree['children'].append(dict(name=name[0]))
     return tree
