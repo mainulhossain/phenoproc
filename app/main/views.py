@@ -11,6 +11,7 @@ from ..models import Permission, Role, User, Post, Comment, Workflow
 from ..decorators import admin_required, permission_required
 import os
 import sys
+from hdfs import InsecureClient
 
 @main.after_app_request
 def after_request(response):
@@ -47,6 +48,20 @@ def make_fs_tree(path):
                 tree['children'].append(dict(name=name))
     return tree
 
+def make_hdfs_tree(client, path):
+    tree = dict(name=os.path.basename(path), children=[])
+    try: lst = client.list(path, status=True)
+    except:
+        pass #ignore errors
+    else:
+        for name in lst:
+            fn = os.path.join(path, name[0])
+            if name[1]['type'] == "DIRECTORY":
+                tree['children'].append(make_hdfs_tree(fn))
+            else:
+                tree['children'].append(dict(name=name[0]))
+    return tree
+
 @main.route('/', methods=['GET', 'POST'])
 def index():
     form = PostForm()
@@ -74,9 +89,20 @@ def index():
     datasources['children'].append({ 'name' : 'File System', 'children' : [] })
     
 #    print(datasources['children'].len, file=sys.stderr)
+    try:
+        client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
+    except:
+        pass
+    else:
+        hdfs_tree = datasources['children'][0]['children']
+        if client is not None:
+            if current_user.is_authenticated:
+                hdfs_tree.append(make_hdfs_tree(os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
+            hdfs_tree.append(make_hdfs_tree(os.path.join(current_app.config['HDFS_DIR'], 'public')))
+    
     fs_tree = datasources['children'][1]['children']
     if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
-        fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], current_user.username)))
+            fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], current_user.username)))
         
     fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], 'public')))
     

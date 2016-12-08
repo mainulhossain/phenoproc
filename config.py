@@ -3,6 +3,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     DATA_DIR = os.path.join(basedir, 'data')
+    WEBHDFS_ADDR = 'http://sr-p2irc-big1.usask.ca:50070'
+    WEBHDFS_USER = 'hdfs'
+    HDFS_DIR = '/user/phenodoop'
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     SSL_DISABLE = False
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
