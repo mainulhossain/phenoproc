@@ -100,8 +100,8 @@ def index():
         hdfs_tree = datasources['children'][0]['children']
         if client is not None:
             if current_user.is_authenticated:
-                hdfs_tree.append(make_hdfs_tree(os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
-            hdfs_tree.append(make_hdfs_tree(os.path.join(current_app.config['HDFS_DIR'], 'public')))
+                hdfs_tree.append(make_hdfs_tree(client, os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
+            hdfs_tree.append(make_hdfs_tree(client, os.path.join(current_app.config['HDFS_DIR'], 'public')))
     
     fs_tree = datasources['children'][1]['children']
     if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
