@@ -1,3 +1,4 @@
+from __future__ import print_function
 from flask import render_template, redirect, url_for, abort, flash, request,\
     current_app, make_response
 from flask_login import login_required, current_user
@@ -8,7 +9,8 @@ from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
 from .. import db
 from ..models import Permission, Role, User, Post, Comment, Workflow
 from ..decorators import admin_required, permission_required
-
+import os
+import sys
 
 @main.after_app_request
 def after_request(response):
@@ -31,6 +33,19 @@ def server_shutdown():
     shutdown()
     return 'Shutting down...'
 
+def make_fs_tree(path):
+    tree = dict(name=os.path.basename(path), children=[])
+    try: lst = os.listdir(path)
+    except OSError:
+        pass #ignore errors
+    else:
+        for name in lst:
+            fn = os.path.join(path, name)
+            if os.path.isdir(fn):
+                tree['children'].append(make_fs_tree(fn))
+            else:
+                tree['children'].append(dict(name=name))
+    return tree
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
@@ -53,7 +68,19 @@ def index():
         page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
         error_out=False)
     posts = pagination.items
-    return render_template('index.html', form=form, posts=posts,
+      
+    datasources = { 'name' : 'datasources', 'children' : [] }
+    datasources['children'].append({ 'name' : 'Phenodoop', 'children' : [] })
+    datasources['children'].append({ 'name' : 'File System', 'children' : [] })
+    
+#    print(datasources['children'].len, file=sys.stderr)
+    fs_tree = datasources['children'][1]['children']
+    if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
+        fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], current_user.username)))
+        
+    fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], 'public')))
+    
+    return render_template('index.html', form=form, posts=posts, datasources=datasources,
                            show_followed=show_followed, pagination=pagination)
 
 

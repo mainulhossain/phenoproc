@@ -112,14 +112,8 @@ html,body {
   height:100%;
 }
 
-h1 {
-  font-family: 'Antic Slab', serif;
-  font-size:80px;
-  color:#DDCCEE;
-}
-
 .lead {
-	color:#DDCCEE;
+ color:#DDCCEE;
 }
 
 /* Custom container */
