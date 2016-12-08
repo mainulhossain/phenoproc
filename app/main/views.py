@@ -11,7 +11,10 @@ from ..models import Permission, Role, User, Post, Comment, Workflow
 from ..decorators import admin_required, permission_required
 import os
 import sys
-from hdfs import InsecureClient
+try:
+    from hdfs import InsecureClient
+except:
+    pass
 
 @main.after_app_request
 def after_request(response):
