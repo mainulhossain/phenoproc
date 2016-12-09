@@ -7,7 +7,12 @@ from ..models import User
 from ..email import send_email
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm,\
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm
-
+import os
+import sys
+try:
+    from hdfs import InsecureClient
+except:
+    pass
 
 @auth.before_app_request
 def before_request():
@@ -46,6 +51,19 @@ def logout():
     return redirect(url_for('main.index'))
 
 
+def allocate_storage(user):   
+    directory = os.path.join(current_app.config['DATA_DIR'], user.username)
+    if not os.path.exists(directory):
+         os.makedirs(directory)
+        
+    client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
+    try: lst = client.list(current_app.config['HDFS_DIR'])
+    except hdfs.util.HdfsError:
+        pass #ignore errors
+    else:
+        if not user.username in lst:
+            client.makedirs(os.path.join(current_app.config['HDFS_DIR'], current_user.username))
+
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -55,6 +73,10 @@ def register():
                     password=form.password.data)
         db.session.add(user)
         db.session.commit()
+        try:
+            allocate_storage(user)
+        except:
+            pass
         token = user.generate_confirmation_token()
         send_email(user.email, 'Confirm Your Account',
                    'auth/email/confirm', user=user, token=token)

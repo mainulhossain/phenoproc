@@ -14,7 +14,7 @@ class Config:
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'phenoproc@gmail.com' #os.environ.get('MAIL_USERNAME') or 'phenoproc@gmail.com'
-    MAIL_PASSWORD = '!phenoproc!' #os.environ.get('MAIL_PASSWORD') or '!phenoproc@gmail.com!'
+    MAIL_PASSWORD = '!phenoproc-2016!' #os.environ.get('MAIL_PASSWORD') or '!phenoproc@gmail.com!'
     PHENOPROC_MAIL_SUBJECT_PREFIX = '[Phenoproc]'
     PHENOPROC_MAIL_SENDER = 'Phenoproc Admin <phenoproc@gmail.com>'
     PHENOPROC_ADMIN = os.environ.get('PHENOPROC_ADMIN')         

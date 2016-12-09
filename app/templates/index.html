@@ -57,6 +57,18 @@
                     </ul>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h5 class="">Workflows</h5>
+                </div>
+                <div class="panel-body">
+                    <div id="workflows">
+                        {%- for item in workflows %}
+                        <input type="radio">{{ item.name }}
+                        {%- endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

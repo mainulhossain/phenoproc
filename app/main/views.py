@@ -116,8 +116,10 @@ def index():
         operation_tree['children'].append({ 'name' : ops.name, 'children' : [] })
         for op in ops.operations:
             operation_tree['children'][-1]['children'].append({ 'name' : op.name, 'children' : [] })
-    
-    return render_template('index.html', form=form, posts=posts, datasources=datasources, operations=operation_tree,
+    workflows = []
+    if current_user.is_authenticated:
+        workflows = Workflow.query.filter_by(user_id=current_user.id)
+    return render_template('index.html', form=form, posts=posts, datasources=datasources, operations=operation_tree, workflows=workflows,
                            show_followed=show_followed, pagination=pagination)
 
 
