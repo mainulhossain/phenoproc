@@ -55,9 +55,10 @@ def allocate_storage(user):
     directory = os.path.join(current_app.config['DATA_DIR'], user.username)
     if not os.path.exists(directory):
          os.makedirs(directory)
-        
-    client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
-    try: lst = client.list(current_app.config['HDFS_DIR'])
+         
+    try: 
+        client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
+        lst = client.list(current_app.config['HDFS_DIR'])
     except:
         pass #ignore errors
     else:
