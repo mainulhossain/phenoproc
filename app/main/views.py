@@ -55,7 +55,7 @@ def make_fs_tree(path):
 def make_hdfs_tree(client, path):
     tree = dict(name=os.path.basename(path), children=[])
     try: lst = client.list(path, status=True)
-    except hdfs.util.HdfsError:
+    except:
         pass #ignore errors
     else:
         for name in lst:

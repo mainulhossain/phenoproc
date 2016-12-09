@@ -58,7 +58,7 @@ def allocate_storage(user):
         
     client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
     try: lst = client.list(current_app.config['HDFS_DIR'])
-    except hdfs.util.HdfsError:
+    except:
         pass #ignore errors
     else:
         if not user.username in lst:
