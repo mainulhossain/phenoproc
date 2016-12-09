@@ -7,7 +7,7 @@ from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
     CommentForm
 from .. import db
-from ..models import Permission, Role, User, Post, Comment, Workflow
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, OperationSource, Operation
 from ..decorators import admin_required, permission_required
 import os
 import sys
@@ -15,6 +15,7 @@ try:
     from hdfs import InsecureClient
 except:
     pass
+
 
 @main.after_app_request
 def after_request(response):
@@ -54,7 +55,7 @@ def make_fs_tree(path):
 def make_hdfs_tree(client, path):
     tree = dict(name=os.path.basename(path), children=[])
     try: lst = client.list(path, status=True)
-    except:
+    except hdfs.util.HdfsError:
         pass #ignore errors
     else:
         for name in lst:
@@ -109,7 +110,14 @@ def index():
         
     fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], 'public')))
     
-    return render_template('index.html', form=form, posts=posts, datasources=datasources,
+    operationsources = OperationSource.query.all()
+    operation_tree = { 'name' : 'operations', 'children' : [] }
+    for ops in operationsources:
+        operation_tree['children'].append({ 'name' : ops.name, 'children' : [] })
+        for op in ops.operations:
+            operation_tree['children'][-1]['children'].append({ 'name' : op.name, 'children' : [] })
+    
+    return render_template('index.html', form=form, posts=posts, datasources=datasources, operations=operation_tree,
                            show_followed=show_followed, pagination=pagination)
 
 

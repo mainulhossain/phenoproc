@@ -11,7 +11,7 @@
 {% endblock %}
 {% block page_content %}
 <div class="page-header">
-    <h1>Phenodoop Workflows</h1>
+    <h3>Workflows</h3>
 </div>
 <div class="container">
     <hr class="">
@@ -19,13 +19,12 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="">Data Sources</h3>
+                    <h5 class="">Data Sources</h5>
                 </div>
                 <div class="panel-body">
                     <ul id="tree1">
-
                         {%- for item in datasources.children recursive %}
-                            <li>{{ item.name }}
+                        <li><input type="checkbox">{{ item.name }}
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -37,7 +36,7 @@
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="">Workflows</h3>
+                    <h5 class="">Workflows</h5>
                 </div>
                 <div class="panel-body"></div>
             </div>
@@ -45,9 +44,18 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="">Operations</h3>
+                    <h5 class="">Operations</h5>
                 </div>
-                <div class="panel-body"></div>
+                <div class="panel-body">
+                    <ul id="tree-operations">
+                        {%- for item in operations.children recursive %}
+                        <li><input type="checkbox">{{ item.name }}
+                            {%- if item.children -%}
+                                <ul>{{ loop(item.children) }}</ul>
+                            {%- endif %}</li>
+                        {%- endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -61,6 +69,7 @@
 <script>
     $(document).ready(function() {
         $('#tree1').treed();
+        $('#tree-operations').treed();
         //$('#tree1').treed({openedClass:'glyphicon-folder-open', closedClass:'glyphicon-folder-close'});
         //$('#tree1').treed({openedClass:'glyphicon-chevron-right', closedClass:'glyphicon-chevron-down'});
     });

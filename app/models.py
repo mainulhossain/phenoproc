@@ -417,7 +417,8 @@ class OperationSource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     desc = db.Column(db.Text, nullable=True)
-   
+    operations = db.relationship('Operation', backref='operationsource', lazy='dynamic')
+    
     @staticmethod
     def insert_operationsources():
         opsrc = OperationSource(name='Phenodoop', desc='Various operations run primarily on Hadoop scheduler.')
