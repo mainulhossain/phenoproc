@@ -1,6 +1,6 @@
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, \
-    current_user
+    current_user, current_app
 from . import auth
 from .. import db
 from ..models import User
@@ -51,19 +51,19 @@ def logout():
     return redirect(url_for('main.index'))
 
 
-def allocate_storage(user):   
+def allocate_storage(user):
     directory = os.path.join(current_app.config['DATA_DIR'], user.username)
     if not os.path.exists(directory):
-         os.makedirs(directory)
-         
+         os.makedirs(directory)        
     try: 
         client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
         lst = client.list(current_app.config['HDFS_DIR'])
     except:
-        pass #ignore errors
+        flash('Storage allocation on Phenodoop has failed.')
     else:
         if not user.username in lst:
             client.makedirs(os.path.join(current_app.config['HDFS_DIR'], current_user.username))
+    return
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
