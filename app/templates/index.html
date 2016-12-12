@@ -35,8 +35,16 @@
         </div>
         <div class="col-md-6">
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h5 class="">Workflows</h5>
+                <div class="panel-heading clearfix">
+                    <h4 class="panel-title pull-left" style="padding-top: 7.5px;">Workflows</h4>
+                    <div class="input-group">
+                    <div class="input-group-btn">
+                    	<button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-stop"></i></button>
+	                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-pause"></i></button>
+                        <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-play"></i></button>
+                        <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-edit"></i></button>
+                    </div>
+                </div>
                 </div>
                 <div class="panel-body"></div>
             </div>
@@ -82,8 +90,6 @@
     $(document).ready(function() {
         $('#tree1').treed();
         $('#tree-operations').treed();
-        //$('#tree1').treed({openedClass:'glyphicon-folder-open', closedClass:'glyphicon-folder-close'});
-        //$('#tree1').treed({openedClass:'glyphicon-chevron-right', closedClass:'glyphicon-chevron-down'});
     });
 </script>
 {{ pagedown.include_pagedown() }}
