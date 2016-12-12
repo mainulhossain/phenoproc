@@ -58,11 +58,12 @@ def allocate_storage(user):
     try: 
         client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
         lst = client.list(current_app.config['HDFS_DIR'])
+        if not user.username in lst:
+            client.makedirs(os.path.join(current_app.config['HDFS_DIR'], user.username))
     except:
         flash('Storage allocation on Phenodoop has failed.')
     else:
-        if not user.username in lst:
-            client.makedirs(os.path.join(current_app.config['HDFS_DIR'], current_user.username))
+        pass
     return
 
 @auth.route('/register', methods=['GET', 'POST'])
