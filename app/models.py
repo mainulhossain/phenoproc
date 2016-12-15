@@ -8,7 +8,8 @@ from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 from app.exceptions import ValidationError
 from . import db, login_manager
-
+from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.sql.schema import ForeignKey
 
 class Permission:
     FOLLOW = 0x01
@@ -486,15 +487,43 @@ class Workflow(db.Model):
     
 #db.event.listen(Workflow.body, 'set', Workflow.on_changed_body)
 
+# class WorkItemDataLink(db.Model):
+#     __tablename__ = 'workitem_data_link'
+#     workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'), primary_key=True)
+#     data_id = db.Column(db.Integer, db.ForeignKey('data.id'), primary_key=True)
+#     extra_data = db.Column(db.String(20))
+#     workitem = db.relationship('WorkItem', backref=db.backref("workitems_assoc"))
+#     data = db.relationship('Data', backref=db.backref("data_assoc"))
+   
 class WorkItem(db.Model):
     __tablename__ = 'workitems'
     id = db.Column(db.Integer, primary_key=True)
-    parent_id = db.Column(db.Integer, default=-1)
+    parent_id = db.Column(db.Integer, db.ForeignKey('workitems.id'))
+#    parent = db.relationships('WorkItem', remote_side=[id])
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'))
     name = db.Column(db.String(100))
     desc = db.Column(db.Text)
-#    inputs = db.relationship('Data', secondary='workitem_data_link')
-#    outputs = db.relationship('Data', secondary='workitem_data_link')
+    input_id = db.Column(db.Integer, ForeignKey('data.id'))
+    output_id = db.Column(db.Integer, ForeignKey('data.id'))
+    inputs = db.relationship('Data', foreign_keys=[input_id])
+    outputs = db.relationship('Data', foreign_keys=[output_id])
+
+#     inputs = db.relationship('Data', secondary='workitem_data_link')
+#     outputs = db.relationship('Data', secondary='workitem_data_link', primaryjoin= workitem_data_link.extra_data == 'output')
+    children = db.relationship("WorkItem",
+
+                        # cascade deletions
+                        cascade="all, delete-orphan",
+
+                        # many to one + adjacency list - remote_side
+                        # is required to reference the 'remote'
+                        # column in the join condition.
+                        backref=db.backref("parent", remote_side=id),
+
+                        # children will be represented as a dictionary
+                        # on the "name" attribute.
+                        collection_class=attribute_mapped_collection('name'),
+                    )
     
     def to_json(self):
         json_post = {
@@ -526,6 +555,7 @@ class DataType:
     Text = 0x20
     CSV = 0x40
     SQL = 0x80
+    Custom = 0x100
     
 class DataSourceAllocation(db.Model):
      __tablename__ = 'datasource_allocations'  
@@ -537,7 +567,6 @@ class DataSourceAllocation(db.Model):
 class Data(db.Model):
     __tablename__ = 'data'
     id = db.Column(db.Integer, primary_key=True)
-    data_source = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
-#    operations = db.relationship('WorkItem', secondary='workitem_data_link')
+    datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
     datatype = db.Column(db.Integer)
     url = db.Column(db.Text)
