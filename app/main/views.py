@@ -65,12 +65,12 @@ def make_hdfs_tree(client, path):
     except:
         pass #ignore errors
     else:
-        for name in lst:
-            fn = os.path.join(path, name[0])
-            if name[1]['type'] == "DIRECTORY":
+        for fsitem in lst:
+            fn = os.path.join(path, fsitem[0])
+            if fsitem[1]['type'] == "DIRECTORY":
                 tree['children'].append(make_hdfs_tree(client, fn))
             else:
-                tree['children'].append(dict(name=name[0]))
+                tree['children'].append(dict(name=fsitem[0]))
     return tree
 
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
