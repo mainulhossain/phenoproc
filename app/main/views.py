@@ -56,7 +56,7 @@ def make_fs_tree(path):
             if os.path.isdir(fn):
                 tree['children'].append(make_fs_tree(fn))
             else:
-                tree['children'].append(dict(name=(name, fn)))
+                tree['children'].append({'name' : (name, fn), 'children' : []})
     return tree
 
 def make_hdfs_tree(client, path):
@@ -70,7 +70,7 @@ def make_hdfs_tree(client, path):
             if fsitem[1]['type'] == "DIRECTORY":
                 tree['children'].append(make_hdfs_tree(client, fn))
             else:
-                tree['children'].append(dict(name=(fsitem[0], fn)))
+                tree['children'].append({'name' : (fsitem[0], fn), 'children' : []})
     return tree
 
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
@@ -109,7 +109,7 @@ def index(id=None):
     
     # construct data source tree
     datasources = DataSource.query.all()
-    datasource_tree = { 'name' : 'datasources', 'children' : [] }
+    datasource_tree = { 'name' : ('datasources', ''), 'children' : [] }
     for ds in datasources:
         datasource_tree['children'].append({ 'name' : (ds.name, ds.url), 'children' : [] })
     
