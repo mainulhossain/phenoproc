@@ -70,7 +70,7 @@ def make_hdfs_tree(client, path):
             if fsitem[1]['type'] == "DIRECTORY":
                 tree['children'].append(make_hdfs_tree(client, fn))
             else:
-                tree['children'].append(dict(name=fsitem[0]))
+                tree['children'].append(dict(name=(fsitem[0], fn)))
     return tree
 
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
