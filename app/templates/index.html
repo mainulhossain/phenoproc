@@ -7,7 +7,9 @@
 {% block head %}
 {{ super() }}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tree.css') }}" />
-
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+<script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
+<script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
 {% endblock %}
 {% block page_content %}
 <div class="page-header">
@@ -24,7 +26,7 @@
                 <div class="panel-body">
                     <ul id="tree1">
                         {%- for item in datasources.children recursive %}
-                        <li><input type="checkbox">{{ item.name }}
+                        <li id="{{ item.name[1] }}"><input type="checkbox">{{ item.name[0] }}
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -41,12 +43,31 @@
                     <div class="input-group-btn">
                     	<button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-stop"></i></button>
 	                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-pause"></i></button>
-                        <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-play"></i></button>
+                        <button class="btn btn-primary pull-right" onclick="Sijax.request('run_workflow');"><i class="glyphicon glyphicon-play"></i></button>
                         <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-edit"></i></button>
                     </div>
                 </div>
                 </div>
-                <div class="panel-body"></div>
+                <div class="panel-body">
+                	<div id="workflows">
+                        {%- for item in workitems %}
+                        <div>
+                        	<h4 style="text-align:center">Work Item: <strong>{{item.name}}</strong></h4>
+                        	<h5 style="text-align:center">Operation: <strong>{{item.opname}}</strong></h5>
+                        	<div style="float:left; width:45%"><strong>Input</strong>
+                        	<div style="text-align:left">Type: {{item.input_type}}</div>
+                        	<div style="text-align:left">Url: {{item.input_root}}{{item.input}}</div>
+                        	</div>
+                        	<div style="float:right; width:45%"><strong>Output</strong>
+                        	<div style="text-align:left">Type: {{item.output_type}}</div>
+                        	<div style="text-align:left">Url: {{item.output_root}}{{item.input}}</div>
+                        	</div>
+                        	<div style="float:clear;"></div>
+                        </div>
+                        
+                        {%- endfor %}
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
@@ -72,7 +93,7 @@
                 <div class="panel-body">
                     <div id="workflows">
                         {%- for item in workflows %}
-                        <input type="radio">{{ item.name }}
+                        <input type="radio" onclick="window.location.href='/workflow/{{ item.id }}'">{{ item.name }}
                         {%- endfor %}
                     </div>
                 </div>

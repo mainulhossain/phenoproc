@@ -10,6 +10,7 @@ from app.exceptions import ValidationError
 from . import db, login_manager
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.schema import ForeignKey
+from sqlalchemy.engine import default
 
 class Permission:
     FOLLOW = 0x01
@@ -438,10 +439,13 @@ class OperationSource(db.Model):
 class Operation(db.Model):
     __tablename__ = 'operations'
     id = db.Column(db.Integer, primary_key=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('operations.id'))
     operationsource_id = db.Column(db.Integer, db.ForeignKey('operationsources.id'))
     name = db.Column(db.String(100))
     desc = db.Column(db.Text)
     example = db.Column(db.Text)
+    children = db.relationship("Operation", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
+    workitems = db.relationship('WorkItem', backref='operation', lazy='dynamic')
     
     def to_json(self):
         json_post = {
@@ -462,13 +466,16 @@ class Operation(db.Model):
 class Workflow(db.Model):
     __tablename__ = "workflows"
     id = db.Column(db.Integer, primary_key=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('workflows.id'))
+#    parent = db.relationships('WorkItem', remote_side=[id])
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     name = db.Column(db.String(100))
     desc = db.Column(db.Text)
     public = db.Column(db.Boolean, default=False)
-#    workitems = db.relationship('WorkItem', backref='workitem', lazy='dynamic')
-    
+    workitems = db.relationship('WorkItem', backref='workflow', lazy='dynamic')
+    children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
+   
     def to_json(self):
         json_post = {
             'name': self.name,
@@ -498,32 +505,17 @@ class Workflow(db.Model):
 class WorkItem(db.Model):
     __tablename__ = 'workitems'
     id = db.Column(db.Integer, primary_key=True)
-    parent_id = db.Column(db.Integer, db.ForeignKey('workitems.id'))
-#    parent = db.relationships('WorkItem', remote_side=[id])
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'))
     name = db.Column(db.String(100))
     desc = db.Column(db.Text)
     input_id = db.Column(db.Integer, ForeignKey('data.id'))
     output_id = db.Column(db.Integer, ForeignKey('data.id'))
+    operation_id = db.Column(db.Integer, ForeignKey('operations.id'))
     inputs = db.relationship('Data', foreign_keys=[input_id])
     outputs = db.relationship('Data', foreign_keys=[output_id])
-
+    
 #     inputs = db.relationship('Data', secondary='workitem_data_link')
 #     outputs = db.relationship('Data', secondary='workitem_data_link', primaryjoin= workitem_data_link.extra_data == 'output')
-    children = db.relationship("WorkItem",
-
-                        # cascade deletions
-                        cascade="all, delete-orphan",
-
-                        # many to one + adjacency list - remote_side
-                        # is required to reference the 'remote'
-                        # column in the join condition.
-                        backref=db.backref("parent", remote_side=id),
-
-                        # children will be represented as a dictionary
-                        # on the "name" attribute.
-                        collection_class=attribute_mapped_collection('name'),
-                    )
     
     def to_json(self):
         json_post = {

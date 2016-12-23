@@ -1,6 +1,7 @@
 from __future__ import print_function
-from flask import render_template, redirect, url_for, abort, flash, request,\
-    current_app, make_response
+
+from flask import Flask, render_template, redirect, url_for, abort, flash, request,\
+    current_app, make_response, g
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from . import main
@@ -9,13 +10,18 @@ from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
 from .. import db
 from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, OperationSource, Operation
 from ..decorators import admin_required, permission_required
+from sqlalchemy import text
 import os
 import sys
+import flask_sijax
+from ..operations import execute_workflow
+
 try:
     from hdfs import InsecureClient
 except:
     pass
 
+app = Flask(__name__)
 
 @main.after_app_request
 def after_request(response):
@@ -39,7 +45,8 @@ def server_shutdown():
     return 'Shutting down...'
 
 def make_fs_tree(path):
-    tree = dict(name=os.path.basename(path), children=[])
+    #tree = dict(name=os.path.basename(path), children=[])
+    tree = dict(name=(os.path.basename(path), path), children=[])
     try: lst = os.listdir(path)
     except OSError:
         pass #ignore errors
@@ -49,7 +56,7 @@ def make_fs_tree(path):
             if os.path.isdir(fn):
                 tree['children'].append(make_fs_tree(fn))
             else:
-                tree['children'].append(dict(name=name))
+                tree['children'].append(dict(name=(name, fn)))
     return tree
 
 def make_hdfs_tree(client, path):
@@ -66,8 +73,20 @@ def make_hdfs_tree(client, path):
                 tree['children'].append(dict(name=name[0]))
     return tree
 
-@main.route('/', methods=['GET', 'POST'])
-def index():
+@main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
+@main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
+def index(id=None):
+
+    def run_workflow(obj_response):
+        #obj_response.alert('Hi there!')
+        if Workflow.query.get(id) is not None:
+            execute_workflow(id)
+    
+    if g.sijax.is_sijax_request:
+        # Sijax request detected - let Sijax handle it
+        g.sijax.register_callback('run_workflow', run_workflow)
+        return g.sijax.process_request()
+
     form = PostForm()
     if current_user.can(Permission.WRITE_ARTICLES) and \
             form.validate_on_submit():
@@ -87,39 +106,62 @@ def index():
         page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
         error_out=False)
     posts = pagination.items
-      
-    datasources = { 'name' : 'datasources', 'children' : [] }
-    datasources['children'].append({ 'name' : 'Phenodoop', 'children' : [] })
-    datasources['children'].append({ 'name' : 'File System', 'children' : [] })
     
-#    print(datasources['children'].len, file=sys.stderr)
+    # construct data source tree
+    datasources = DataSource.query.all()
+    datasource_tree = { 'name' : 'datasources', 'children' : [] }
+    for ds in datasources:
+        datasource_tree['children'].append({ 'name' : (ds.name, ds.url), 'children' : [] })
+    
+    # hdfs tree         
     try:
         client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
     except:
         pass
     else:
-        hdfs_tree = datasources['children'][0]['children']
+        hdfs_tree = datasource_tree['children'][0]['children']
         if client is not None:
             if current_user.is_authenticated:
                 hdfs_tree.append(make_hdfs_tree(client, os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
             hdfs_tree.append(make_hdfs_tree(client, os.path.join(current_app.config['HDFS_DIR'], 'public')))
     
-    fs_tree = datasources['children'][1]['children']
+    # file system tree
+    fs_tree = datasource_tree['children'][1]['children']
     if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
-            fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], current_user.username)))
+        fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], current_user.username)))
         
     fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], 'public')))
     
+    # construct operation source tree
     operationsources = OperationSource.query.all()
     operation_tree = { 'name' : 'operations', 'children' : [] }
     for ops in operationsources:
         operation_tree['children'].append({ 'name' : ops.name, 'children' : [] })
         for op in ops.operations:
             operation_tree['children'][-1]['children'].append({ 'name' : op.name, 'children' : [] })
+    
+    # workflows tree
     workflows = []
     if current_user.is_authenticated:
         workflows = Workflow.query.filter_by(user_id=current_user.id)
-    return render_template('index.html', form=form, posts=posts, datasources=datasources, operations=operation_tree, workflows=workflows,
+    
+    workitems = []
+#    Workflow.query.join(WorkItem).join(Operation).filter_by(id=1).c
+#    sql = text('SELECT workitems.*, operations.name AS opname FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id WHERE workflows.id=' + str(id))
+
+    if Workflow.query.get(id) is not None:
+#        sql = text('SELECT workitems.*, operations.name AS opname, datasources.id AS datasource_id, datasources.name AS datasource_name, data.url AS path FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id INNER JOIN data ON workitems.id = data.id INNER JOIN datasources ON data.datasource_id=datasources.id WHERE workflows.id=' + str(id))
+        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
+        result = db.engine.execute(sql)
+        for row in result:
+            workitems.append(row);
+#     if id is not None:
+#         workflow = Workflow.query.filter_by(id=id)
+#         if workflow is not None and workflow.count() > 0:
+#             workitems = workflow.first().workitems
+    
+    
+    return render_template('index.html', form=form, posts=posts, datasources=datasource_tree, operations=operation_tree, workflows=workflows, workitems=workitems,
                            show_followed=show_followed, pagination=pagination)
 
 

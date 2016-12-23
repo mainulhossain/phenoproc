@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_pagedown import PageDown
 from config import config
+import os
+import flask_sijax
 
 bootstrap = Bootstrap()
 mail = Mail()
@@ -42,5 +44,9 @@ def create_app(config_name):
 
     from .api_1_0 import api as api_1_0_blueprint
     app.register_blueprint(api_1_0_blueprint, url_prefix='/api/v1.0')
+
+    app.config['SIJAX_STATIC_PATH'] = os.path.join('.', os.path.dirname(__file__), 'static/js/sijax/')
+    app.config['SIJAX_JSON_URI'] = '/static/js/sijax/json2.js'
+    flask_sijax.Sijax(app)
 
     return app
