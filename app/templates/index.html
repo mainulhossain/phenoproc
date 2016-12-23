@@ -26,7 +26,7 @@
                 <div class="panel-body">
                     <ul id="tree1">
                         {%- for item in datasources.children recursive %}
-                        <li id="{{ item.name[1] }}"><input type="checkbox">{{ item.name }}
+                        <li id="{{ item.name[1] }}"><input type="checkbox">{{ item.name[0] }}
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
