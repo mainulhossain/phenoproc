@@ -2,6 +2,8 @@ import sys
 import os
 from subprocess import call
 import uuid
+from .spawn import execute
+from flask import current_app
 
 def runHadoop(mapper, reducer, input, output):
         hadoopPath = '/usr/bin/hadoop'
@@ -10,7 +12,9 @@ def runHadoop(mapper, reducer, input, output):
         #v = 'jar ' + streamPath + ' -files ' + mapper + ',' + reducer + '-D mapreduce.input.fileinputformat.input.dir.recursive=true' + ' -mapper ' + mapper + ' -reducer ' + reducer + -input  -output output'
         jobid = str(uuid.uuid4())
         v = 'jar {0} -files {1},{2} -D mapreduce.input.fileinputformat.input.dir.recursive=true|mapred.job.name="{3}" -mapper {4} -reducer {5} -input {6} -output {7}'.format(streamPath, mapper, reducer, jobid, os.path.basename(mapper), os.path.basename(reducer), input, output)
-        call([hadoopPath, v])
+        print(v, file=sys.stderr)
+        #call([hadoopPath, v])
+        execute(current_app.config['WEBHDFS_USER'], 'operations', hadoopPath, v)
 
 
 if __name__ == "__main__":
