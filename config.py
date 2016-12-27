@@ -24,6 +24,7 @@ class Config:
     PHENOPROC_FOLLOWERS_PER_PAGE = 50
     PHENOPROC_COMMENTS_PER_PAGE = 30
     PHENOPROC_SLOW_DB_QUERY_TIME=0.5
+    WORKFLOW_MODE_EDIT = False 
 
     @staticmethod
     def init_app(app):
