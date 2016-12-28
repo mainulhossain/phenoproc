@@ -31,7 +31,6 @@ def execute(my_args=None):
     )
     result = process.wait()
     report_ids('finished ' + str(args))
-    print('result', result, file=sys.stderr)
 
 
 def demote(user_uid, user_gid):
@@ -44,4 +43,4 @@ def demote(user_uid, user_gid):
 
 
 def report_ids(msg):
-    print('uid, gid = %d, %d; %s' % (os.getuid(), os.getgid(), msg), file=sys.stderr)
+    print('uid, gid = {0}, {1}; {2}'.format(os.getuid(), os.getgid(), msg), file=sys.stderr)

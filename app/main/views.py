@@ -8,7 +8,7 @@ from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
     CommentForm
 from .. import db
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, OperationSource, Operation
+from ..models import Permission, Role, User, Post, Comment, Workflow, WorkItem, DataSource, OperationSource, Operation
 from ..decorators import admin_required, permission_required
 from sqlalchemy import text
 import os
@@ -76,22 +76,73 @@ def make_hdfs_tree(client, path):
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
 @main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
 def index(id=None):
-
-    def run_workflow(obj_response):
-        #obj_response.alert('Hi there!')
-        if Workflow.query.get(id) is not None:
-            execute_workflow(id)
     
+    def ValueOrNone(val):
+        try:
+            return int(val)
+        except ValueError:
+            return 0
+            
+    id = ValueOrNone(id)
+    if id <= 0:
+        id = request.args.get('workflow')
+        
+    def run_workflow(obj_response, workflow_id):
+        workflow_id = ValueOrNone(workflow_id)
+        if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
+            execute_workflow(workflow_id)
+            
+    def set_editmode(obj_response, mode):
+        current_app.config['WORKFLOW_MODE_EDIT'] = mode
+    
+    def add_workflow(obj_response):
+        if current_user.is_authenticated:
+            workflow = Workflow(user_id=current_user.id, name='New Workflow')            
+            db.session.add(workflow)
+            db.session.commit()
+            obj_response.redirect(request.base_url + '{0}{1}'.format('?workflow=', workflow.id))
+    
+    def delete_workitem(obj_response, workitem_id):
+        if current_user.is_authenticated:
+            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
+                WorkItem.query.filter(WorkItem.id == workitem_id).delete()
+                db.session.commit()
+                
+            
+    def delete_workflow(obj_response, workflow_id):
+        if current_user.is_authenticated:
+            if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
+                Workflow.query.filter(Workflow.id == workflow_id).delete()
+                db.session.commit()
+                                    
+    def add_workitem(obj_response, wf_id):
+        if current_user.is_authenticated:
+            wf_id = ValueOrNone(wf_id)
+            print(str(wf_id), file=sys.stderr)
+            if wf_id is not None and Workflow.query.get(wf_id) is not None:
+                workitem = WorkItem(workflow_id=wf_id, name='New Workitem')            
+                db.session.add(workitem)
+                db.session.commit()
+    
+    def add_input(obj_response, workitem_id, data_id):
+        if current_user.is_authenticated:
+            workflow_id = ValueOrNone(workflow_id)
+            if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
+                workitem = WorkItem(workflow_id=workflow_id, name='New Workitem')            
+                db.session.add(workitem)
+                db.session.commit()
+                            
     if g.sijax.is_sijax_request:
         # Sijax request detected - let Sijax handle it
         g.sijax.register_callback('run_workflow', run_workflow)
+        g.sijax.register_callback('set_editmode', set_editmode)
+        g.sijax.register_callback('add_workflow', add_workflow)
+        g.sijax.register_callback('add_workitem', add_workitem)
         return g.sijax.process_request()
 
     form = PostForm()
-    if current_user.can(Permission.WRITE_ARTICLES) and \
-            form.validate_on_submit():
-        post = Post(body=form.body.data,
-                    author=current_user._get_current_object())
+    if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
+        post = Post(body=form.body.data, author=current_user._get_current_object())
         db.session.add(post)
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
@@ -148,10 +199,11 @@ def index(id=None):
     workitems = []
 #    Workflow.query.join(WorkItem).join(Operation).filter_by(id=1).c
 #    sql = text('SELECT workitems.*, operations.name AS opname FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id WHERE workflows.id=' + str(id))
-
-    if Workflow.query.get(id) is not None:
+    
+    if id is not None and Workflow.query.get(id) is not None:
 #        sql = text('SELECT workitems.*, operations.name AS opname, datasources.id AS datasource_id, datasources.name AS datasource_name, data.url AS path FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id INNER JOIN data ON workitems.id = data.id INNER JOIN datasources ON data.datasource_id=datasources.id WHERE workflows.id=' + str(id))
-        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
+#        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
+        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id) s LEFT JOIN datasources dx ON dx.id=s.input_datasource LEFT JOIN datasources dx2 ON dx2.id=s.output_datasource LEFT JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))        
         result = db.engine.execute(sql)
         for row in result:
             workitems.append(row);
