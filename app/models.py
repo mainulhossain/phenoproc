@@ -473,7 +473,7 @@ class Workflow(db.Model):
     name = db.Column(db.String(100))
     desc = db.Column(db.Text, nullable=True)
     public = db.Column(db.Boolean, default=False)
-    workitems = db.relationship('WorkItem', backref='workflow', lazy='dynamic')
+    workitems = db.relationship('WorkItem', cascade="all,delete-orphan", backref='workflows', lazy='dynamic')
     children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
    
     def to_json(self):

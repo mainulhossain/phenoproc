@@ -49,6 +49,8 @@
 	
 	if (isBlank(workflowId) || workflowId === NaN)
 		workflowId = 0;
+	
+	var editMode = {% if config.WORKFLOW_MODE_EDIT %} true {% else %} false {% endif %};
 </script>
 
 {% endblock %}
@@ -79,7 +81,8 @@
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
-                    <h4 class="panel-title pull-left" style="padding-top: 7.5px;">Workflow: <strong>{{ workflow }}</strong></h4>
+                    <h4 class="panel-title pull-left" style="padding-top: 7.5px;">Workflow: </h4>
+                    <input type="text" class="pull-left" id="workflow-name" value="{{ workflow }}">
                     <div class="input-group">
                     <div class="input-group-btn">
                     	{% if config.WORKFLOW_MODE_EDIT %}
@@ -104,7 +107,8 @@
 						{%- for item in workitems %}
 						<div class="panel panel-default">
 							<div class="panel-heading clearfix">
-								<h4 class="panel-title pull-left">Work Item: <strong>{{item.name}}</strong></h4>
+								<h4 class="panel-title pull-left">Work Item: </h4>
+								<input class="workitem-name" id="{{item.id}}" value="{{item.name}}">
 								{% if config.WORKFLOW_MODE_EDIT %}
 									<div class="input-group">
 	    				                <div class="input-group-btn">
@@ -182,6 +186,35 @@
 				if ($(this).prop('id') == workflowId)
 					$(this).prop('checked', true);
         	});
+			
+			$("#workflow-name").prop('disabled', !editMode || workflowId <= 0);
+			$(".workitem-name").each(function() {
+					$(this).prop('disabled', !editMode || workflowId <= 0);
+			});
+			
+			$("#workflow-name").change(function(){
+				if (editMode) {
+					Sijax.request('update_workflow', [workflowId, $(this).val()]);
+					$(this).blur();
+					location.reload();
+				}
+			});
+			
+			$(".workitem-name").change(function(){
+				if (editMode) {
+					Sijax.request('update_workitem', [$(this).attr('id'), $(this).val()]);
+					$(this).blur();
+					location.reload();
+				}
+			});
+			
+			$("#workflow-name").change(function(){
+				if (editMode) {
+					Sijax.request('update_workflow', [workflowId, $(this).val()]);
+					$(this).blur();
+					location.reload();
+				}
+			});
 			
 			$('.draggable-datasources').each(function() {
 				// inner scope
