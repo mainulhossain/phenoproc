@@ -445,7 +445,7 @@ class Operation(db.Model):
     desc = db.Column(db.Text)
     example = db.Column(db.Text)
     children = db.relationship("Operation", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
-    workitems = db.relationship('WorkItem', backref='operation', lazy='dynamic')
+#    workitems = db.relationship('WorkItem', backref='operation', lazy='dynamic')
     
     def to_json(self):
         json_post = {
@@ -513,6 +513,7 @@ class WorkItem(db.Model):
     operation_id = db.Column(db.Integer, ForeignKey('operations.id'), nullable=True)
     inputs = db.relationship('Data', foreign_keys=[input_id])
     outputs = db.relationship('Data', foreign_keys=[output_id])
+    operation = db.relationship('Operation', foreign_keys=[operation_id])
     
 #     inputs = db.relationship('Data', secondary='workitem_data_link')
 #     outputs = db.relationship('Data', secondary='workitem_data_link', primaryjoin= workitem_data_link.extra_data == 'output')
@@ -539,6 +540,7 @@ class WorkItem(db.Model):
 #    data_id = db.Column(db.Integer, db.ForeignKey('data.id'), primary_key=True)
 
 class DataType:
+    Unknown = 0x00
     Folder = 0x01
     File = 0x02
     Image = 0x04

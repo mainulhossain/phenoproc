@@ -8,6 +8,17 @@
 {{ super() }}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tree.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+<style>
+.btn-separator:after {
+    content: ' ';
+    display: block;
+    float: right;
+    background: #ADADAD;
+    margin: 0 10px;
+    height: 34px;
+    width: 1px;
+}
+</style>
 <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
 <script type="text/javascript">
 	{{ g.sijax.get_js()|safe }}
@@ -30,7 +41,7 @@
 	
 	workflowId = getParameterByName('workflow');
 	if (isBlank(workflowId)) {
-		var pos = location.pathname.search('workflow/');
+		var pos = location.pathname.indexOf('workflow/');
 		if (pos != -1) {
 			workflowId = parseInt(location.pathname.substring(pos + 'workflow/'.length))
 		}
@@ -68,13 +79,15 @@
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
-                    <h4 class="panel-title pull-left" style="padding-top: 7.5px;">Workflow: </h4>
+                    <h4 class="panel-title pull-left" style="padding-top: 7.5px;">Workflow: <strong>{{ workflow }}</strong></h4>
                     <div class="input-group">
                     <div class="input-group-btn">
                     	{% if config.WORKFLOW_MODE_EDIT %}
- 		                    <button class="btn btn-primary pull-right" onclick="Sijax.request('delete_workflow', [workflowId]);"><i class="glyphicon glyphicon-trash"></i></button>
- 		                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-refresh"></i></button>
  		                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-plus-sign" onclick="Sijax.request('add_workitem', [workflowId]); location.reload();"></i></button>
+ 		                       
+        					<span class="btn-separator"></span>
+ 		                    <button class="btn btn-primary pull-right" onclick="Sijax.request('delete_workflow', [workflowId], {async: false});"><i class="glyphicon glyphicon-trash"></i></button>
+ 		                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-refresh"></i></button>
  		                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-random" onclick="Sijax.request('add_workflow'); location.reload();"></i></button>
                    			<button class="btn btn-primary pull-right" onclick="Sijax.request('set_editmode', [false]); location.reload();"><i class="glyphicon glyphicon-off"></i></button>	                        
                     	{% else %}
@@ -95,26 +108,26 @@
 								{% if config.WORKFLOW_MODE_EDIT %}
 									<div class="input-group">
 	    				                <div class="input-group-btn">
-	 		            		        	<button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-trash"></i></button>
+	 		            		        	<button class="btn btn-primary pull-right" onclick="Sijax.request('delete_workitem', [{{item.id}}]); location.reload();"><i class="glyphicon glyphicon-trash"></i></button>
 	 		            		        </div>
  		            		        </div>
  		                    	{% endif %}
                 			</div>
-							<div class="panel-body">
-							<div class="droppable-workitem">
-								<h5 style="text-align: center">Operation: <strong>{{item.opname}}</strong></h5>
+							<div class="panel-body"  id="{{item.id}}">
+								<div class="droppable-operation">
+									<h5 style="text-align: center">Operation: <strong>{{item.opname}}</strong></h5>
+								</div>
+								<div style="float: left; width: 45%" class="droppable-input"><strong>Input</strong>
+									<div style="text-align: left">Type: {{item.input_type}}</div>
+									<div style="text-align: left; word-wrap: break-word;">Url: {{item.input_root}}{{item.input}}</div>
+								</div>
+								<div style="float: right; width: 45%" class="droppable-output">
+									<strong>Output</strong>
+									<div style="text-align: left">Type: {{item.output_type}}</div>
+									<div style="text-align: left; word-wrap: break-word;">Url: {{item.output_root}}{{item.output}}</div>
+								</div>
+								<div style="float: clear;"></div>
 							</div>
-							<div style="float: left; width: 45%" class="droppable-input"><strong>Input</strong>
-								<div style="text-align: left">Type: {{item.input_type}}</div>
-								<div style="text-align: left">Url: {{item.input_root}}{{item.input}}</div>
-							</div>
-							<div style="float: right; width: 45%" class="droppable-output">
-								<strong>Output</strong>
-								<div style="text-align: left">Type: {{item.output_type}}</div>
-								<div style="text-align: left">Url: {{item.output_root}}{{item.input}}</div>
-							</div>
-							<div style="float: clear;"></div>
-						</div>
 						</div>
 						{%- endfor %}
 					</div>
@@ -129,7 +142,7 @@
                 <div class="panel-body draggable-operations">
                     <ul id="tree-operations">
                         {%- for item in operations.children recursive %}
-                        <li class="draggable-op">{{ item.name }}
+                        <li class="draggable-op" id="{{ item.name[1] }}">{{ item.name[0] }}
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -142,9 +155,9 @@
                     <h5 class="">Workflows</h5>
                 </div>
                 <div class="panel-body">
-                    <div id="workflows">
+                    <div class="radio">
                         {%- for item in workflows %}
-                        <input type="radio" onclick="window.location.href='/workflow/{{ item.id }}'">{{ item.name }}
+                        <input type="radio" id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }}<br>
                         {%- endfor %}
                     </div>
                 </div>
@@ -165,6 +178,11 @@
 
 			$('#tree1').treed();
 			$('#tree-operations').treed();
+			$('input:radio[name=workflows]').each(function () {
+				if ($(this).prop('id') == workflowId)
+					$(this).prop('checked', true);
+        	});
+			
 			$('.draggable-datasources').each(function() {
 				// inner scope
 				var phrase = '';
@@ -200,15 +218,28 @@
 			$(".droppable-input, .droppable-output").droppable({
 				accept : ".draggable-data",
 				drop : function(event, ui) {
-					alert('dropped');
+				    var id = ui.draggable.attr("id");
+				    var dataSourcePath = id.split(';', 2);
+				    var workItem = parseInt($(event.target).parent().attr("id"));
+				    var droppableClass = $(this).attr("class");
+				    if (droppableClass.indexOf("droppable-input") != -1){
+				    	Sijax.request('add_input', [parseInt(dataSourcePath[0]), dataSourcePath[1], workItem], {async: false});
+				    }
+				    else {
+				    	Sijax.request('add_output', [parseInt(dataSourcePath[0]), dataSourcePath[1], workItem], {async: false});
+				    }
+				    location.reload();
 					return;
 				}
 			});
 			
-			$(".droppable-workitem").droppable({
+			$(".droppable-operation").droppable({
 				accept : ".draggable-op",
 				drop : function(event, ui) {
-					alert('dropped');
+				    var id = ui.draggable.attr("id");
+				    var workItem = parseInt($(event.target).parent().attr("id"));
+			    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
+			    	location.reload();
 					return;
 				}
 			});

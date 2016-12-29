@@ -8,7 +8,7 @@ from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
     CommentForm
 from .. import db
-from ..models import Permission, Role, User, Post, Comment, Workflow, WorkItem, DataSource, OperationSource, Operation
+from ..models import Permission, Role, User, Post, Comment, Workflow, WorkItem, DataSource, Data, DataType, OperationSource, Operation
 from ..decorators import admin_required, permission_required
 from sqlalchemy import text
 import os
@@ -44,9 +44,11 @@ def server_shutdown():
     shutdown()
     return 'Shutting down...'
 
-def make_fs_tree(path):
+separator = ';'
+
+def make_fs_tree(datasourceid, path):
     #tree = dict(name=os.path.basename(path), children=[])
-    tree = dict(name=(os.path.basename(path), path), children=[])
+    tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
     try: lst = os.listdir(path)
     except OSError:
         pass #ignore errors
@@ -54,13 +56,13 @@ def make_fs_tree(path):
         for name in lst:
             fn = os.path.join(path, name)
             if os.path.isdir(fn):
-                tree['children'].append(make_fs_tree(fn))
+                tree['children'].append(make_fs_tree(datasourceid, fn))
             else:
-                tree['children'].append({'name' : (name, fn), 'children' : []})
+                tree['children'].append({'name' : (name, datasourceid + separator + fn), 'children' : []})
     return tree
 
-def make_hdfs_tree(client, path):
-    tree = dict(name=(os.path.basename(path), path), children=[])
+def make_hdfs_tree(datasourceid, client, path):
+    tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
     try: lst = client.list(path, status=True)
     except:
         pass #ignore errors
@@ -68,9 +70,9 @@ def make_hdfs_tree(client, path):
         for fsitem in lst:
             fn = os.path.join(path, fsitem[0])
             if fsitem[1]['type'] == "DIRECTORY":
-                tree['children'].append(make_hdfs_tree(client, fn))
+                tree['children'].append(make_hdfs_tree(datasourceid, client, fn))
             else:
-                tree['children'].append({'name' : (fsitem[0], fn), 'children' : []})
+                tree['children'].append({'name' : (fsitem[0], datasourceid + separator + fn), 'children' : []})
     return tree
 
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
@@ -102,42 +104,75 @@ def index(id=None):
             db.session.commit()
             obj_response.redirect(request.base_url + '{0}{1}'.format('?workflow=', workflow.id))
     
-    def delete_workitem(obj_response, workitem_id):
-        if current_user.is_authenticated:
-            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
-                WorkItem.query.filter(WorkItem.id == workitem_id).delete()
-                db.session.commit()
-                
-            
     def delete_workflow(obj_response, workflow_id):
+        print(request.base_url, file=sys.stderr)
         if current_user.is_authenticated:
+            workflow_id = ValueOrNone(workflow_id)
             if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
                 Workflow.query.filter(Workflow.id == workflow_id).delete()
                 db.session.commit()
-                                    
+                obj_response.redirect('/')
+                
+    def delete_workitem(obj_response, workitem_id):
+        if current_user.is_authenticated:
+             workitem_id = ValueOrNone(workitem_id)
+             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
+                WorkItem.query.filter(WorkItem.id == workitem_id).delete()
+                db.session.commit()               
+                                              
     def add_workitem(obj_response, wf_id):
         if current_user.is_authenticated:
             wf_id = ValueOrNone(wf_id)
-            print(str(wf_id), file=sys.stderr)
             if wf_id is not None and Workflow.query.get(wf_id) is not None:
                 workitem = WorkItem(workflow_id=wf_id, name='New Workitem')            
                 db.session.add(workitem)
                 db.session.commit()
     
-    def add_input(obj_response, workitem_id, data_id):
+    def add_input(obj_response, datasource, path, workitem_id):
         if current_user.is_authenticated:
-            workflow_id = ValueOrNone(workflow_id)
-            if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
-                workitem = WorkItem(workflow_id=workflow_id, name='New Workitem')            
-                db.session.add(workitem)
+            workitem_id = ValueOrNone(workitem_id)
+            datasource = ValueOrNone(datasource)
+            
+            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
+                workitem = WorkItem.query.get(workitem_id)
+#                 if (workitem.input_id is not None):
+#                     Data.query.filter(Data.id == workitem.input_id).delete()                
+                workitem.inputs = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
                 db.session.commit()
-                            
+                
+    def add_output(obj_response, datasource, path, workitem_id):
+        if current_user.is_authenticated:
+            workitem_id = ValueOrNone(workitem_id)
+            datasource = ValueOrNone(datasource)
+            
+            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
+                workitem = WorkItem.query.get(workitem_id)
+#                 if (workitem.output_id is not None):
+#                     Data.query.filter(Data.id == workitem.output_id).delete()                
+                workitem.outputs = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
+                db.session.commit()
+                
+    def add_operation(obj_response, workitem_id, operation_id):
+        if current_user.is_authenticated:
+            workitem_id = ValueOrNone(workitem_id)
+            operation_id = ValueOrNone(operation_id)
+            
+            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None and Operation.query.get(operation_id) is not None:
+                workitem = WorkItem.query.get(workitem_id)
+                workitem.operation = Operation.query.get(operation_id)
+                db.session.commit()
+                                                   
     if g.sijax.is_sijax_request:
         # Sijax request detected - let Sijax handle it
         g.sijax.register_callback('run_workflow', run_workflow)
         g.sijax.register_callback('set_editmode', set_editmode)
         g.sijax.register_callback('add_workflow', add_workflow)
         g.sijax.register_callback('add_workitem', add_workitem)
+        g.sijax.register_callback('add_input', add_input)
+        g.sijax.register_callback('add_output', add_output)
+        g.sijax.register_callback('add_operation', add_operation)
+        g.sijax.register_callback('delete_workflow', delete_workflow)
+        g.sijax.register_callback('delete_workitem', delete_workitem)
         return g.sijax.process_request()
 
     form = PostForm()
@@ -162,34 +197,36 @@ def index(id=None):
     datasources = DataSource.query.all()
     datasource_tree = { 'name' : ('datasources', ''), 'children' : [] }
     for ds in datasources:
-        datasource_tree['children'].append({ 'name' : (ds.name, ds.url), 'children' : [] })
-    
-    # hdfs tree         
-    try:
-        client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
-    except:
-        pass
-    else:
-        hdfs_tree = datasource_tree['children'][0]['children']
-        if client is not None:
-            if current_user.is_authenticated:
-                hdfs_tree.append(make_hdfs_tree(client, os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
-            hdfs_tree.append(make_hdfs_tree(client, os.path.join(current_app.config['HDFS_DIR'], 'public')))
-    
-    # file system tree
-    fs_tree = datasource_tree['children'][1]['children']
-    if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
-        fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], current_user.username)))
-        
-    fs_tree.append(make_fs_tree(os.path.join(current_app.config['DATA_DIR'], 'public')))
-    
+        datasource = { 'name' : (ds.name, str(ds.id) + separator + ds.url), 'children' : [] }
+        if ds.id == 1:
+            # hdfs tree         
+            try:
+                client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
+            except:
+                pass
+            else:
+                hdfs_tree = datasource['children']
+                if client is not None:
+                    if current_user.is_authenticated:
+                        hdfs_tree.append(make_hdfs_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
+                    hdfs_tree.append(make_hdfs_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], 'public')))
+        elif ds.id == 2:
+            # file system tree
+            fs_tree = datasource['children']
+            if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
+                fs_tree.append(make_fs_tree(str(ds.id), os.path.join(current_app.config['DATA_DIR'], current_user.username)))
+                
+            fs_tree.append(make_fs_tree(str(ds.id), os.path.join(current_app.config['DATA_DIR'], 'public')))
+ 
+        datasource_tree['children'].append(datasource)
+
     # construct operation source tree
     operationsources = OperationSource.query.all()
-    operation_tree = { 'name' : 'operations', 'children' : [] }
+    operation_tree = { 'name' : ('operations', ''), 'children' : [] }
     for ops in operationsources:
-        operation_tree['children'].append({ 'name' : ops.name, 'children' : [] })
+        operation_tree['children'].append({ 'name' : (ops.name, ops.id), 'children' : [] })
         for op in ops.operations:
-            operation_tree['children'][-1]['children'].append({ 'name' : op.name, 'children' : [] })
+            operation_tree['children'][-1]['children'].append({ 'name' : (op.name, op.id), 'children' : [] })
     
     # workflows tree
     workflows = []
@@ -200,10 +237,12 @@ def index(id=None):
 #    Workflow.query.join(WorkItem).join(Operation).filter_by(id=1).c
 #    sql = text('SELECT workitems.*, operations.name AS opname FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id WHERE workflows.id=' + str(id))
     
+    workflow_name = None
     if id is not None and Workflow.query.get(id) is not None:
+        workflow_name = Workflow.query.get(id).name
 #        sql = text('SELECT workitems.*, operations.name AS opname, datasources.id AS datasource_id, datasources.name AS datasource_name, data.url AS path FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id INNER JOIN data ON workitems.id = data.id INNER JOIN datasources ON data.datasource_id=datasources.id WHERE workflows.id=' + str(id))
 #        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
-        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id) s LEFT JOIN datasources dx ON dx.id=s.input_datasource LEFT JOIN datasources dx2 ON dx2.id=s.output_datasource LEFT JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))        
+        sql = text('SELECT s.id AS id, s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id) s LEFT JOIN datasources dx ON dx.id=s.input_datasource LEFT JOIN datasources dx2 ON dx2.id=s.output_datasource LEFT JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))        
         result = db.engine.execute(sql)
         for row in result:
             workitems.append(row);
@@ -213,7 +252,7 @@ def index(id=None):
 #             workitems = workflow.first().workitems
     
     
-    return render_template('index.html', form=form, posts=posts, datasources=datasource_tree, operations=operation_tree, workflows=workflows, workitems=workitems,
+    return render_template('index.html', form=form, posts=posts, datasources=datasource_tree, operations=operation_tree, workflow=workflow_name, workflows=workflows, workitems=workitems,
                            show_followed=show_followed, pagination=pagination)
 
 
