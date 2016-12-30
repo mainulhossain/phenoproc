@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from flask_login import login_required, current_user
 from ..models import Permission, Role, User, Workflow, WorkItem, DataSource, Data, DataType, OperationSource, Operation
 from ..operations import execute_workflow
@@ -56,12 +58,13 @@ class WorkflowHandler:
         if current_user.is_authenticated:
             workitem_id = Utility.ValueOrNone(workitem_id)
             datasource = Utility.ValueOrNone(datasource)
-            
+            current_app.config['WORKFLOW_MODE_EDIT']
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
                 workitem = WorkItem.query.get(workitem_id)
-#                 if (workitem.input_id is not None):
-#                     Data.query.filter(Data.id == workitem.input_id).delete()                
-                workitem.inputs = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
+                data = Data.query.filter_by(url = path).first()
+                if data is None:
+                    data = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
+                workitem.inputs = data
                 db.session.commit()
                 
     @staticmethod        
@@ -69,12 +72,13 @@ class WorkflowHandler:
         if current_user.is_authenticated:
             workitem_id = Utility.ValueOrNone(workitem_id)
             datasource = Utility.ValueOrNone(datasource)
-            
+            print(path)
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
-                workitem = WorkItem.query.get(workitem_id)
-#                 if (workitem.output_id is not None):
-#                     Data.query.filter(Data.id == workitem.output_id).delete()                
-                workitem.outputs = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
+                workitem = WorkItem.query.get(workitem_id)            
+                data = Data.query.filter_by(url = path).first()
+                if data is None:
+                    data = Data(datasource_id = datasource, datatype = DataType.Unknown, url = path)
+                workitem.outputs = data
                 db.session.commit()
                 
     @staticmethod        

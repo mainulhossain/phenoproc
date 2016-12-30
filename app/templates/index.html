@@ -69,7 +69,7 @@
                 <div class="panel-body draggable-datasources">
                     <ul id="tree1">
                         {%- for item in datasources.children recursive %}
-                        <li class="draggable-data ui-draggable" id="{{ item.name[1] }}">{{ item.name[0] }}
+                        <li class="draggable-data ui-draggable" data-datasource="{{ item.datasource }}" id="{{ item.path }}">{{ item.name }}
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -122,13 +122,13 @@
 									<h5 style="text-align: center">Operation: <strong>{{item.opname}}</strong></h5>
 								</div>
 								<div style="float: left; width: 45%" class="droppable-input"><strong>Input</strong>
-									<div style="text-align: left">Type: {{item.input_type}}</div>
-									<div style="text-align: left; word-wrap: break-word;">Url: {{item.input_root}}{{item.input}}</div>
+									<div style="text-align: left">Type: {{item.input_datasource}}</div>
+									<div style="text-align: left; word-wrap: break-word;">Url: {{item.input}}</div>
 								</div>
 								<div style="float: right; width: 45%" class="droppable-output">
 									<strong>Output</strong>
-									<div style="text-align: left">Type: {{item.output_type}}</div>
-									<div style="text-align: left; word-wrap: break-word;">Url: {{item.output_root}}{{item.output}}</div>
+									<div style="text-align: left">Type: {{item.output_datasource}}</div>
+									<div style="text-align: left; word-wrap: break-word;">Url: {{item.output}}</div>
 								</div>
 								<div style="float: clear;"></div>
 							</div>
@@ -251,17 +251,14 @@
 			$(".droppable-input, .droppable-output").droppable({
 				accept : ".draggable-data",
 				drop : function(event, ui) {
-				    var id = ui.draggable.attr("id");
-				    var dataSourcePath = id.split(';', 2);
-				    var workItem = parseInt($(event.target).parent().attr("id"));
-				    var droppableClass = $(this).attr("class");
-				    if (droppableClass.indexOf("droppable-input") != -1){
-				    	Sijax.request('add_input', [parseInt(dataSourcePath[0]), dataSourcePath[1], workItem], {async: false});
-				    }
-				    else {
-				    	Sijax.request('add_output', [parseInt(dataSourcePath[0]), dataSourcePath[1], workItem], {async: false});
-				    }
-				    location.reload();
+					if (editMode) {
+					    var path = ui.draggable.attr("id");
+					    var datasource = ui.draggable.data('datasource');
+					    var workItem = parseInt($(event.target).parent().attr("id"));
+					    var droppableClass = $(this).attr("class");
+				    	Sijax.request(droppableClass.indexOf("droppable-input") != -1 ? 'add_input' : 'add_output', [datasource, path, workItem], {async: false});
+					    location.reload();
+					}
 					return;
 				}
 			});
@@ -269,10 +266,12 @@
 			$(".droppable-operation").droppable({
 				accept : ".draggable-op",
 				drop : function(event, ui) {
-				    var id = ui.draggable.attr("id");
-				    var workItem = parseInt($(event.target).parent().attr("id"));
-			    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
-			    	location.reload();
+					if (editMode) {
+					    var id = ui.draggable.attr("id");
+					    var workItem = parseInt($(event.target).parent().attr("id"));
+				    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
+				    	location.reload();
+					}
 					return;
 				}
 			});

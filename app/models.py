@@ -11,6 +11,7 @@ from . import db, login_manager
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.engine import default
+from flask_login import current_user
 
 class Permission:
     FOLLOW = 0x01
@@ -550,6 +551,7 @@ class DataType:
     CSV = 0x40
     SQL = 0x80
     Custom = 0x100
+    Root = 0x200
     
 class DataSourceAllocation(db.Model):
      __tablename__ = 'datasource_allocations'  
@@ -564,3 +566,14 @@ class Data(db.Model):
     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
     datatype = db.Column(db.Integer)
     url = db.Column(db.Text)
+    
+    @staticmethod
+    def get_basedir(datasource):
+        if datasource == 1:
+            return os.path.join(current_app.config['HDFS_DIR'], current_user.username)
+        if datasource == 2:
+            return os.path.join(current_app.config['DATA_DIR'], current_user.username)
+        return ""
+    
+    def get_fullpath(self):
+        return os.path.join(get_basedir(datasource_id), url)
