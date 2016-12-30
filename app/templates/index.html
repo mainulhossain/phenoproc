@@ -119,16 +119,20 @@
                 			</div>
 							<div class="panel-body"  id="{{item.id}}">
 								<div class="droppable-operation">
-									<h5 style="text-align: center">Operation: <strong>{{item.opname}}</strong></h5>
+									<h5 style="text-align: center">Operation: <strong>{{item.opname or ''}}</strong></h5>
 								</div>
 								<div style="float: left; width: 45%" class="droppable-input"><strong>Input</strong>
-									<div style="text-align: left">Type: {{item.input_datasource}}</div>
-									<div style="text-align: left; word-wrap: break-word;">Url: {{item.input}}</div>
+									<div style="text-align: left">Type: {{item.input_datasource or ''}}</div>
+									<div style="text-align: left; word-wrap: break-word;">Url: 
+										<textarea wrap="hard" class="input-path" data-datasourcetype="{{item.input_datasourceid or ''}}">{{item.input or ''}}</textarea>
+									</div>
 								</div>
 								<div style="float: right; width: 45%" class="droppable-output">
 									<strong>Output</strong>
-									<div style="text-align: left">Type: {{item.output_datasource}}</div>
-									<div style="text-align: left; word-wrap: break-word;">Url: {{item.output}}</div>
+									<div style="text-align: left">Type: {{item.output_datasource or ''}}</div>
+									<div style="text-align: left;">Url: 
+										<textarea wrap="hard" class="output-path" data-datasourcetype="{{item.output_datasourceid or ''}}">{{item.output or ''}}</textarea>
+									</div>
 								</div>
 								<div style="float: clear;"></div>
 							</div>
@@ -192,6 +196,14 @@
 					$(this).prop('disabled', !editMode || workflowId <= 0);
 			});
 			
+			$(".input-path").each(function() {
+				$(this).prop('disabled', !editMode || workflowId <= 0);
+			});
+			
+			$(".output-path").each(function() {
+				$(this).prop('disabled', !editMode || workflowId <= 0);
+			});
+			
 			$("#workflow-name").change(function(){
 				if (editMode) {
 					Sijax.request('update_workflow', [workflowId, $(this).val()]);
@@ -214,6 +226,34 @@
 					$(this).blur();
 					location.reload();
 				}
+			});
+			
+			$(".input-path").change(function(){
+				if (editMode && $(this).val()) {
+				    var workItem = parseInt($(this).parent().parent().parent().attr("id")); // textarea->div->div->div->div
+				    var datasourcetype = $(this).data('datasourcetype');
+				    if (isBlank(datasourcetype)) {
+				    	alert('Drag a base dir from the data sources first.');
+				    	return;
+				    }
+			    	Sijax.request('add_input', [datasourcetype, $(this).val(), workItem], {async: false});
+				    location.reload();
+				}
+				return;
+			});
+			
+			$(".output-path").change(function(){
+				if (editMode && $(this).val()) {
+				    var workItem = parseInt($(this).parent().parent().parent().attr("id")); // textarea->div->div->div->div
+				    var datasourcetype = $(this).data('datasourcetype');
+				    if (isBlank(datasourcetype)) {
+				    	alert('Drag a base dir from the data sources first.');
+				    	return;
+				    }
+			    	Sijax.request('add_output', [datasourcetype, $(this).val(), workItem], {async: false});
+				    location.reload();
+				}
+				return;
 			});
 			
 			$('.draggable-datasources').each(function() {
