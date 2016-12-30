@@ -82,7 +82,6 @@ def index(id=None):
             # hdfs tree
             try:
                 hdfs = HadoopFileSystem()
-                print('hdfs created', file=sys.stderr)
                 if current_user.is_authenticated:
                     datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], current_user.username))
                 datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], 'public'))

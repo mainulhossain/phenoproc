@@ -4,6 +4,7 @@
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
+from __future__ import print_function
 
 from flask import current_app
 from abc import ABCMeta, abstractmethod
@@ -110,7 +111,10 @@ class HadoopFileSystem(object):
         #tree = dict(name=os.path.basename(path), children=[])
         path = os.path.join(base, relative_path)
         data_json = {'datasource': datasourceid, 'path': relative_path, 'name': os.path.basename(relative_path) }
+        print(path, file=sys.stderr)
         status = self.client.status(path, False)
+        print(status, file=sys.stderr)
+
         if status is not None:
             if status['type'] == "DIRECTORY":
                 data_json['type'] = DataType.Folder
