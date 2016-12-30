@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from flask import Flask, render_template, redirect, url_for, abort, flash, request,\
     current_app, make_response, g
 from flask_login import login_required, current_user
@@ -80,6 +82,7 @@ def index(id=None):
             # hdfs tree
             try:
                 hdfs = HadoopFileSystem()
+                print('hdfs created', file=sys.stderr)
                 if current_user.is_authenticated:
                     datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], current_user.username))
                 datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], 'public'))
