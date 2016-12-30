@@ -15,6 +15,8 @@ import os
 import sys
 import flask_sijax
 from ..operations import execute_workflow
+from .ajax import WorkflowHandler
+from ..util import Utility
 
 try:
     from hdfs import InsecureClient
@@ -78,117 +80,14 @@ def make_hdfs_tree(datasourceid, client, path):
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
 @main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
 def index(id=None):
-    
-    def ValueOrNone(val):
-        try:
-            return int(val)
-        except ValueError:
-            return 0
-            
-    id = ValueOrNone(id)
+              
+    id = Utility.ValueOrNone(id)
     if id <= 0:
         id = request.args.get('workflow')
-        
-    def run_workflow(obj_response, workflow_id):
-        workflow_id = ValueOrNone(workflow_id)
-        if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
-            execute_workflow(workflow_id)
-            
-    def set_editmode(obj_response, mode):
-        current_app.config['WORKFLOW_MODE_EDIT'] = mode
-    
-    def add_workflow(obj_response):
-        if current_user.is_authenticated:
-            workflow = Workflow(user_id=current_user.id, name='New Workflow')            
-            db.session.add(workflow)
-            db.session.commit()
-            obj_response.redirect(request.base_url + '{0}{1}'.format('?workflow=', workflow.id))
-    
-    def delete_workflow(obj_response, workflow_id):
-        print(request.base_url, file=sys.stderr)
-        if current_user.is_authenticated:
-            workflow_id = ValueOrNone(workflow_id)
-            if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
-                Workflow.query.filter(Workflow.id == workflow_id).delete()
-                db.session.commit()
-                obj_response.redirect('/')
-                
-    def delete_workitem(obj_response, workitem_id):
-        if current_user.is_authenticated:
-             workitem_id = ValueOrNone(workitem_id)
-             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
-                WorkItem.query.filter(WorkItem.id == workitem_id).delete()
-                db.session.commit()               
-                                              
-    def add_workitem(obj_response, wf_id):
-        if current_user.is_authenticated:
-            wf_id = ValueOrNone(wf_id)
-            if wf_id is not None and Workflow.query.get(wf_id) is not None:
-                workitem = WorkItem(workflow_id=wf_id, name='New Workitem')            
-                db.session.add(workitem)
-                db.session.commit()
-    
-    def add_input(obj_response, datasource, path, workitem_id):
-        if current_user.is_authenticated:
-            workitem_id = ValueOrNone(workitem_id)
-            datasource = ValueOrNone(datasource)
-            
-            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
-                workitem = WorkItem.query.get(workitem_id)
-#                 if (workitem.input_id is not None):
-#                     Data.query.filter(Data.id == workitem.input_id).delete()                
-                workitem.inputs = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
-                db.session.commit()
-                
-    def add_output(obj_response, datasource, path, workitem_id):
-        if current_user.is_authenticated:
-            workitem_id = ValueOrNone(workitem_id)
-            datasource = ValueOrNone(datasource)
-            
-            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
-                workitem = WorkItem.query.get(workitem_id)
-#                 if (workitem.output_id is not None):
-#                     Data.query.filter(Data.id == workitem.output_id).delete()                
-                workitem.outputs = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
-                db.session.commit()
-                
-    def add_operation(obj_response, workitem_id, operation_id):
-        if current_user.is_authenticated:
-            workitem_id = ValueOrNone(workitem_id)
-            operation_id = ValueOrNone(operation_id)
-            
-            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None and Operation.query.get(operation_id) is not None:
-                workitem = WorkItem.query.get(workitem_id)
-                workitem.operation = Operation.query.get(operation_id)
-                db.session.commit()
-
-    def update_workflow(obj_response, workflow_id, workflow_name):
-        if current_user.is_authenticated and current_app.config['WORKFLOW_MODE_EDIT']:
-             workflow_id = ValueOrNone(workflow_id)
-             if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
-                Workflow.query.get(workflow_id).name = workflow_name
-                db.session.commit()               
-    
-    def update_workitem(obj_response, workitem_id, workitem_name):
-        if current_user.is_authenticated and current_app.config['WORKFLOW_MODE_EDIT']:
-             workitem_id = ValueOrNone(workitem_id)
-             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
-                WorkItem.query.get(workitem_id).name = workitem_name
-                db.session.commit()
                                                                
     if g.sijax.is_sijax_request:
         # Sijax request detected - let Sijax handle it
-        g.sijax.register_callback('run_workflow', run_workflow)
-        g.sijax.register_callback('set_editmode', set_editmode)
-        g.sijax.register_callback('add_workflow', add_workflow)
-        g.sijax.register_callback('add_workitem', add_workitem)
-        g.sijax.register_callback('add_input', add_input)
-        g.sijax.register_callback('add_output', add_output)
-        g.sijax.register_callback('add_operation', add_operation)
-        g.sijax.register_callback('delete_workflow', delete_workflow)
-        g.sijax.register_callback('delete_workitem', delete_workitem)
-        g.sijax.register_callback('update_workflow', update_workflow)
-        g.sijax.register_callback('update_workitem', update_workitem)
+        g.sijax.register_object(WorkflowHandler)
         return g.sijax.process_request()
 
     form = PostForm()
