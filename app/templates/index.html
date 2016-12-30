@@ -103,12 +103,12 @@
                 </div>
                 </div>
                 <div class="panel-body">
-                	<div id="workflows">
+                	<div id="workitems">
 						{%- for item in workitems %}
 						<div class="panel panel-default">
 							<div class="panel-heading clearfix">
 								<h4 class="panel-title pull-left">Work Item: </h4>
-								<input class="workitem-name" id="{{item.id}}" value="{{item.name}}">
+								<input type="text" class="workitem-name pull-left" data-workitemid="{{item.id}}" value="{{item.name}}">
 								{% if config.WORKFLOW_MODE_EDIT %}
 									<div class="input-group">
 	    				                <div class="input-group-btn">
@@ -214,7 +214,7 @@
 			
 			$(".workitem-name").change(function(){
 				if (editMode) {
-					Sijax.request('update_workitem', [$(this).attr('id'), $(this).val()]);
+					Sijax.request('update_workitem', [$(this).data('workitemid'), $(this).val()]);
 					$(this).blur();
 					location.reload();
 				}
