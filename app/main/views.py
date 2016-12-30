@@ -17,6 +17,7 @@ import flask_sijax
 from ..operations import execute_workflow
 from .ajax import WorkflowHandler
 from ..util import Utility
+from ..io import PosixFileSystem, HadoopFileSystem, separator
 
 try:
     from hdfs import InsecureClient
@@ -45,37 +46,6 @@ def server_shutdown():
         abort(500)
     shutdown()
     return 'Shutting down...'
-
-separator = ';'
-
-def make_fs_tree(datasourceid, path):
-    #tree = dict(name=os.path.basename(path), children=[])
-    tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
-    try: lst = os.listdir(path)
-    except OSError:
-        pass #ignore errors
-    else:
-        for name in lst:
-            fn = os.path.join(path, name)
-            if os.path.isdir(fn):
-                tree['children'].append(make_fs_tree(datasourceid, fn))
-            else:
-                tree['children'].append({'name' : (name, datasourceid + separator + fn), 'children' : []})
-    return tree
-
-def make_hdfs_tree(datasourceid, client, path):
-    tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
-    try: lst = client.list(path, status=True)
-    except:
-        pass #ignore errors
-    else:
-        for fsitem in lst:
-            fn = os.path.join(path, fsitem[0])
-            if fsitem[1]['type'] == "DIRECTORY":
-                tree['children'].append(make_hdfs_tree(datasourceid, client, fn))
-            else:
-                tree['children'].append({'name' : (fsitem[0], datasourceid + separator + fn), 'children' : []})
-    return tree
 
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
 @main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
@@ -122,16 +92,18 @@ def index(id=None):
             else:
                 hdfs_tree = datasource['children']
                 if client is not None:
+                    hdfs = HadoopFileSystem()
                     if current_user.is_authenticated:
-                        hdfs_tree.append(make_hdfs_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
-                    hdfs_tree.append(make_hdfs_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], 'public')))
+                        hdfs_tree.append(hdfs.make_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
+                    hdfs_tree.append(hdfs.make_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], 'public')))
         elif ds.id == 2:
             # file system tree
             fs_tree = datasource['children']
+            posixFS = PosixFileSystem()
             if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
-                fs_tree.append(make_fs_tree(str(ds.id), os.path.join(current_app.config['DATA_DIR'], current_user.username)))
+                fs_tree.append(posixFS.make_tree(str(ds.id), os.path.join(current_app.config['DATA_DIR'], current_user.username)))
                 
-            fs_tree.append(make_fs_tree(str(ds.id), os.path.join(current_app.config['DATA_DIR'], 'public')))
+            fs_tree.append(posixFS.make_tree(str(ds.id), os.path.join(current_app.config['DATA_DIR'], 'public')))
  
         datasource_tree['children'].append(datasource)
 
