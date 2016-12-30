@@ -62,7 +62,7 @@ class PosixFileSystem(object):
         data_json = {'datasource': datasourceid, 'path': relative_path, 'name': os.path.basename(relative_path) }
         if os.path.isdir(path):
             data_json['type'] = DataType.Folder
-            data_json['children'] = [make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in os.listdir(os.path.join(path))]
+            data_json['children'] = [make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in os.listdir(path)]
         else:
             data_json['type'] = DataType.File
         print(json.dumps(data_json))
@@ -92,20 +92,34 @@ class HadoopFileSystem(object):
 #                     tree['children'].append(dict(name=name[0]))
 #         return tree
     
-    def make_tree(self, datasourceid, client, path):
-        tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
-        try: lst = client.list(path, status=True)
-        except:
-            pass #ignore errors
-        else:
-            for fsitem in lst:
-                fn = os.path.join(path, fsitem[0])
-                if fsitem[1]['type'] == "DIRECTORY":
-                    tree['children'].append(make_hdfs_tree(datasourceid, client, fn))
-                else:
-                    tree['children'].append({'name' : (fsitem[0], datasourceid + separator + fn), 'children' : []})
-        return tree
+#     def make_tree(self, datasourceid, client, path):
+#         tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
+#         try: lst = client.list(path, status=True)
+#         except:
+#             pass #ignore errors
+#         else:
+#             for fsitem in lst:
+#                 fn = os.path.join(path, fsitem[0])
+#                 if fsitem[1]['type'] == "DIRECTORY":
+#                     tree['children'].append(make_hdfs_tree(datasourceid, client, fn))
+#                 else:
+#                     tree['children'].append({'name' : (fsitem[0], datasourceid + separator + fn), 'children' : []})
+#         return tree
 
+    def make_json(self, datasourceid, base, relative_path):
+        #tree = dict(name=os.path.basename(path), children=[])
+        path = os.path.join(base, relative_path)
+        data_json = {'datasource': datasourceid, 'path': relative_path, 'name': os.path.basename(relative_path) }
+        status = self.client.status(path, False)
+        if status is not None:
+            if status['type'] == "DIRECTORY":
+                data_json['type'] = DataType.Folder
+                data_json['children'] = [make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in self.client.list(path)]
+            else:
+                data_json['type'] = DataType.File
+        print(json.dumps(data_json))
+        return data_json
+    
     def makedirs(self, path):
         try: 
             client.makedirs(path)

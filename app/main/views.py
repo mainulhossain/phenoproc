@@ -17,11 +17,6 @@ from .ajax import WorkflowHandler
 from ..util import Utility
 from ..io import PosixFileSystem, HadoopFileSystem, separator
 
-try:
-    from hdfs import InsecureClient
-except:
-    pass
-
 app = Flask(__name__)
 
 @main.after_app_request
@@ -82,18 +77,15 @@ def index(id=None):
     for ds in datasources:
         datasource = { 'datasource': ds.id, 'type': DataType.Root, 'path': ds.url, 'name': ds.name, 'children': []}
         if ds.id == 1:
-            # hdfs tree         
+            # hdfs tree
             try:
-                client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
+                hdfs = HadoopFileSystem()
+                if current_user.is_authenticated:
+                    datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], current_user.username))
+                datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], 'public'))
             except:
                 pass
-            else:
-                hdfs_tree = datasource['children']
-                if client is not None:
-                    hdfs = HadoopFileSystem()
-                    if current_user.is_authenticated:
-                        hdfs_tree.append(hdfs.make_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], current_user.username)))
-                    hdfs_tree.append(hdfs.make_tree(str(ds.id), client, os.path.join(current_app.config['HDFS_DIR'], 'public')))
+
         elif ds.id == 2:
             # file system tree
             posixFS = PosixFileSystem()
