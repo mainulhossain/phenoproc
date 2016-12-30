@@ -1,10 +1,11 @@
+from __future__ import print_function
+
 # To change this license header, choose License Headers in Project Properties.
 # To change this template file, choose Tools | Templates
 # and open the template in the editor.
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
-from __future__ import print_function
 
 from flask import current_app
 from abc import ABCMeta, abstractmethod
