@@ -12,6 +12,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.engine import default
 from flask_login import current_user
+import os
 
 class Permission:
     FOLLOW = 0x01
@@ -576,4 +577,4 @@ class Data(db.Model):
         return ""
     
     def get_fullpath(self):
-        return os.path.join(get_basedir(datasource_id), url)
+        return os.path.join(Data.get_basedir(self.datasource_id), self.url)

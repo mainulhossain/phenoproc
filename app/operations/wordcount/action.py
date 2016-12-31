@@ -18,7 +18,7 @@ class Action(object):
     def run_hdfs(workitem):
         input_datasource = DataSource.query.get(workitem.inputs.datasource_id)
         output_datasource = DataSource.query.get(workitem.outputs.datasource_id)
-        runHadoop(os.path.abspath('mapper.py'), os.path.abspath('reducer.py'), os.path.join(input_datasource.url, workitem.inputs.get_fullpath()), os.path.join(output_datasource.url, workitem.outputs.get_fullpath()))
+        runHadoop(os.path.abspath('mapper.py'), os.path.abspath('reducer.py'), os.path.abspath(os.path.dirname(__file__)), os.path.join(input_datasource.url, workitem.inputs.get_fullpath()), os.path.join(output_datasource.url, workitem.outputs.get_fullpath()))
     
     @staticmethod
     def run_fs(workitem):
