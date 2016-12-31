@@ -119,7 +119,7 @@
                 			</div>
 							<div class="panel-body"  id="{{item.id}}">
 								<div class="droppable-operation">
-									<h5 style="text-align: center">Operation: <strong>{{item.opname or ''}}</strong></h5>
+									<h5 style="text-align: center">Operation: <strong>{{item.operationname or ''}}</strong></h5>
 								</div>
 								<div style="float: left; width: 45%" class="droppable-input"><strong>Input</strong>
 									<div style="text-align: left">Type: {{item.input_datasource or ''}}</div>
@@ -308,6 +308,7 @@
 				drop : function(event, ui) {
 					if (editMode) {
 					    var id = ui.draggable.attr("id");
+					    alert(id);
 					    var workItem = parseInt($(event.target).parent().attr("id"));
 				    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
 				    	location.reload();

@@ -90,6 +90,7 @@ class WorkflowHandler:
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None and Operation.query.get(operation_id) is not None:
                 workitem = WorkItem.query.get(workitem_id)
                 workitem.operation = Operation.query.get(operation_id)
+                print(workitem.operation.id)
                 db.session.commit()
 
     @staticmethod        

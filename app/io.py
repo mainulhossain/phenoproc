@@ -67,7 +67,7 @@ class PosixFileSystem(object):
             data_json['children'] = [make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in os.listdir(path)]
         else:
             data_json['type'] = DataType.File
-        print(json.dumps(data_json))
+        #print(json.dumps(data_json))
         return data_json
     
     def makedirs(self, path):
@@ -78,22 +78,7 @@ class PosixFileSystem(object):
 class HadoopFileSystem(object):
     def __init__(self, *opts):
         self.client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
-        
-#     def make_tree(self, path):
-#         tree = dict(name=os.path.basename(path), children=[])
-#         try:
-#             lst = self.client.list(path, status=True)
-#         except:
-#             pass #ignore errors
-#         else:
-#             for name in lst:
-#                 fn = os.path.join(path, name[0])
-#                 if name[1]['type'] == "DIRECTORY" and recursive:
-#                     tree['children'].append(make_hdfs_tree(client, fn))
-#                 else:
-#                     tree['children'].append(dict(name=name[0]))
-#         return tree
-    
+         
 #     def make_tree(self, datasourceid, client, path):
 #         tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
 #         try: lst = client.list(path, status=True)
@@ -112,9 +97,7 @@ class HadoopFileSystem(object):
         #tree = dict(name=os.path.basename(path), children=[])
         path = os.path.join(base, relative_path)
         data_json = {'datasource': datasourceid, 'path': relative_path, 'name': os.path.basename(relative_path) }
-        print(path, file=sys.stderr)
         status = self.client.status(path, False)
-        print(status, file=sys.stderr)
 
         if status is not None:
             if status['type'] == "DIRECTORY":
@@ -122,7 +105,7 @@ class HadoopFileSystem(object):
                 data_json['children'] = [self.make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in self.client.list(path)]
             else:
                 data_json['type'] = DataType.File
-        print(json.dumps(data_json))
+        #print(json.dumps(data_json))
         return data_json
     
     def makedirs(self, path):
