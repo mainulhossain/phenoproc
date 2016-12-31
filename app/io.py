@@ -119,7 +119,7 @@ class HadoopFileSystem(object):
         if status is not None:
             if status['type'] == "DIRECTORY":
                 data_json['type'] = DataType.Folder
-                data_json['children'] = [make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in self.client.list(path)]
+                data_json['children'] = [self.make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in self.client.list(path)]
             else:
                 data_json['type'] = DataType.File
         print(json.dumps(data_json))
