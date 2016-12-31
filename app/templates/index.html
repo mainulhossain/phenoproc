@@ -123,15 +123,15 @@
 								</div>
 								<div style="float: left; width: 45%" class="droppable-input"><strong>Input</strong>
 									<div style="text-align: left">Type: {{item.input_datasource or ''}}</div>
-									<div style="text-align: left; word-wrap: break-word;">Url: 
-										<textarea wrap="hard" class="input-path" data-datasourcetype="{{item.input_datasourceid or ''}}">{{item.input or ''}}</textarea>
+									<div style="text-align: left; word-wrap: break-word;">
+										<textarea wrap="hard" class="input-path form-control" rows="1" data-datasourcetype="{{item.input_datasourceid or ''}}">{{item.input or ''}}</textarea>
 									</div>
 								</div>
 								<div style="float: right; width: 45%" class="droppable-output">
 									<strong>Output</strong>
 									<div style="text-align: left">Type: {{item.output_datasource or ''}}</div>
-									<div style="text-align: left;">Url: 
-										<textarea wrap="hard" class="output-path" data-datasourcetype="{{item.output_datasourceid or ''}}">{{item.output or ''}}</textarea>
+									<div style="text-align: left;">
+										<textarea wrap="hard" class="output-path form-control" rows="1" data-datasourcetype="{{item.output_datasourceid or ''}}">{{item.output or ''}}</textarea>
 									</div>
 								</div>
 								<div style="float: clear;"></div>
@@ -256,66 +256,67 @@
 				return;
 			});
 			
-			$('.draggable-datasources').each(function() {
-				// inner scope
-				var phrase = '';
-				$(this).find('li').each(function() {
-					// cache jquery object
-					var current = $(this);
-					current.addClass("draggable-data");
-					current.draggable({
-						revert : 'invalid',
-						stack : '.draggable-data',
-						helper : 'clone'
+			if (editMode) {
+				$('.draggable-datasources').each(function() {
+					// inner scope
+					var phrase = '';
+					$(this).find('li').each(function() {
+						// cache jquery object
+						var current = $(this);
+						current.addClass("draggable-data");
+						current.draggable({
+							revert : 'invalid',
+							stack : '.draggable-data',
+							helper : 'clone'
+						});
+	
 					});
-
 				});
-			});
-
-			$('.draggable-operations').each(function() {
-				// inner scope
-				var phrase = '';
-				$(this).find('li').each(function() {
-					// cache jquery object
-					var current = $(this);
-					current.addClass("draggable-op");
-					current.draggable({
-						revert : 'invalid',
-						stack : '.draggable-op',
-						helper : 'clone'
+	
+				$('.draggable-operations').each(function() {
+					// inner scope
+					var phrase = '';
+					$(this).find('li').each(function() {
+						// cache jquery object
+						var current = $(this);
+						current.addClass("draggable-op");
+						current.draggable({
+							revert : 'invalid',
+							stack : '.draggable-op',
+							helper : 'clone'
+						});
+	
 					});
-
 				});
-			});
-			
-			$(".droppable-input, .droppable-output").droppable({
-				accept : ".draggable-data",
-				drop : function(event, ui) {
-					if (editMode) {
-					    var path = ui.draggable.attr("id");
-					    var datasource = ui.draggable.data('datasource');
-					    var workItem = parseInt($(event.target).parent().attr("id"));
-					    var droppableClass = $(this).attr("class");
-				    	Sijax.request(droppableClass.indexOf("droppable-input") != -1 ? 'add_input' : 'add_output', [datasource, path, workItem], {async: false});
-					    location.reload();
+				
+				$(".droppable-input, .droppable-output").droppable({
+					accept : ".draggable-data",
+					drop : function(event, ui) {
+						if (editMode) {
+						    var path = ui.draggable.attr("id");
+						    var datasource = ui.draggable.data('datasource');
+						    var workItem = parseInt($(event.target).parent().attr("id"));
+						    var droppableClass = $(this).attr("class");
+					    	Sijax.request(droppableClass.indexOf("droppable-input") != -1 ? 'add_input' : 'add_output', [datasource, path, workItem], {async: false});
+						    location.reload();
+						}
+						return;
 					}
-					return;
-				}
-			});
-			
-			$(".droppable-operation").droppable({
-				accept : ".draggable-op",
-				drop : function(event, ui) {
-					if (editMode) {
-					    var id = ui.draggable.attr("id");
-					    var workItem = parseInt($(event.target).parent().attr("id"));
-				    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
-				    	location.reload();
+				});
+				
+				$(".droppable-operation").droppable({
+					accept : ".draggable-op",
+					drop : function(event, ui) {
+						if (editMode) {
+						    var id = ui.draggable.attr("id");
+						    var workItem = parseInt($(event.target).parent().attr("id"));
+					    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
+					    	location.reload();
+						}
+						return;
 					}
-					return;
-				}
-			});
-			
+				});
+			}
 		});
 	});
 </script>
