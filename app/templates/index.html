@@ -308,7 +308,6 @@
 				drop : function(event, ui) {
 					if (editMode) {
 					    var id = ui.draggable.attr("id");
-					    alert(id);
 					    var workItem = parseInt($(event.target).parent().attr("id"));
 				    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
 				    	location.reload();
