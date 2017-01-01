@@ -2,7 +2,8 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    DATA_DIR = os.path.join(basedir, 'data')
+    DATA_DIR = os.path.join(basedir, 'storage')
+    PUBLIC_DIR = 'public'
     WEBHDFS_ADDR = 'http://sr-p2irc-big1.usask.ca:50070'
     WEBHDFS_USER = 'hdfs'
     HDFS_USER = 'phenodoop'

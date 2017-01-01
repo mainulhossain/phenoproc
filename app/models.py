@@ -567,14 +567,3 @@ class Data(db.Model):
     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
     datatype = db.Column(db.Integer)
     url = db.Column(db.Text)
-    
-    @staticmethod
-    def get_basedir(datasource):
-        if datasource == 1:
-            return os.path.join(current_app.config['HDFS_DIR'], current_user.username)
-        if datasource == 2:
-            return os.path.join(current_app.config['DATA_DIR'], current_user.username)
-        return ""
-    
-    def get_fullpath(self):
-        return os.path.join(Data.get_basedir(self.datasource_id), self.url)

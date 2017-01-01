@@ -77,23 +77,23 @@ def index(id=None):
     datasources = DataSource.query.all()
     datasource_tree = { 'type': DataType.Custom, 'children': [] }
     for ds in datasources:
-        datasource = { 'datasource': ds.id, 'type': DataType.Root, 'path': ds.url, 'name': ds.name, 'children': []}
+        datasource = { 'datasource': ds.id, 'type': DataType.Root, 'base':'', 'path': ds.url, 'name': ds.name, 'children': []}
         if ds.id == 1:
             # hdfs tree
             try:
                 hdfs = HadoopFileSystem()
                 if current_user.is_authenticated:
-                    datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], current_user.username))
-                datasource['children'].append(hdfs.make_json(ds.id, current_app.config['HDFS_DIR'], 'public'))
+                    datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
+                datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
             except:
                 pass
 
         elif ds.id == 2:
             # file system tree
             posixFS = PosixFileSystem()
-            if current_user.is_authenticated and os.path.exists(os.path.join(current_app.config['DATA_DIR'], current_user.username)):
-                datasource['children'].append(posixFS.make_json(ds.id, current_app.config['DATA_DIR'], current_user.username))
-            datasource['children'].append(posixFS.make_json(ds.id, current_app.config['DATA_DIR'], 'public'))
+            if current_user.is_authenticated:
+                datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
+            datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
  
         datasource_tree['children'].append(datasource)
 

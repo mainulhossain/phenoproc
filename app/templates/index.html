@@ -69,7 +69,7 @@
                 <div class="panel-body draggable-datasources">
                     <ul id="tree1">
                         {%- for item in datasources.children recursive %}
-                        <li class="draggable-data ui-draggable" data-datasource="{{ item.datasource }}" id="{{ item.path }}">{{ item.name }}
+                        <li class="draggable-data ui-draggable" data-datasource="{{ item.datasource }}" data-path="{{ item.path }}">{{ item.name }}
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -117,21 +117,21 @@
  		            		        </div>
  		                    	{% endif %}
                 			</div>
-							<div class="panel-body"  id="{{item.id}}">
-								<div class="droppable-operation">
+							<div class="panel-body">
+								<div class="droppable-operation" data-workitem="{{item.id}}">
 									<h5 style="text-align: center">Operation: <strong>{{item.operationname or ''}}</strong></h5>
 								</div>
-								<div style="float: left; width: 45%" class="droppable-input"><strong>Input</strong>
+								<div style="float: left; width: 45%" class="droppable-input" data-workitem="{{item.id}}"><strong>Input</strong>
 									<div style="text-align: left">Type: {{item.input_datasource or ''}}</div>
 									<div style="text-align: left; word-wrap: break-word;">
-										<textarea wrap="hard" class="input-path form-control" rows="1" data-datasourcetype="{{item.input_datasourceid or ''}}">{{item.input or ''}}</textarea>
+										<textarea wrap="hard" class="input-path form-control" rows="1" data-workitem="{{item.id}}" data-datasourcetype="{{item.input_datasourceid or ''}}">{{item.input or ''}}</textarea>
 									</div>
 								</div>
-								<div style="float: right; width: 45%" class="droppable-output">
+								<div style="float: right; width: 45%" class="droppable-output" data-workitem="{{item.id}}">
 									<strong>Output</strong>
 									<div style="text-align: left">Type: {{item.output_datasource or ''}}</div>
 									<div style="text-align: left;">
-										<textarea wrap="hard" class="output-path form-control" rows="1" data-datasourcetype="{{item.output_datasourceid or ''}}">{{item.output or ''}}</textarea>
+										<textarea wrap="hard" class="output-path form-control" rows="1" data-workitem="{{item.id}}" data-datasourcetype="{{item.output_datasourceid or ''}}">{{item.output or ''}}</textarea>
 									</div>
 								</div>
 								<div style="float: clear;"></div>
@@ -150,7 +150,7 @@
                 <div class="panel-body draggable-operations">
                     <ul id="tree-operations">
                         {%- for item in operations.children recursive %}
-                        <li class="draggable-op" id="{{ item.name[1] }}">{{ item.name[0] }}
+                        <li class="draggable-op" data-id="{{ item.name[1] }}">{{ item.name[0] }}
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -165,7 +165,7 @@
                 <div class="panel-body">
                     <div class="radio">
                         {%- for item in workflows %}
-                        <input type="radio" id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }}<br>
+                        <input type="radio" data-id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }}<br>
                         {%- endfor %}
                     </div>
                 </div>
@@ -187,13 +187,13 @@
 			$('#tree1').treed();
 			$('#tree-operations').treed();
 			$('input:radio[name=workflows]').each(function () {
-				if ($(this).prop('id') == workflowId)
+				if ($(this).data('id') == workflowId)
 					$(this).prop('checked', true);
         	});
 			
 			$("#workflow-name").prop('disabled', !editMode || workflowId <= 0);
 			$(".workitem-name").each(function() {
-					$(this).prop('disabled', !editMode || workflowId <= 0);
+				$(this).prop('disabled', !editMode || workflowId <= 0);
 			});
 			
 			$(".input-path").each(function() {
@@ -220,23 +220,14 @@
 				}
 			});
 			
-			$("#workflow-name").change(function(){
-				if (editMode) {
-					Sijax.request('update_workflow', [workflowId, $(this).val()]);
-					$(this).blur();
-					location.reload();
-				}
-			});
-			
 			$(".input-path").change(function(){
 				if (editMode && $(this).val()) {
-				    var workItem = parseInt($(this).parent().parent().parent().attr("id")); // textarea->div->div->div->div
 				    var datasourcetype = $(this).data('datasourcetype');
 				    if (isBlank(datasourcetype)) {
 				    	alert('Drag a base dir from the data sources first.');
 				    	return;
 				    }
-			    	Sijax.request('add_input', [datasourcetype, $(this).val(), workItem], {async: false});
+			    	Sijax.request('add_input', [datasourcetype, $(this).val(), $(this).data('workitem')], {async: false});
 				    location.reload();
 				}
 				return;
@@ -244,13 +235,12 @@
 			
 			$(".output-path").change(function(){
 				if (editMode && $(this).val()) {
-				    var workItem = parseInt($(this).parent().parent().parent().attr("id")); // textarea->div->div->div->div
 				    var datasourcetype = $(this).data('datasourcetype');
 				    if (isBlank(datasourcetype)) {
 				    	alert('Drag a base dir from the data sources first.');
 				    	return;
 				    }
-			    	Sijax.request('add_output', [datasourcetype, $(this).val(), workItem], {async: false});
+			    	Sijax.request('add_output', [datasourcetype, $(this).val(), $(this).data('workitem')], {async: false});
 				    location.reload();
 				}
 				return;
@@ -293,11 +283,9 @@
 					accept : ".draggable-data",
 					drop : function(event, ui) {
 						if (editMode) {
-						    var path = ui.draggable.attr("id");
-						    var datasource = ui.draggable.data('datasource');
-						    var workItem = parseInt($(event.target).parent().attr("id"));
+						    var workItem = $(event.target).data('workitem');
 						    var droppableClass = $(this).attr("class");
-					    	Sijax.request(droppableClass.indexOf("droppable-input") != -1 ? 'add_input' : 'add_output', [datasource, path, workItem], {async: false});
+					    	Sijax.request(droppableClass.indexOf("droppable-input") != -1 ? 'add_input' : 'add_output', [ui.draggable.data('datasource'), ui.draggable.data('path'), workItem], {async: false});
 						    location.reload();
 						}
 						return;
@@ -308,9 +296,7 @@
 					accept : ".draggable-op",
 					drop : function(event, ui) {
 						if (editMode) {
-						    var id = ui.draggable.attr("id");
-						    var workItem = parseInt($(event.target).parent().attr("id"));
-					    	Sijax.request('add_operation', [workItem, parseInt(id)], {async: false});
+					    	Sijax.request('add_operation', [ $(event.target).data('workitem'), ui.draggable.data("id")], {async: false});
 					    	location.reload();
 						}
 						return;

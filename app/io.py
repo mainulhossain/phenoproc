@@ -11,7 +11,7 @@ from flask import current_app
 from abc import ABCMeta, abstractmethod
 import os
 import sys
-from .models import DataType
+from .models import DataType, DataSource
 import json
 
 try:
@@ -58,13 +58,13 @@ class PosixFileSystem(object):
                     tree['children'].append({'name' : (name, datasourceid + separator + fn), 'children' : []})
         return tree
     
+            
     def make_json(self, datasourceid, base, relative_path):
-        #tree = dict(name=os.path.basename(path), children=[])
         path = os.path.join(base, relative_path)
         data_json = {'datasource': datasourceid, 'path': relative_path, 'name': os.path.basename(relative_path) }
         if os.path.isdir(path):
             data_json['type'] = DataType.Folder
-            data_json['children'] = [make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in os.listdir(path)]
+            data_json['children'] = [self.make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in os.listdir(path)]
         else:
             data_json['type'] = DataType.File
         #print(json.dumps(data_json))
@@ -94,7 +94,6 @@ class HadoopFileSystem(object):
 #         return tree
 
     def make_json(self, datasourceid, base, relative_path):
-        #tree = dict(name=os.path.basename(path), children=[])
         path = os.path.join(base, relative_path)
         data_json = {'datasource': datasourceid, 'path': relative_path, 'name': os.path.basename(relative_path) }
         status = self.client.status(path, False)
