@@ -1,6 +1,9 @@
+from __future__ import print_function
+
 from os import path
-from .models import DataSource
+from .models import DataSource, Data
 from flask import current_app
+import sys
 
 class Utility:
     @staticmethod
@@ -18,3 +21,10 @@ class Utility:
         if datasource_id == 2:
             return path.join(datasource.url, current_app.config['DATA_DIR'])
         return ""
+    
+    @staticmethod
+    def get_fullpath(data):
+        #print(str(data_id), file=sys.stderr)
+        if data is None:
+            return ''
+        return path.join(Utility.get_rootdir(data.datasource_id), data.url)
