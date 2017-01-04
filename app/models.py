@@ -567,3 +567,41 @@ class Data(db.Model):
     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
     datatype = db.Column(db.Integer)
     url = db.Column(db.Text)
+
+class TaskStatus:
+    Unknown = 0x00
+    Created = 0x01
+    Running = 0x02
+    Completed = 0x03
+    Faulted = 0x04
+    Cancelled = 0x05
+    
+class Task(db.Model):
+    __tablename__ = 'tasks'
+    id = db.Column(db.Integer, primary_key=True)
+    workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'))
+    created_on = db.Column(db.DateTime, default=datetime.utcnow)
+    tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='tasks', lazy='dynamic')
+
+    @staticmethod
+    def create_task(workitem_id):
+        task = Task()
+        task.workitem_id = workitem_id
+        task.tasklogs.append(TaskLog(status=TaskStatus.Created))
+        db.session.add(task)
+        db.session.commit()
+        return task.id
+    
+    def add_log(self, status):
+        self.tasklogs.append(TaskLog(status=status))
+        db.session.commit()
+        
+class TaskLog(db.Model):
+    __tablename__ = 'tasklogs'
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
+    status = db.Column(db.Integer)
+    time = db.Column(db.DateTime, default=datetime.utcnow)
+    def updateTime(self):
+        self.time = datetime.utcnow()
+        db.session.add(self)

@@ -51,6 +51,7 @@
 		workflowId = 0;
 	
 	var editMode = {% if config.WORKFLOW_MODE_EDIT %} true {% else %} false {% endif %};
+	
 </script>
 
 {% endblock %}
@@ -63,8 +64,16 @@
     <div class="row">
         <div class="col-md-3">
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h5 class="">Data Sources</h5>
+                <div class="panel-heading clearfix">
+                    <h5 class="panel-title pull-left" >Data Sources</h5>
+                    <div class="btn-group">
+                    <div class="btn-group-sm">
+                        <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-download"></i></button>
+                        <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-upload"></i></button>
+	                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-minus"></i></button>
+                    	<button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-plus"></i></button>
+                    </div>
+                	</div>
                 </div>
                 <div class="panel-body draggable-datasources">
                     <ul id="tree1">
@@ -81,13 +90,12 @@
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
-                    <h4 class="panel-title pull-left" style="padding-top: 7.5px;">Workflow: </h4>
+                    <h4 class="panel-title pull-left">Workflow: </h4>
                     <input type="text" class="pull-left" id="workflow-name" value="{{ workflow }}">
                     <div class="input-group">
                     <div class="input-group-btn">
                     	{% if config.WORKFLOW_MODE_EDIT %}
  		                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-plus-sign" onclick="Sijax.request('add_workitem', [workflowId]); location.reload();"></i></button>
- 		                       
         					<span class="btn-separator"></span>
  		                    <button class="btn btn-primary pull-right" onclick="Sijax.request('delete_workflow', [workflowId], {async: false});"><i class="glyphicon glyphicon-trash"></i></button>
  		                    <button class="btn btn-primary pull-right"><i class="glyphicon glyphicon-refresh"></i></button>
@@ -100,7 +108,7 @@
 	                        <button class="btn btn-primary pull-right" onclick="Sijax.request('set_editmode', [true]); location.reload();"><i class="glyphicon glyphicon-edit"></i></button>
 	                    {% endif %}
                     </div>
-                </div>
+                	</div>
                 </div>
                 <div class="panel-body">
                 	<div id="workitems">
@@ -163,10 +171,23 @@
                     <h5 class="">Workflows</h5>
                 </div>
                 <div class="panel-body">
-                    <div class="radio">
-                        {%- for item in workflows %}
-                        <input type="radio" data-id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }}<br>
-                        {%- endfor %}
+                    <div class="radio">                    
+                        {% for item in workflows %}
+                        <input type="radio" data-id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }}
+                           {% if item.status == 0 %}
+                        	 <p>Unknown</p>
+                        	{ % elif item.status == 1 %}
+                        		<p>Created</p>
+                        	{ % elif item.status == '2' %}
+                        		<p>Running</p>
+                        	{ % elif item.status == 3 %}
+                        		<p>Completed</p>
+                        	{ % elif item.status == 4 %}
+                        		<p>Faulted</p>
+                        	{ % else %}
+                        		<p>Cancelled</p>
+                        	{% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>
