@@ -3,6 +3,7 @@ import sys
 from subprocess import call
 from ..hadoop import runHadoop
 import os
+from ...util import Utility
 
 #wordcount = Blueprint('wordcount', __name__)
 class Action(object):
@@ -18,7 +19,8 @@ class Action(object):
     def run_hdfs(workitem):
         input_datasource = DataSource.query.get(workitem.inputs.datasource_id)
         output_datasource = DataSource.query.get(workitem.outputs.datasource_id)
-        runHadoop(os.path.abspath('mapper.py'), os.path.abspath('reducer.py'), os.path.abspath(os.path.dirname(__file__)), os.path.join(input_datasource.url, workitem.inputs.get_fullpath()), os.path.join(output_datasource.url, workitem.outputs.get_fullpath()))
+        cwd = os.path.abspath(os.path.dirname(__file__))
+        runHadoop(os.path.join(cwd, 'mapper.py'), os.path.join(cwd, 'reducer.py'), cwd, Utility.get_fullpath(workitem.inputs), Utility.get_fullpath(workitem.outputs))
     
     @staticmethod
     def run_fs(workitem):
