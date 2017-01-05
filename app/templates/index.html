@@ -127,6 +127,7 @@
                 			</div>
 							<div class="panel-body">
 								<div class="droppable-operation" data-workitem="{{item.id}}">
+								<h5 style="text-align: center">Operation Source: <strong>{{item.operationsourcename or ''}}</strong></h5>
 									<h5 style="text-align: center">Operation: <strong>{{item.operationname or ''}}</strong></h5>
 								</div>
 								<div style="float: left; width: 45%" class="droppable-input" data-workitem="{{item.id}}"><strong>Input</strong>
@@ -174,15 +175,15 @@
                     <div class="radio">                    
                         {% for item in workflows %}
                         <input type="radio" data-id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }}
-                           {% if item.status == 0 %}
+                           {% if item.status|int == 0 %}
                         	 <p>Unknown</p>
-                        	{ % elif item.status == 1 %}
+                        	{ % elif item.status|int == 1 %}
                         		<p>Created</p>
-                        	{ % elif item.status == 2 %}
+                        	{ % elif item.status|int == 2 %}
                         		<p>Running</p>
-                        	{ % elif item.status == 3 %}
+                        	{ % elif item.status|int == 3 %}
                         		<p>Completed</p>
-                        	{ % elif item.status == 4 %}
+                        	{ % elif item.status|int == 4 %}
                         		<p>Faulted</p>
                         	{ % else %}
                         		<p>Cancelled</p>

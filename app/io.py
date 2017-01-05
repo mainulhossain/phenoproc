@@ -104,7 +104,7 @@ class HadoopFileSystem(object):
                 data_json['children'] = [self.make_json(datasourceid, base, os.path.join(relative_path, fn)) for fn in self.client.list(path)]
             else:
                 data_json['type'] = DataType.File
-        print(json.dumps(data_json))
+        #print(json.dumps(data_json))
         return data_json
     
     def makedirs(self, path):
