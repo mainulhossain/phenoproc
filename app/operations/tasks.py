@@ -16,7 +16,7 @@ class TaskManager:
     def submit(self, task_id, argv):
         execfile = argv[:1]
         args = argv[1:]
-        self.futures = {task_id: self.pool.submit(check_output, argv)}
+        self.futures = {task_id: self.pool.submit(check_output, argv, shell=True)}
         task = Task.query.get(task_id)        
         task.add_log(TaskStatus.Running)
     
