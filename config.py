@@ -15,7 +15,7 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     #MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_SERVER = 'smtp.gmail.com'
-    MAIL_PORT = 587
+    MAIL_PORT = 465 #587
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'phenoproc@gmail.com' #os.environ.get('MAIL_USERNAME') or 'phenoproc@gmail.com'
     MAIL_PASSWORD = '!phenoproc-2016!' #os.environ.get('MAIL_PASSWORD') or '!phenoproc@gmail.com!'
