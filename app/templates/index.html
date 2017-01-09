@@ -200,7 +200,8 @@
 <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/tree.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
-<script>
+<script type="text/javascript">
+	var refreshId = 0;
 	$(window).load(function() {
 // 		window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
 // 		    alert("Error occured: " + errorMsg);//or any message
@@ -209,7 +210,7 @@
 		$(document).ready(function() {
 			//$('[data-toggle="tooltip"]').tooltip();
 			
-			var refreshId = setInterval( function() 
+			refreshId = setInterval( function() 
 		    {
 		        if (!editMode && workflowId > 0) {
 		        	//var status = Sijax.request('task_status', [workflowId]);
@@ -229,7 +230,7 @@
 		            }).fail(function() {
 		            });
 		        }
-		    }, 5000);
+		    }, 3000);
 			
 			$('#tree1').treed();
 			$('#tree-operations').treed();
@@ -365,7 +366,8 @@
 	});
 	
 	$( window ).unload(function() {
-		clearInterval(refreshId);
+		if (refreshId != 0)
+			clearInterval(refreshId);
 	});
 	
 </script>
