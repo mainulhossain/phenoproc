@@ -18,6 +18,7 @@ from ..operations import execute_workflow
 from .ajax import WorkflowHandler
 from ..util import Utility
 from ..io import PosixFileSystem, HadoopFileSystem, separator
+import json
 
 app = Flask(__name__)
 
@@ -109,7 +110,7 @@ def index(id=None):
     workflows = []
     if current_user.is_authenticated:
         #workflows = Workflow.query.filter_by(user_id=current_user.id)
-        sql = 'SELECT workflows.*, MAX(time), tasklogs.status FROM workflows JOIN users ON workflows.user_id = users.id LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id GROUP BY workflows.id HAVING users.id=' + str(current_user.id)
+        sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows JOIN users ON workflows.user_id = users.id LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id JOIN taskstatus ON tasklogs.status_id=taskstatus.id GROUP BY workflows.id HAVING users.id=' + str(current_user.id)
         workflows = db.engine.execute(sql)
     
     workitems = []
@@ -122,7 +123,7 @@ def index(id=None):
 #        sql = text('SELECT workitems.*, operations.name AS opname, datasources.id AS datasource_id, datasources.name AS datasource_name, data.url AS path FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id INNER JOIN data ON workitems.id = data.id INNER JOIN datasources ON data.datasource_id=datasources.id WHERE workflows.id=' + str(id))
 #        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
 #        sql = text('SELECT s.id AS id, s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id) s LEFT JOIN datasources dx ON dx.id=s.input_datasource LEFT JOIN datasources dx2 ON dx2.id=s.output_datasource LEFT JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
-        sql = text('SELECT w.id AS id, w.name AS name, ops.name AS opsname, operations.name AS opname, d1.url AS input, d2.url AS output, dx1.id AS input_datasourceid, dx1.type AS input_datasource, dx1.url AS input_root, dx2.id AS output_datasourceid, dx2.type AS output_datasource, dx2.url AS output_root FROM workflows JOIN workitems w ON workflows.id=w.workflow_id LEFT JOIN operations ON w.operation_id=operations.id JOIN operationsources ops ON ops.id=operations.operationsource_id LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id LEFT JOIN datasources dx1 ON dx1.id=d1.datasource_id LEFT JOIN datasources dx2 ON dx2.id=d2.datasource_id WHERE workflows.id=' + str(id))
+        sql = text('SELECT w.id AS id, w.name AS name, w.desc as desc, ops.name AS opsname, operations.name AS opname, d1.url AS input, d2.url AS output, dx1.id AS input_datasourceid, dx1.type AS input_datasource, dx1.url AS input_root, dx2.id AS output_datasourceid, dx2.type AS output_datasource, dx2.url AS output_root FROM workitems w LEFT JOIN operations ON w.operation_id=operations.id LEFT JOIN operationsources ops ON ops.id=operations.operationsource_id LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id LEFT JOIN datasources dx1 ON dx1.id=d1.datasource_id LEFT JOIN datasources dx2 ON dx2.id=d2.datasource_id WHERE w.workflow_id=' + str(id))
         workitems = db.engine.execute(sql)        
 #         result = db.engine.execute(sql)
 #         for row in result:
@@ -361,3 +362,32 @@ def about():
 @main.route('/contact')
 def contact():
     return render_template('contact.html')
+
+from sqlalchemy.ext.declarative import DeclarativeMeta
+class AlchemyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj.__class__, DeclarativeMeta):
+            # an SQLAlchemy class
+            fields = {}
+            for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                data = obj.__getattribute__(field)
+                try:
+                    json.dumps(data) # this will fail on non-encodable values, like other classes
+                    fields[field] = data
+                except TypeError:
+                    fields[field] = None
+            # a json-encodable dict
+            return fields
+    
+        return json.JSONEncoder.default(self, obj)
+
+@main.route('/tasklogs', methods=['POST'])
+@login_required
+def translate():
+    workflow_id = request.form['text'] #request.args.get('workflow_id')
+    workflow_id = Utility.ValueOrNone(workflow_id)
+    if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
+        sql = 'SELECT workitems.id, MAX(time), taskstatus.name as status FROM workitems LEFT JOIN tasks ON workitems.id=tasks.workitem_id LEFT JOIN tasklogs ON tasklogs.task_id=tasks.id LEFT JOIN taskstatus ON tasklogs.status_id = taskstatus.id WHERE workitems.workflow_id=' + str(workflow_id) + ' GROUP BY workitems.id'
+        result = db.engine.execute(sql)
+        return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
+        

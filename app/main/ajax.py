@@ -6,6 +6,7 @@ from ..operations import execute_workflow
 from flask import current_app
 from ..util import Utility
 from .. import db
+import json
 
 class WorkflowHandler:
     @staticmethod
@@ -72,7 +73,6 @@ class WorkflowHandler:
         if current_user.is_authenticated:
             workitem_id = Utility.ValueOrNone(workitem_id)
             datasource = Utility.ValueOrNone(datasource)
-            print(path)
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
                 workitem = WorkItem.query.get(workitem_id)            
                 data = Data.query.filter_by(url = path).first()
@@ -81,6 +81,15 @@ class WorkflowHandler:
                 workitem.outputs = data
                 db.session.commit()
                 
+    @staticmethod        
+    def add_desc(obj_response, workitem_id, desc):
+        if current_user.is_authenticated:
+            workitem_id = Utility.ValueOrNone(workitem_id)
+            if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
+                workitem = WorkItem.query.get(workitem_id)
+                workitem.desc = desc            
+                db.session.commit()
+                            
     @staticmethod        
     def add_operation(obj_response, workitem_id, operation_id):
         if current_user.is_authenticated:
@@ -108,3 +117,21 @@ class WorkflowHandler:
              if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
                 WorkItem.query.get(workitem_id).name = workitem_name
                 db.session.commit()
+                
+    @staticmethod        
+    def task_status(obj_response, workflow_id):
+        if current_user.is_authenticated:
+            workflow_id = Utility.ValueOrNone(workflow_id)
+            if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
+                sql = 'SELECT workitems.id, MAX(time), taskstatus.name as status FROM workitems LEFT JOIN tasks ON workitems.id=tasks.workitem_id LEFT JOIN tasklogs ON tasklogs.task_id=tasks.id LEFT JOIN taskstatus ON tasklogs.status_id = taskstatus.id WHERE workitems.workflow_id=' + str(workflow_id) + ' GROUP BY workitems.id'
+                result = db.engine.execute(sql)
+                for row in result:
+                    if row['id'] is not None:
+                        selector = "$(\'*[data-workitemstatusid=\"{0}\"]\')".format(row['id'])
+                        print(selector)
+                        if row['status']=='Running':
+                            #obj_response.script('selector.show();')
+                            obj_response.css('selector', 'display', 'none')
+                        else:
+                            pass
+                            #obj_response.script('selector.show();')

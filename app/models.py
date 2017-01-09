@@ -13,6 +13,7 @@ from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.engine import default
 from flask_login import current_user
 import os
+from sqlalchemy.orm import backref
 
 class Permission:
     FOLLOW = 0x01
@@ -568,14 +569,18 @@ class Data(db.Model):
     datatype = db.Column(db.Integer)
     url = db.Column(db.Text)
 
-class TaskStatus:
-    Unknown = 0x00
-    Created = 0x01
-    Running = 0x02
-    Completed = 0x03
-    Faulted = 0x04
-    Cancelled = 0x05
-    
+class TaskStatus(db.Model):
+    __tablename__ = 'taskstatus'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30))
+#     Unknown = 0x00
+#     Created = 0x01
+#     Running = 0x02
+#     Completed = 0x03
+#     Faulted = 0x04
+#     Cancelled = 0x05
+
+
 class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
@@ -600,7 +605,8 @@ class TaskLog(db.Model):
     __tablename__ = 'tasklogs'
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
-    status = db.Column(db.Integer)
+    status_id = db.Column(db.Integer, db.ForeignKey('taskstatus.id'))
+    status = db.relationship('TaskStatus', backref='tasklogs')
     time = db.Column(db.DateTime, default=datetime.utcnow)
     def updateTime(self):
         self.time = datetime.utcnow()

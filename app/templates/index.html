@@ -8,6 +8,7 @@
 {{ super() }}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tree.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='funkyradio.css') }}">
 <style>
 .btn-separator:after {
     content: ' ';
@@ -123,6 +124,8 @@
 	 		            		        	<button class="btn btn-primary pull-right"  data-toggle="tooltip" data-placement="top" title="Remove" onclick="Sijax.request('delete_workitem', [{{item.id}}]); location.reload();"><i class="glyphicon glyphicon-trash"></i></button>
 	 		            		        </div>
  		            		        </div>
+ 		            		    {% else %}
+ 		            		    	<span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" data-workitemstatusid="{{item.id}}"></span>		            		    	
  		                    	{% endif %}
                 			</div>
 							<div class="panel-body">
@@ -144,6 +147,10 @@
 									</div>
 								</div>
 								<div style="float: clear;"></div>
+								<div>
+									<h5>Description:</h5>
+									<textarea wrap="hard" class="workitem-desc form-control" rows="2" data-workitem="{{item.id}}">{{item.desc or ''}}</textarea>
+								</div>
 							</div>
 						</div>
 						{%- endfor %}
@@ -172,22 +179,13 @@
                     <h5 class="">Workflows</h5>
                 </div>
                 <div class="panel-body">
-                    <div class="radio">                    
+                    <div class="funkyradio">                    
                         {% for item in workflows %}
-                        <input type="radio" data-id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }}
-                           {% if item.status|int == 0 %}
-                        	 <p>Unknown</p>
-                        	{ % elif item.status|int == 1 %}
-                        		<p>Created</p>
-                        	{ % elif item.status|int == 2 %}
-                        		<p>Running</p>
-                        	{ % elif item.status|int == 3 %}
-                        		<p>Completed</p>
-                        	{ % elif item.status|int == 4 %}
-                        		<p>Faulted</p>
-                        	{ % else %}
-                        		<p>Cancelled</p>
-                        	{% endif %}
+                        <div class="funkyradio-default">
+            				<input type="radio" name="workflows" id="{{ item.id }}" data-id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" />
+            					<label for="{{ item.id }}">{{ item.name }}[{{ item.status}}]</label>
+        					</div>
+<!--                         <input type="radio" data-id="{{ item.id }}" onclick="window.location.href='/workflow/{{ item.id }}'" name="workflows">{{ item.name }} -->
                         {% endfor %}
                     </div>
                 </div>
@@ -209,7 +207,30 @@
 // 		    return false;
 // 		}
 		$(document).ready(function() {
-			//$('[data-toggle="tooltip"]').tooltip();			
+			//$('[data-toggle="tooltip"]').tooltip();
+			
+			var refreshId = setInterval( function() 
+		    {
+		        if (!editMode && workflowId > 0) {
+		        	//var status = Sijax.request('task_status', [workflowId]);
+		        	$.post('/tasklogs', {
+		                text: workflowId.toString()
+		            }).done(function(translated) {
+		            	translated = $.parseJSON(translated);
+		            	$.each(translated, function(index, element) {
+		            	    selector = $('*[data-workitemstatusid="' + element.id + '"]')
+		            	    if (element.status == "Running") {
+		            	    	selector.show();	
+		            	    }
+		            	    else {
+		            	    	selector.hide();
+		            	    }
+		            	});
+		            }).fail(function() {
+		            });
+		        }
+		    }, 5000);
+			
 			$('#tree1').treed();
 			$('#tree-operations').treed();
 			$('input:radio[name=workflows]').each(function () {
@@ -227,6 +248,10 @@
 			});
 			
 			$(".output-path").each(function() {
+				$(this).prop('disabled', !editMode || workflowId <= 0);
+			});
+			
+			$(".workitem-desc").each(function() {
 				$(this).prop('disabled', !editMode || workflowId <= 0);
 			});
 			
@@ -268,6 +293,13 @@
 				    }
 			    	Sijax.request('add_output', [datasourcetype, $(this).val(), $(this).data('workitem')], {async: false});
 				    location.reload();
+				}
+				return;
+			});
+			
+			$(".workitem-desc").change(function(){
+				if (editMode && $(this).val()) {
+			    	Sijax.request('add_desc', [$(this).data('workitem'), $(this).val()]);
 				}
 				return;
 			});
@@ -331,6 +363,11 @@
 			}
 		});
 	});
+	
+	$( window ).unload(function() {
+		clearInterval(refreshId);
+	});
+	
 </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}
