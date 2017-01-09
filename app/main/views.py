@@ -110,7 +110,8 @@ def index(id=None):
     workflows = []
     if current_user.is_authenticated:
         #workflows = Workflow.query.filter_by(user_id=current_user.id)
-        sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows JOIN users ON workflows.user_id = users.id LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id JOIN taskstatus ON tasklogs.status_id=taskstatus.id GROUP BY workflows.id HAVING users.id=' + str(current_user.id)
+        #sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows JOIN users ON workflows.user_id = users.id LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id JOIN taskstatus ON tasklogs.status_id=taskstatus.id GROUP BY workflows.id HAVING users.id=' + str(current_user.id)
+        sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id LEFT JOIN taskstatus ON tasklogs.status_id=taskstatus.id WHERE workflows.user_id={0} GROUP BY workflows.id'.format(current_user.id)
         workflows = db.engine.execute(sql)
     
     workitems = []
