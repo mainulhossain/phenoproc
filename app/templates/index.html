@@ -149,7 +149,7 @@
                 <div class="panel-body draggable-datasources">
                     <ul id="tree1">
                         {%- for item in datasources.children recursive %}
-                        <li><a class="draggable-data ui-draggable" data-datasource="{{ item.datasource }}" data-path="{{ item.path }}">{{ item.name }}</a>
+                        <li class="draggable-data ui-draggable" data-datasource="{{ item.datasource }}" data-path="{{ item.path }}"><a>{{ item.name }}</a>
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -236,7 +236,7 @@
                 <div class="panel-body draggable-operations">
                     <ul id="tree-operations">
                         {%- for item in operations.children recursive %}
-                        <li><a class="draggable-op" data-id="{{ item.name[1] }}">{{ item.name[0] }}</a>
+                        <li class="draggable-op" data-id="{{ item.name[1] }}"><a>{{ item.name[0] }}</a>
                             {%- if item.children -%}
                                 <ul>{{ loop(item.children) }}</ul>
                             {%- endif %}</li>
@@ -447,6 +447,7 @@
 					accept : ".draggable-data",
 					drop : function(event, ui) {
 						if (editMode) {
+							
 						    var workItem = $(event.target).data('workitem');
 						    var droppableClass = $(this).attr("class");
 					    	Sijax.request(droppableClass.indexOf("droppable-input") != -1 ? 'add_input' : 'add_output', [ui.draggable.data('datasource'), ui.draggable.data('path'), workItem], {async: false});
@@ -459,6 +460,7 @@
 				$(".droppable-operation").droppable({
 					accept : ".draggable-op",
 					drop : function(event, ui) {
+						
 						if (editMode) {
 					    	Sijax.request('add_operation', [ $(event.target).data('workitem'), ui.draggable.data("id")], {async: false});
 					    	location.reload();
