@@ -61,3 +61,11 @@
     padding:0px 0px 0px 0px;
     outline: 0;
 }
+
+.selected {
+    background-color: lightgreen;
+}
+
+ul.tree hover {
+	background: #BDF;
+}

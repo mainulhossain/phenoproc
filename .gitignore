@@ -90,3 +90,4 @@ ENV/
 /.project
 /.pydevproject
 /phenoproc.sock
+/storage/

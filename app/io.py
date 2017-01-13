@@ -1,4 +1,5 @@
 from __future__ import print_function
+from os import makedirs
 
 # To change this license header, choose License Headers in Project Properties.
 # To change this template file, choose Tools | Templates
@@ -13,6 +14,8 @@ import os
 import sys
 from .models import DataType, DataSource
 import json
+import shutil
+import tempfile
 
 try:
     from hdfs import InsecureClient
@@ -27,7 +30,7 @@ except:
 #     @abstractmethod
 #     def makedirs(self, path):
 #         pass
-separator = ';'
+
 class PosixFileSystem(object):
 #     def make_tree(self, recursive = true):
 #         tree = dict(name=os.path.basename(path), children=[])
@@ -45,7 +48,7 @@ class PosixFileSystem(object):
 
     def make_tree(self, datasourceid, path):
         #tree = dict(name=os.path.basename(path), children=[])
-        tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
+        tree = dict(name=(os.path.basename(path), datasourceid + os.path.sep + path), children=[])
         try: lst = os.listdir(path)
         except OSError:
             pass #ignore errors
@@ -55,7 +58,7 @@ class PosixFileSystem(object):
                 if os.path.isdir(fn):
                     tree['children'].append(make_tree(datasourceid, fn))
                 else:
-                    tree['children'].append({'name' : (name, datasourceid + separator + fn), 'children' : []})
+                    tree['children'].append({'name' : (name, datasourceid + os.path.sep + fn), 'children' : []})
         return tree
     
             
@@ -73,14 +76,30 @@ class PosixFileSystem(object):
     def makedirs(self, path):
         if not os.path.exists(path):
             os.makedirs(path) 
-        return
+        return path
+    
+    def delete(self, path):
+        if os.path.exists(path):
+            shutil.rmtree(path)
+            
+    def addfolder(self, path):
+        i = 0
+        while os.path.exists(os.path.join(path, "New Folder {0}".format(i))):
+            i += 1
+        return self.makedirs(os.path.join(path, "New Folder {0}".format(i)))
+    
+    def rename(self, oldpath, newpath):
+        os.rename(oldpath, newpath)
+        
+    def saveUpload(self, file, fullpath):
+        file.save(fullpath)
     
 class HadoopFileSystem(object):
     def __init__(self, *opts):
         self.client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
          
 #     def make_tree(self, datasourceid, client, path):
-#         tree = dict(name=(os.path.basename(path), datasourceid + separator + path), children=[])
+#         tree = dict(name=(os.path.basename(path), datasourceid + os.path.sep + path), children=[])
 #         try: lst = client.list(path, status=True)
 #         except:
 #             pass #ignore errors
@@ -90,7 +109,7 @@ class HadoopFileSystem(object):
 #                 if fsitem[1]['type'] == "DIRECTORY":
 #                     tree['children'].append(make_hdfs_tree(datasourceid, client, fn))
 #                 else:
-#                     tree['children'].append({'name' : (fsitem[0], datasourceid + separator + fn), 'children' : []})
+#                     tree['children'].append({'name' : (fsitem[0], datasourceid + os.path.sep + fn), 'children' : []})
 #         return tree
 
     def make_json(self, datasourceid, base, relative_path):
@@ -111,8 +130,49 @@ class HadoopFileSystem(object):
         try: 
             client.makedirs(path)
         except:
+            return None
+        return path
+    
+    def delete(self, path):
+        try: 
+            if client.status(path, False) is not None:
+                client.delete(path, true)
+        except:
             pass
         return
-
+        
+    def addfolder(self, path):
+        i = 0
+        while client.status(os.path.join(path, "New Folder {0}".format(i)), False) is None:
+            i += 1
+        return self.makedirs(os.path.join(path, "New Folder {0}".format(i)))
+    
+    def rename(self, oldpath, newpath):
+        try:
+            client.rename(oldpath, newpath)
+        except:
+            pass
+    
+    def saveUpload(self, file, fullpath):
+        localpath = tempfile.TemporaryFile() #os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
+        try:
+            file.save(localpath)
+            client.upload(fullpath, localpath, True)
+        except:
+            pass
+                
+def getFileSystem(datasource_id):
+    if datasource_id is None:
+        return None    
+    datasource = DataSource.query.get(datasource_id)
+    if datasource is None:
+        return None
+    if datasource_id == 1:
+        return HadoopFileSystem()
+    elif datasource.id == 2:
+        return PosixFileSystem()
+    else:
+        return None
+        
 if __name__ == "__main__":
     print("Hello World")

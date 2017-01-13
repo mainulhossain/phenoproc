@@ -2,11 +2,11 @@ from __future__ import print_function
 
 from flask import Flask, render_template, redirect, url_for, abort, flash, request,\
     current_app, make_response, g
+from flask import send_from_directory
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from . import main
-from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
-    CommentForm
+from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from .. import db
 from ..models import Permission, Role, User, Post, Comment, Workflow, WorkItem, DataSource, Data, DataType, OperationSource, Operation
 from ..decorators import admin_required, permission_required
@@ -17,8 +17,9 @@ import flask_sijax
 from ..operations import execute_workflow
 from .ajax import WorkflowHandler
 from ..util import Utility
-from ..io import PosixFileSystem, HadoopFileSystem, separator
+from ..io import PosixFileSystem, HadoopFileSystem, getFileSystem
 import json
+from werkzeug import secure_filename
 
 app = Flask(__name__)
 
@@ -391,4 +392,54 @@ def translate():
         sql = 'SELECT workitems.id, MAX(time), taskstatus.name as status FROM workitems LEFT JOIN tasks ON workitems.id=tasks.workitem_id LEFT JOIN tasklogs ON tasklogs.task_id=tasks.id LEFT JOIN taskstatus ON tasklogs.status_id = taskstatus.id WHERE workitems.workflow_id=' + str(workflow_id) + ' GROUP BY workitems.id'
         result = db.engine.execute(sql)
         return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
+
+@main.route('/delete', methods=['POST'])
+@login_required
+def delete():
+    datasource_id = Utility.ValueOrNone(request.form['datasource'])
+    filesystem = getFileSystem(datasource_id)
+    if filesystem is not None:
+        path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
+        filesystem.delete(path)
+        return json.dumps(dict())
+
+@main.route('/rename', methods=['POST'])
+@login_required
+def rename():
+    datasource_id = Utility.ValueOrNone(request.form['datasource'])
+    filesystem = getFileSystem(Utility.ValueOrNone(datasource_id))
+    if filesystem is not None:
+        oldpath = os.path.join(Utility.get_rootdir(datasource_id), request.form['oldpath'])
+        newpath = os.path.join(Utility.get_rootdir(datasource_id), request.form['newpath'])
+#        filesystem.make_json(datasource_id, Utility.get_rootdir(ds.id), newfolder)
+        return filesystem.rename(oldpath,  newpath)
         
+@main.route('/addfolder', methods=['POST'])
+@login_required
+def addfolder():
+    datasource_id = Utility.ValueOrNone(request.form['datasource'])
+    filesystem = getFileSystem(datasource_id)
+    if filesystem is not None:
+        path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
+        newfolder = filesystem.addfolder(path)
+        return json.dumps(filesystem.make_json(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newfolder, Utility.get_rootdir(datasource_id))))
+    
+    # Route that will process the file upload
+@main.route('/upload', methods=['POST'])
+def upload():
+    # Get the name of the uploaded file
+    file = request.files['file']
+    
+    # Check if the file is one of the allowed types/extensions
+    if file:
+        datasource_id = Utility.ValueOrNone(request.form['datasource'])
+        filesystem = getFileSystem(datasource_id)
+        if filesystem is not None:
+            # Make the filename safe, remove unsupported chars
+            filename = secure_filename(file.filename)
+            # Move the file form the temporal folder to
+            # the upload folder we setup
+            path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'], filename)         
+            filesystem.saveUpload(file, path)
+            
+    return json.dumps({})
