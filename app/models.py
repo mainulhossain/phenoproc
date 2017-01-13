@@ -592,7 +592,7 @@ class Task(db.Model):
     def create_task(workitem_id):
         task = Task()
         task.workitem_id = workitem_id
-        task.tasklogs.append(TaskLog(status=TaskStatus.Created))
+        task.tasklogs.append(TaskLog(status=TaskStatus.query.get(2))) # 2 = Created
         db.session.add(task)
         db.session.commit()
         return task.id
