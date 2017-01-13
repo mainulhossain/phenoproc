@@ -7,6 +7,7 @@ from flask import current_app
 from ..util import Utility
 from .. import db
 import json
+import sys
 
 class WorkflowHandler:
     @staticmethod
@@ -59,7 +60,7 @@ class WorkflowHandler:
         if current_user.is_authenticated:
             workitem_id = Utility.ValueOrNone(workitem_id)
             datasource = Utility.ValueOrNone(datasource)
-            current_app.config['WORKFLOW_MODE_EDIT']
+            print(str(datasource), file=sys.stderr)
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
                 workitem = WorkItem.query.get(workitem_id)
                 data = Data.query.filter_by(url = path).first()
