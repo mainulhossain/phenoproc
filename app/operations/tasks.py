@@ -20,7 +20,7 @@ class TaskManager:
         print(' '.join(argv))
         self.futures = {task_id: self.pool.submit(check_output, ' '.join(argv), shell=True)}
         task = Task.query.get(task_id)        
-        task.add_log(TaskStatus.Running)
+        task.add_log(TaskStatus.query.get(3))
     
     def check_task(self, task_id):
         status = self.manage_running_task(task_id)
@@ -34,7 +34,7 @@ class TaskManager:
         status = self.managed_task_status(task_id)
         if status is not None:
             Task.query.get(task_id).add_log(status)
-            if status is not TaskStatus.Running:
+            if status.id != 3:
                 del self.futures[task_id]
         return status;         
     
@@ -44,14 +44,14 @@ class TaskManager:
             
     def managed_task_status(self, task_id):
         future = self.futures[task_id]
-        status = TaskStatus.Unknown
+        status = TaskStatus.query.get(0)
         if future is not None:
             if future.cancelled():
-                status = TaskStatus.Cancelled
+                status = TaskStatus.query.get(6)
             elif future.running:
-                status = TaskStatus.Running
+                status = TaskStatus.query.get(3)
             elif future.done():
-                status = TaskStatus.Compeleted
+                status = TaskStatus.query.get(4)
                 #output = future.result()
         return status
             
