@@ -8,6 +8,7 @@ from ..util import Utility
 from .. import db
 import json
 import sys
+from sqlalchemy import *
 
 class WorkflowHandler:
     @staticmethod
@@ -60,10 +61,9 @@ class WorkflowHandler:
         if current_user.is_authenticated:
             workitem_id = Utility.ValueOrNone(workitem_id)
             datasource = Utility.ValueOrNone(datasource)
-            print(str(datasource), file=sys.stderr)
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
                 workitem = WorkItem.query.get(workitem_id)
-                data = Data.query.filter_by(url = path).first()
+                data = Data.query.filter(and_(Data.url == path, Data.datasource_id == datasource)).first()
                 if data is None:
                     data = Data(datasource_id = datasource, datatype=DataType.Unknown, url = path)
                 workitem.inputs = data
@@ -76,7 +76,7 @@ class WorkflowHandler:
             datasource = Utility.ValueOrNone(datasource)
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
                 workitem = WorkItem.query.get(workitem_id)            
-                data = Data.query.filter_by(url = path).first()
+                data = Data.query.filter(and_(Data.url == path, Data.datasource_id == datasource)).first()
                 if data is None:
                     data = Data(datasource_id = datasource, datatype = DataType.Unknown, url = path)
                 workitem.outputs = data
@@ -100,7 +100,6 @@ class WorkflowHandler:
             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None and Operation.query.get(operation_id) is not None:
                 workitem = WorkItem.query.get(workitem_id)
                 workitem.operation = Operation.query.get(operation_id)
-                print(workitem.operation.id)
                 db.session.commit()
 
     @staticmethod        
