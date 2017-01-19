@@ -79,14 +79,16 @@ class PosixFileSystem(object):
         return path
     
     def delete(self, path):
-        if os.path.exists(path):
+        if os.path.isdir(path):
             shutil.rmtree(path)
+        elif os.path.isfile(path):
+            os.remove(path)
             
     def addfolder(self, path):
         i = 0
-        while os.path.exists(os.path.join(path, "New Folder {0}".format(i))):
+        while os.path.exists(os.path.join(path, "New Folder ({0})".format(i))):
             i += 1
-        return self.makedirs(os.path.join(path, "New Folder {0}".format(i)))
+        return self.makedirs(os.path.join(path, "New Folder ({0})".format(i)))
     
     def rename(self, oldpath, newpath):
         os.rename(oldpath, newpath)
@@ -143,9 +145,9 @@ class HadoopFileSystem(object):
         
     def addfolder(self, path):
         i = 0
-        while client.status(os.path.join(path, "New Folder {0}".format(i)), False) is None:
+        while client.status(os.path.join(path, "New Folder ({0})".format(i)), False) is None:
             i += 1
-        return self.makedirs(os.path.join(path, "New Folder {0}".format(i)))
+        return self.makedirs(os.path.join(path, "New Folder ({0})".format(i)))
     
     def rename(self, oldpath, newpath):
         try:

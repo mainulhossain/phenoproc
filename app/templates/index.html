@@ -64,28 +64,31 @@
 	
 	function addFolder() {
 		var fsitem = $('#tree1').find('li > a.selected');
-			$.post('/addfolder', {
-            path: fsitem.data('path'),
-            datasource: fsitem.data('datasource')
-        }).done(function(folder) {
+        if (fsitem === undefined)
+        	return;
+        fsitem = fsitem.parent();
+        
+		$.post('/addfolder', {
+           path: fsitem.data('path'),
+           datasource: fsitem.data('datasource')
+        }, "json").done(function(folder) {
         	folder = $.parseJSON(folder);
-        	$.each(translated, function(index, element) {
-        		
-
-        	});
+        	fsitem.append('<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>');
         }).fail(function() {
         });
 	}
 	
 	function remove() {
 		var fsitem = $('#tree1').find('li > a.selected');
-			$.post('/delete', {
-            path: fsitem.data('path'),
-            datasource: fsitem.data('datasource')
+        if (fsitem === undefined)
+        	return;
+        fsitem = fsitem.parent();
+        
+		$.post('/delete', {
+           path: fsitem.data('path'),
+           datasource: fsitem.data('datasource')
         }).done(function(folder) {
-        	folder = $.parseJSON(folder);
-        	$.each(translated, function(index, element) {
-        	});
+        	fsitem.remove();
         }).fail(function() {
         });
 	}
@@ -94,7 +97,7 @@
 
 {% endblock %}
 {% block page_content %}
-<div class="modal fade" id="file-upload-dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="file-upload-dialog" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <!-- Modal Header -->
@@ -103,7 +106,7 @@
                        <span aria-hidden="true">&times;</span>
                        <span class="sr-only">Close</span>
                 </button>
-                <h4 class="modal-title" id="myModalLabel">
+                <h4 class="modal-title" id="uploadModalLabel">
                     File Upload
                 </h4>
             </div>
@@ -119,7 +122,41 @@
                   
                   <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                      <button type="button" class="btn btn-default" id="upload-file-btn">Upload</button>
+                      <button type="button" class="btn btn-default" id="upload-file-btn" data-dismiss="modal">Upload</button>
+                    </div>
+                  </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rename-filefolder-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                       <span aria-hidden="true">&times;</span>
+                       <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="renameModalLabel">
+                    File/Folder Rename
+                </h4>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form id="rename-filefolder" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                    	<input type="text" name="rename-filefolder-text" id="rename-filefolder-text">
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="button" class="btn btn-default" id="rename-filefolder-btn" data-dismiss="modal">Rename</button>
                     </div>
                   </div>
                 </form>
@@ -141,6 +178,7 @@
                     <div class="btn-group-sm">
                         <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" onclick="download();"><i class="glyphicon glyphicon-download"></i></button>
                         <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-target="#file-upload-dialog" ><i class="glyphicon glyphicon-upload"></i></button>
+                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-target="#rename-filefolder-dialog" ><i class="glyphicon glyphicon-edit"></i></button>
 	                    <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" onclick="remove();"><i class="glyphicon glyphicon-minus"></i></button>
                     	<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" onclick="addFolder();" ><i class="glyphicon glyphicon-plus"></i></button>
                     </div>
@@ -281,6 +319,10 @@
 	    $('#upload-file-btn').click(function() {
 	        var form_data = new FormData($('#upload-file')[0]);
 	        var fsitem = $('#tree1').find('li > a.selected');
+	        if (fsitem === undefined)
+	        	return;
+	        
+	        fsitem = fsitem.parent();
 	        form_data.append("datasource", fsitem.data('datasource'));
 	        form_data.append("path", fsitem.data('path'));
 	        $.ajax({
@@ -296,20 +338,58 @@
 	            },
 	        });
 	    });
-		
-	    function remove() {
-			var fsitem = $('#tree1').find('li > a.selected');
-				$.post('/delete', {
-	            path: fsitem.data('path'),
-	            datasource: fsitem.data('datasource')
-	        }).done(function(folder) {
-	        	folder = $.parseJSON(folder);
-	        	$.each(translated, function(index, element) {
-	        	});
-	        }).fail(function() {
-	        });
-		}
 	    
+	    $('#rename-filefolder-dialog').on('shown.bs.modal', function () {
+	    	alert('hier');
+	    	var fsitem = $('#tree1').find('li > a.selected');
+	        if (fsitem === undefined)
+	        	return;
+	        fsitem = fsitem.parent();
+	    	$('#rename-filefolder-text').val(fsitem.data('name'));
+	    	$('#rename-filefolder-text').focus();
+	    });
+	    
+	    function addDataSource(parentElement, parentItem){
+			if (parentElement.children.length > 0){
+				parentElement = parentElement.append('<ul />');
+		    	$.each(parentItem.children, function(index, folder) {
+			    	childElement = parentElement.append('<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>');
+			    	addDataSource(childElement, folder);
+	        	});
+			}
+	    }
+	    
+	    $('#rename-filefolder-btn').click(function() {
+	        var form_data = new FormData($('#rename-filefolder')[0]);
+	        var fsitem = $('#tree1').find('li > a.selected');
+	        if (fsitem === undefined)
+	        	return;
+	        
+	        fsitem = fsitem.parent();
+	        form_data.append("datasource", fsitem.data('datasource'));
+	        form_data.append("path", fsitem.data('path'));
+	        form_data.append("newname", $('#rename-filefolder-text').val())
+	        $.ajax({
+	            type: 'POST',
+	            url: "/rename",
+	            data: form_data,
+	            contentType: false,
+	            cache: false,
+	            processData: false,
+	            async: false,
+	            success: function(data) {
+	            	data = $.parseJSON(data);
+	            	var aitem = $('#tree1').find('li > a.selected');
+	    	        if (aitem === undefined)
+	    	        	return;
+	    	        aitem.text(data.name);
+	    	        fsitem.data("path", data.path);
+	    	        fsitem.empty(); // remove child elements
+	    	        addDataSource(fsitem, data);
+	            },
+	        });
+	    });
+		   
 		$(document).ready(function() {
 			//$('[data-toggle="tooltip"]').tooltip();
 			
@@ -334,8 +414,6 @@
 		            });
 		        }
 		    }, 3000);
-
-
 			
 			$('#tree1').treed();
 			$('#tree-operations').treed();

@@ -401,18 +401,20 @@ def delete():
     if filesystem is not None:
         path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
         filesystem.delete(path)
-        return json.dumps(dict())
+    return json.dumps(dict())
 
 @main.route('/rename', methods=['POST'])
 @login_required
 def rename():
     datasource_id = Utility.ValueOrNone(request.form['datasource'])
-    filesystem = getFileSystem(Utility.ValueOrNone(datasource_id))
+    filesystem = getFileSystem(datasource_id)
     if filesystem is not None:
-        oldpath = os.path.join(Utility.get_rootdir(datasource_id), request.form['oldpath'])
-        newpath = os.path.join(Utility.get_rootdir(datasource_id), request.form['newpath'])
-#        filesystem.make_json(datasource_id, Utility.get_rootdir(ds.id), newfolder)
-        return filesystem.rename(oldpath,  newpath)
+        oldpath = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
+        
+        newpath = os.path.join(os.path.dirname(oldpath), request.form['newname'])
+        filesystem.rename(oldpath, newpath)
+        return json.dumps(filesystem.make_json(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newpath, Utility.get_rootdir(datasource_id))))
+    return json.dumps(dict())
         
 @main.route('/addfolder', methods=['POST'])
 @login_required
@@ -423,6 +425,7 @@ def addfolder():
         path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
         newfolder = filesystem.addfolder(path)
         return json.dumps(filesystem.make_json(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newfolder, Utility.get_rootdir(datasource_id))))
+    return json.dumps(dict())
     
     # Route that will process the file upload
 @main.route('/upload', methods=['POST'])
