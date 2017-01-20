@@ -156,10 +156,12 @@ class HadoopFileSystem(object):
             pass
     
     def saveUpload(self, file, fullpath):
-        localpath = tempfile.TemporaryFile() #os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
+        localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
+        if os.path.isfile(localpath):
+            os.remove(localpath)
         try:
             file.save(localpath)
-            client.upload(fullpath, localpath, True)
+            client.upload(os.path.dirname(fullpath), localpath, True)
         except:
             pass
                 
