@@ -130,28 +130,28 @@ class HadoopFileSystem(object):
     
     def makedirs(self, path):
         try: 
-            client.makedirs(path)
+            self.client.makedirs(path)
         except:
             return None
         return path
     
     def delete(self, path):
         try: 
-            if client.status(path, False) is not None:
-                client.delete(path, true)
+            if self.client.status(path, False) is not None:
+                self.client.delete(path, true)
         except:
             pass
         return
         
     def addfolder(self, path):
         i = 0
-        while client.status(os.path.join(path, "New Folder ({0})".format(i)), False) is None:
+        while self.client.status(os.path.join(path, "New Folder ({0})".format(i)), False) is None:
             i += 1
         return self.makedirs(os.path.join(path, "New Folder ({0})".format(i)))
     
     def rename(self, oldpath, newpath):
         try:
-            client.rename(oldpath, newpath)
+            self.client.rename(oldpath, newpath)
         except:
             pass
     
@@ -161,7 +161,7 @@ class HadoopFileSystem(object):
             os.remove(localpath)
         try:
             file.save(localpath)
-            client.upload(os.path.dirname(fullpath), localpath, True)
+            self.client.upload(os.path.dirname(fullpath), localpath, True)
         except:
             pass
                 
