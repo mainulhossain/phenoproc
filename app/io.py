@@ -138,7 +138,7 @@ class HadoopFileSystem(object):
     def delete(self, path):
         try: 
             if self.client.status(path, False) is not None:
-                self.client.delete(path, true)
+                self.client.delete(path, True)
         except Exception as e: print(e)
         
     def addfolder(self, path):
