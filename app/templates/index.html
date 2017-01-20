@@ -93,6 +93,31 @@
         });
 	}
 	
+    function addDataSource(parentElement, parentItem){
+		if (parentItem.children.length > 0){
+			parentElement = parentElement.append('<ul />');
+	    	$.each(parentItem.children, function(folder) {
+		    	childElement = parentElement.append('<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>');
+		    	addDataSource(childElement, folder);
+        	});
+		}
+    }
+    
+    function reloadDataSources(){
+    	$.post('/reloaddatasources', {}, "json")
+    	.done(function(datasource_tree) {
+    		$('#tree1').empty();
+    		alert(datasource_tree);
+    		datasource_tree = $.parseJSON(datasource_tree);
+         	$.each(datasource_tree, function(item){
+	         	fsitem = $('#tree1').append('<li class="draggable-data ui-draggable" data-datasource="' + item.datasource + '" data-path="' + item.path + '"><a>' + item.name + '</a></li>');
+    	        addDataSource(fsitem, item);
+     		});
+         }).fail(function() {
+         });
+    }
+
+	
 </script>
 
 {% endblock %}
@@ -176,6 +201,7 @@
                     <h5 class="panel-title pull-left" >Data Sources</h5>
                     <div class="btn-group">
                     <div class="btn-group-sm">
+                    	<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" onclick="reloadDataSources();"><i class="glyphicon glyphicon-refresh"></i></button>
                         <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" onclick="download();"><i class="glyphicon glyphicon-download"></i></button>
                         <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-target="#file-upload-dialog" ><i class="glyphicon glyphicon-upload"></i></button>
                         <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-target="#rename-filefolder-dialog" ><i class="glyphicon glyphicon-edit"></i></button>
@@ -349,15 +375,6 @@
 	    	$('#rename-filefolder-text').focus();
 	    });
 	    
-	    function addDataSource(parentElement, parentItem){
-			if (parentElement.children.length > 0){
-				parentElement = parentElement.append('<ul />');
-		    	$.each(parentItem.children, function(index, folder) {
-			    	childElement = parentElement.append('<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>');
-			    	addDataSource(childElement, folder);
-	        	});
-			}
-	    }
 	    
 	    $('#rename-filefolder-btn').click(function() {
 	        var form_data = new FormData($('#rename-filefolder')[0]);

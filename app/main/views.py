@@ -44,6 +44,37 @@ def server_shutdown():
     shutdown()
     return 'Shutting down...'
 
+def load_data_sources():
+        # construct data source tree
+    datasources = DataSource.query.all()
+    datasource_tree = { 'type': DataType.Custom, 'children': [] }
+    for ds in datasources:
+        datasource = { 'datasource': ds.id, 'type': DataType.Root, 'base':'', 'path': ds.url, 'name': ds.name, 'children': []}
+        if ds.id == 1:
+            # hdfs tree
+            try:
+                hdfs = HadoopFileSystem()
+                if current_user.is_authenticated:
+                    datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
+                datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
+            except:
+                pass
+
+        elif ds.id == 2:
+            # file system tree
+            posixFS = PosixFileSystem()
+            if current_user.is_authenticated:
+                datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
+            datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
+ 
+        datasource_tree['children'].append(datasource)
+        
+    return datasource_tree
+
+@main.route('/reloaddatasources', methods=['POST'])
+def load_data_sources_json():
+    return json.dumps(load_data_sources())
+
 @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
 @main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
 def index(id=None):
@@ -75,30 +106,8 @@ def index(id=None):
         error_out=False)
     posts = pagination.items
     
-    # construct data source tree
-    datasources = DataSource.query.all()
-    datasource_tree = { 'type': DataType.Custom, 'children': [] }
-    for ds in datasources:
-        datasource = { 'datasource': ds.id, 'type': DataType.Root, 'base':'', 'path': ds.url, 'name': ds.name, 'children': []}
-        if ds.id == 1:
-            # hdfs tree
-            try:
-                hdfs = HadoopFileSystem()
-                if current_user.is_authenticated:
-                    datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
-                datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
-            except:
-                pass
-
-        elif ds.id == 2:
-            # file system tree
-            posixFS = PosixFileSystem()
-            if current_user.is_authenticated:
-                datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
-            datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
- 
-        datasource_tree['children'].append(datasource)
-
+    datasource_tree = load_data_sources()
+    
     # construct operation source tree
     operationsources = OperationSource.query.all()
     operation_tree = { 'name' : ('operations', ''), 'children' : [] }
@@ -415,7 +424,7 @@ def rename():
         filesystem.rename(oldpath, newpath)
         return json.dumps(filesystem.make_json(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newpath, Utility.get_rootdir(datasource_id))))
     return json.dumps(dict())
-        
+       
 @main.route('/addfolder', methods=['POST'])
 @login_required
 def addfolder():
