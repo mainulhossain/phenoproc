@@ -152,8 +152,7 @@ class HadoopFileSystem(object):
     def rename(self, oldpath, newpath):
         try:
             self.client.rename(oldpath, newpath)
-        except:
-            pass
+        except Exception as e: print(e)
     
     def saveUpload(self, file, fullpath):
         localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
