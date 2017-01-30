@@ -62,6 +62,27 @@
 	  return true;
 	}
 	
+	function dataSourceElementString(folder){
+		return '<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>'
+	}
+	
+	function addDataSource(parentElement, parentItem){
+		if (parentItem.children.length > 0){
+			parentElement = parentElement.append('<ul />');
+	    	$.each(parentItem.children, function(folder) {
+		    	childElement = parentElement.append(dataSourceElementString(folder));
+		    	addDataSource(childElement, folder);
+        	});
+		}
+    }
+	
+	function addDataSourceFromJSON(element, json){
+		
+		folder = $.parseJSON(json);
+    	addDataSource(element.append(dataSourceElementString(folder)), folder);
+    	branchListItemPlusMinusIcon(element);	
+	}
+	
 	function addFolder() {
 		var fsitem = $('#tree1').find('li > a.selected');
         if (fsitem === undefined)
@@ -72,8 +93,7 @@
            path: fsitem.data('path'),
            datasource: fsitem.data('datasource')
         }, "json").done(function(folder) {
-        	folder = $.parseJSON(folder);
-        	fsitem.append('<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>');
+        	addDataSourceFromJSON(fsitem, folder);
         }).fail(function() {
         });
 	}
@@ -93,15 +113,7 @@
         });
 	}
 	
-    function addDataSource(parentElement, parentItem){
-		if (parentItem.children.length > 0){
-			parentElement = parentElement.append('<ul />');
-	    	$.each(parentItem.children, function(folder) {
-		    	childElement = parentElement.append('<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>');
-		    	addDataSource(childElement, folder);
-        	});
-		}
-    }
+    
     
     function reloadDataSources(){
     	$.post('/reloaddatasources', {}, "json")
@@ -110,7 +122,7 @@
     		alert(datasource_tree);
     		datasource_tree = $.parseJSON(datasource_tree);
          	$.each(datasource_tree, function(item){
-	         	fsitem = $('#tree1').append('<li class="draggable-data ui-draggable" data-datasource="' + item.datasource + '" data-path="' + item.path + '"><a>' + item.name + '</a></li>');
+	         	fsitem = $('#tree1').append(dataSourceElementString(item));
     	        addDataSource(fsitem, item);
      		});
          }).fail(function() {
@@ -401,8 +413,11 @@
 	    	        	return;
 	    	        aitem.text(data.name);
 	    	        fsitem.data("path", data.path);
-	    	        fsitem.empty(); // remove child elements
+	    	        fsitem.find('ul').each(function(){
+	    	        	$(this).remove();
+	    	        });
 	    	        addDataSource(fsitem, data);
+	    	        branchListItemPlusMinusIcon(fsitem);
 	            },
 	        });
 	    });

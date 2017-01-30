@@ -1,62 +1,83 @@
+function branchListItem(base, o) {
+	//li with children ul
+	base.find('li').has("ul").each(function() {
+		var branch = $(this);
+		if (branch.hasClass('branch'))
+			return;
+		branch.prepend("<i class='indicator glyphicon "	+ o.closedClass + "'></i>");
+		branch.addClass('branch');
+		branch.on('click', function(e) {
+			if (this == e.target) {
+				var icon = $(this).children('i:first');
+				icon.toggleClass(o.openedClass + " " + o.closedClass);
+				$(this).children().children().toggle();
+			}
+		})
+		branch.children().children().toggle();
+	});
+}
+
+function branchListItemPlusMinusIcon(branch) {
+	
+	branchListItem(branch, {
+				'openedClass': 'glyphicon-minus-sign',
+				'closedClass': 'glyphicon-plus-sign'
+		});
+}
+
+function attachEvents(base) {
+	//fire event from the dynamically added icon
+	base.find('.branch .indicator').each(function() {
+		$(this).on('click', function() {
+			$(this).closest('li').click();
+		});
+	});
+
+	base.on("click", "li > a", function(e) {
+		base.find("li > a").removeClass('selected');
+		$(this).attr('class', 'selected');
+	});
+
+	//fire event to open branch if the li contains an anchor instead of text
+	base.find('.branch>a').each(function() {
+		$(this).on('click', function(e) {
+			$(this).closest('li').click();
+			e.preventDefault();
+		});
+	});
+	//fire event to open branch if the li contains a button instead of text
+	base.find('.branch>button').each(function() {
+		$(this).on('click', function(e) {
+			$(this).closest('li').click();
+			e.preventDefault();
+		});
+	});
+}
+
 $.fn.extend({
 	treed : function(o) {
-
-		var openedClass = 'glyphicon-minus-sign';
-		var closedClass = 'glyphicon-plus-sign';
-
+		
+		var arg = {
+				'openedClass': 'glyphicon-minus-sign',
+				'closedClass': 'glyphicon-plus-sign'
+		};
+		
 		if (typeof o != 'undefined') {
 			if (typeof o.openedClass != 'undefined') {
-				openedClass = o.openedClass;
+				arg.openedClass = o.openedClass;
 			}
 			if (typeof o.closedClass != 'undefined') {
-				closedClass = o.closedClass;
+				arg.closedClass = o.closedClass;
 			}
-		}
-		;
-
+		};
+		
 		//initialize each of the top levels
 		var tree = $(this);
 		tree.addClass("tree");
-		tree.find('li').has("ul").each(
-				function() {
-					var branch = $(this); //li with children ul
-					branch.prepend("<i class='indicator glyphicon "
-							+ closedClass + "'></i>");
-					branch.addClass('branch');
-					branch.on('click', function(e) {
-						if (this == e.target) {
-							var icon = $(this).children('i:first');
-							icon.toggleClass(openedClass + " " + closedClass);
-							$(this).children().children().toggle();
-						}
-					})
-					branch.children().children().toggle();
-				});
-		//fire event from the dynamically added icon
-		tree.find('.branch .indicator').each(function() {
-			$(this).on('click', function() {
-				$(this).closest('li').click();
-			});
-		});
-
-		tree.on("click", "li > a", function(e) {
-			tree.find("li > a").removeClass('selected');
-			$(this).attr('class', 'selected');
-		});
-
-		//fire event to open branch if the li contains an anchor instead of text
-		tree.find('.branch>a').each(function() {
-			$(this).on('click', function(e) {
-				$(this).closest('li').click();
-				e.preventDefault();
-			});
-		});
-		//fire event to open branch if the li contains a button instead of text
-		tree.find('.branch>button').each(function() {
-			$(this).on('click', function(e) {
-				$(this).closest('li').click();
-				e.preventDefault();
-			});
-		});
+		branchListItem(tree, arg); 
+				
+		
+		// attach events to whole
+		attachEvents(tree);
 	}
 });
