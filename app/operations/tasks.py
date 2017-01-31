@@ -21,12 +21,16 @@ class TaskStatusTypes(Enum):
 class TaskManager:
     def __init__(self, max_count = 5):
         self.pool = ThreadPoolExecutor(max_count)
-        
+    
+    def submit_func(self, task_id, func, argv):
+        self.futures = { task_id: self.pool.submit(func, argv) }
+        task = Task.query.get(task_id)        
+        task.add_log(TaskStatus.query.get(TaskStatusTypes.Running)) # 3 means Running
+    
     def submit(self, task_id, argv):
         execfile = argv[:1]
         args = argv[1:]
         #self.futures = {task_id: self.pool.submit(check_output, argv, shell=True)}
-        print(' '.join(argv))
         self.futures = {task_id: self.pool.submit(check_output, ' '.join(argv), shell=True)}
         task = Task.query.get(task_id)        
         task.add_log(TaskStatus.query.get(TaskStatusTypes.Running)) # 3 means Running
