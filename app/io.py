@@ -96,6 +96,12 @@ class PosixFileSystem(object):
     def saveUpload(self, file, fullpath):
         file.save(fullpath)
     
+    def download(self, fullpath):
+        if os.path.isfile(fullpath):
+            return fullpath
+        else:
+            return None
+        
 class HadoopFileSystem(object):
     def __init__(self, *opts):
         self.client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
@@ -161,7 +167,15 @@ class HadoopFileSystem(object):
             self.client.upload(os.path.dirname(fullpath), localpath, True)
         except:
             pass
-                
+        
+    def download(self, fullpath):
+        status = self.client.status(fullpath, False)
+        if status is not None and status['type'] == "FILE":
+            localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
+            return self.client.download(fullpath, localpath, True)
+        else:
+            return None
+                    
 def getFileSystem(datasource_id):
     if datasource_id is None:
         return None    
