@@ -22,10 +22,10 @@ class TaskManager:
     def __init__(self, max_count = 5):
         self.pool = ThreadPoolExecutor(max_count)
     
-    def submit_func(self, task_id, func, argv):
-        self.futures = { task_id: self.pool.submit(func, argv) }
+    def submit_func(self, task_id, func, *args):
+        self.futures = { task_id: self.pool.submit(func, *args) }
         task = Task.query.get(task_id)        
-        task.add_log(TaskStatus.query.get(TaskStatusTypes.Running)) # 3 means Running
+        task.add_log(TaskStatus.query.get(3)) # 3 means Running
     
     def submit(self, task_id, argv):
         execfile = argv[:1]

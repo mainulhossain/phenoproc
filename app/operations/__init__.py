@@ -11,7 +11,7 @@ def execute_workflow(workflow_id):
         if (workitem.operation.id == 3):
            return Action.run(workitem)
         elif (workitem.operation.id == 4):
-           return Action.run(workitem)
+           return register_images(workitem)
         else:
             pass
          
