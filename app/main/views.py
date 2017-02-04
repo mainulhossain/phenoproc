@@ -455,3 +455,14 @@ def upload():
             filesystem.saveUpload(file, path)
             
     return json.dumps({})
+
+@main.route('/download', methods=['POST'])
+@login_required
+def download():
+    datasource_id = Utility.ValueOrNone(request.form['datasource'])
+    filesystem = getFileSystem(datasource_id)
+    if filesystem is not None:
+        path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
+        if os.path.isfile(path):
+            return send_from_directory(directory=os.path.dirname(path), filename=os.path.basename(path), as_attachment=True)
+    return json.dumps(dict())

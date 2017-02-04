@@ -113,8 +113,6 @@
         });
 	}
 	
-    
-    
     function reloadDataSources(){
     	$.post('/reloaddatasources', {}, "json")
     	.done(function(datasource_tree) {
@@ -128,7 +126,20 @@
          }).fail(function() {
          });
     }
-
+    
+    function download() {
+		var fsitem = $('#tree1').find('li > a.selected');
+        if (fsitem === undefined)
+        	return;
+        fsitem = fsitem.parent();
+        
+		$.post('/download', {
+           path: fsitem.data('path'),
+           datasource: fsitem.data('datasource')
+        }).done(function(folder) {
+        }).fail(function() {
+        });
+	}
 	
 </script>
 
