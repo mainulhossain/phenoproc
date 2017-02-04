@@ -464,5 +464,5 @@ def download():
     if filesystem is not None:
         path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
         if os.path.isfile(path):
-            return send_from_directory(directory=os.path.dirname(path), filename=os.path.basename(path), as_attachment=True)
+            return send_from_directory(directory=os.path.dirname(path), filename=os.path.basename(path))
     return json.dumps(dict())

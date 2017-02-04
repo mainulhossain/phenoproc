@@ -132,13 +132,14 @@
         if (fsitem === undefined)
         	return;
         fsitem = fsitem.parent();
+        $.redirect('/download', {path: fsitem.data('path'), datasource: fsitem.data('datasource')});
         
-		$.post('/download', {
-           path: fsitem.data('path'),
-           datasource: fsitem.data('datasource')
-        }).done(function(folder) {
-        }).fail(function() {
-        });
+// 		$.post('/download', {
+//            path: fsitem.data('path'),
+//            datasource: fsitem.data('datasource')
+//         }).done(function(folder) {
+//         }).fail(function() {
+//         });
 	}
 	
 </script>
@@ -357,6 +358,7 @@
 <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/tree.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.redirect.js') }}"></script>
 <script type="text/javascript">
 	var refreshId = 0;
 	$(window).load(function() {
