@@ -1,6 +1,6 @@
 from __future__ import print_function  
 
-#from p2irc.image_tools import registration
+from p2irc.image_tools import registration
 from ..tasks import task_manager
 from ...models import Task
 from ...util import Utility

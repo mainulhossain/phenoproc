@@ -48,11 +48,11 @@ class WorkflowHandler:
                 
     @staticmethod        
     def delete_workitem(obj_response, workitem_id):
-        if current_user.is_authenticated:
-             workitem_id = Utility.ValueOrNone(workitem_id)
-             if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
-                WorkItem.query.filter(WorkItem.id == workitem_id).delete()
-                db.session.commit()               
+        #if current_user.is_authenticated:
+        workitem_id = Utility.ValueOrNone(workitem_id)
+        if workitem_id is not None and WorkItem.query.get(workitem_id) is not None:
+            WorkItem.query.filter(WorkItem.id == workitem_id).delete()
+            db.session.commit()               
                                               
     @staticmethod        
     def add_workitem(obj_response, wf_id):
