@@ -14,12 +14,12 @@ from sqlalchemy import text
 import os
 import sys
 import flask_sijax
-from ..operations import execute_workflow
 from .ajax import WorkflowHandler
 from ..util import Utility
 from ..io import PosixFileSystem, HadoopFileSystem, getFileSystem
 import json
 from werkzeug import secure_filename
+import mimetypes
 
 app = Flask(__name__)
 
@@ -464,5 +464,18 @@ def download():
     if filesystem is not None:
         path = filesystem.download(os.path.join(Utility.get_rootdir(datasource_id), request.form['path']))
         if path is not None:
+#             filename, ext = os.path.splitext(path)
+#             if ext in mimetypes.types_map:
+#                 mime = mimetypes.types_map[ext]
+#             
+#             if mime is None:
+#                 try:
+#                     mimetypes = mimetypes.read_mime_types(path)
+#                     if mimetypes:
+#                         mime = list(mimetypes.values())[0]
+#                 except:
+#                     pass
+#             if mime is not None:
+                    
             return send_from_directory(directory=os.path.dirname(path), filename=os.path.basename(path))
     return json.dumps(dict())

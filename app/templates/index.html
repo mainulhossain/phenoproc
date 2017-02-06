@@ -261,7 +261,7 @@
  		                    <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add Workflow" onclick="Sijax.request('add_workflow', [], {async: false}); location.reload();"><i class="glyphicon glyphicon-random"></i></button>
                    			<button class="btn btn-primary pull-right"  data-toggle="tooltip" data-placement="top" title="Run Mode" onclick="Sijax.request('set_editmode', [false], {async: false}); location.reload();"><i class="glyphicon glyphicon-off"></i></button>	                        
                     	{% else %}
-	                    	<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Stop Execution"><i class="glyphicon glyphicon-stop"></i></button>
+	                    	<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Stop Execution" onclick="Sijax.request('stop_workflow', [workflowId]);"><i class="glyphicon glyphicon-stop"></i></button>
 		                    <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Pause Execution"><i class="glyphicon glyphicon-pause"></i></button>
 	                        <button class="btn btn-primary pull-right"  data-toggle="tooltip" data-placement="top" title="Execute" onclick="Sijax.request('run_workflow', [workflowId]);"><i class="glyphicon glyphicon-play"></i></button>
 	                        <button class="btn btn-primary pull-right"  data-toggle="tooltip" data-placement="top" title="Edit Mode" onclick="Sijax.request('set_editmode', [true], {async: false}); location.reload();"><i class="glyphicon glyphicon-edit"></i></button>

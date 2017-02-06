@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from flask_login import login_required, current_user
 from ..models import Permission, Role, User, Workflow, WorkItem, DataSource, Data, DataType, OperationSource, Operation
-from ..operations import execute_workflow
+from ..operations.executor import workflow_executor
 from flask import current_app
 from ..util import Utility
 from .. import db
@@ -10,13 +10,20 @@ import json
 import sys
 from sqlalchemy import *
 
+
 class WorkflowHandler:
     @staticmethod
     def run_workflow(obj_response, workflow_id):
         workflow_id = Utility.ValueOrNone(workflow_id)
-        if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
-            execute_workflow(workflow_id)
-    
+        if workflow_id is not None:
+            workflow_executor.run(workflow_id)
+
+    @staticmethod
+    def stop_workflow(obj_response, workflow_id):
+        workflow_id = Utility.ValueOrNone(workflow_id)
+        if workflow_id is not None:
+            workflow_executor.cancel(workflow_id)
+        
     @staticmethod        
     def set_editmode(obj_response, mode):
         current_app.config['WORKFLOW_MODE_EDIT'] = mode
