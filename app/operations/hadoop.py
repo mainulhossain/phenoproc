@@ -24,6 +24,10 @@ def runHadoop(task_id, mapper, reducer, input, output, **kwargs):
         if 'command_options' in kwargs:
             command_options = kwargs['command_options']
             
+        mapper_arg = os.path.basename(mapper)
+        if 'mapper_arg' in kwargs:
+            mapper_arg = mapper_arg + " " + kwargs['mapper_arg']
+                
 #         if 'inputformat' in kwargs:
 #             genericOptions = ' -libjars{0}'.format(kwargs['inputformat'])
 #             commandOptions = ' -inputformat{0}'.format(kwargs['inputformat'])
@@ -38,7 +42,7 @@ def runHadoop(task_id, mapper, reducer, input, output, **kwargs):
 #         if 'io' in kwargs:
 #             commandOptions = commandOptions + ' -io{0}'.format(kwargs['io'])
                 
-        args = 'jar {0} -files {1},{2} {3} -D mapreduce.input.fileinputformat.input.dir.recursive=true -D mapreduce.job.name="{4}" {5} -mapper {6} -reducer {7} -input {8} -output {9}'.format(streamPath, mapper, reducer, generic_options, jobid, command_options, os.path.basename(mapper), os.path.basename(reducer), input, output)
+        args = 'jar {0} -files {1},{2} {3} -D mapreduce.input.fileinputformat.input.dir.recursive=true -D mapreduce.job.name="{4}" {5} -mapper "{6}" -reducer {7} -input {8} -output {9}'.format(streamPath, mapper, reducer, generic_options, jobid, command_options, mapper_arg, os.path.basename(reducer), input, output)
         print(args, file=sys.stderr)
         task_manager.submit(task_id, [hadoopPath, args])
 
