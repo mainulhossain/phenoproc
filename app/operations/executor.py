@@ -8,7 +8,7 @@ from .wordcount.action import Action
 import time
 from .tasks import task_manager
 import sys
-from manage import app
+#from manage import app
 
 class WorkflowExecutor:
     def __init__(self, max_count = 8):
