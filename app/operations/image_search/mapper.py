@@ -34,8 +34,8 @@ def search_img(src, key_value):
 	img1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
 	
 	orb = cv2.ORB_create()
-        # find the keypoints and descriptors with SIFT
-        kp1, desc = orb.detectAndCompute(img1, None)
+	# find the keypoints and descriptors with SIFT
+	kp1, desc = orb.detectAndCompute(img1, None)
 	
 	m={}
 	for key in key_value:
