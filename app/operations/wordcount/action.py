@@ -24,7 +24,7 @@ class Action(object):
         output_datasource = DataSource.query.get(workitem.outputs.datasource_id)
         task_id = Task.create_task(workitem.id)
         cwd = os.path.abspath(os.path.dirname(__file__))
-        runHadoop(task_id, os.path.join(cwd, 'mapper.py'), os.path.join(cwd, 'reducer.py'), cwd, Utility.get_fullpath(workitem.inputs), Utility.get_fullpath(workitem.outputs))
+        runHadoop(task_id, os.path.join(cwd, 'mapper.py'), os.path.join(cwd, 'reducer.py'), Utility.get_fullpath(workitem.inputs), Utility.get_fullpath(workitem.outputs))
     
     @staticmethod
     def run_fs(workitem):
