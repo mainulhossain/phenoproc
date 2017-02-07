@@ -3,6 +3,7 @@ from __future__ import print_function
 from ..models import Task, TaskStatus, TaskLog, Workflow, WorkItem
 from concurrent.futures import ThreadPoolExecutor
 from .discus_p2irc.imgop import register_images
+from .image_search.imgproc import search_image
 from .wordcount.action import Action
 import time
 from .tasks import task_manager
@@ -50,6 +51,8 @@ class WorkflowExecutor:
                    Action.run(workitem)
                 elif (workitem.operation.id == 4):
                    register_images(workitem)
+                elif (workitem.operation.id == 5):
+                    search_image(workitem)
                 else:
                     pass
                 while WorkflowExecutor.is_workitem_running(workitem.id):
