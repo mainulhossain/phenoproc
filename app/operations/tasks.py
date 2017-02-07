@@ -77,13 +77,13 @@ class TaskManager:
         status = None
         if task_id in self.futures:
             future = self.futures[task_id]
-            status = TaskStatus.query.get(TaskStatusTypes.Unknown)
+            status = TaskStatus.query.get(int(TaskStatusTypes.Unknown))
             if future.cancelled():
-                status = TaskStatus.query.get(TaskStatusTypes.Cancelled)
+                status = TaskStatus.query.get(int(TaskStatusTypes.Cancelled))
             elif future.running:
-                status = TaskStatus.query.get(TaskStatusTypes.Running)
+                status = TaskStatus.query.get(int(TaskStatusTypes.Running))
             elif future.done():
-                status = TaskStatus.query.get(TaskStatusTypes.Completed)
+                status = TaskStatus.query.get(int(TaskStatusTypes.Completed))
                 #output = future.result()
         return status
     
