@@ -1,11 +1,10 @@
-#! /usr/bin/env python
 
 import sys
 import numpy
 import cv2
 #from cv2 import cv
 import random
-from flask import current_app
+#from flask import current_app
 
 try:
     from hdfs import InsecureClient
@@ -26,7 +25,7 @@ def search_img_desc(orb, desc, img_data):
 
 def search_img(src, key_value):
 	data = []
-	hdfs = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
+	hdfs = InsecureClient('http://sr-p2irc-big1.usask.ca:50070', user='hdfs')
 	with hdfs.read(src) as reader:
 		data = reader.read()
 
@@ -38,6 +37,7 @@ def search_img(src, key_value):
 	kp1, desc = orb.detectAndCompute(img1, None)
 	
 	m={}
+	key_value = dict()
 	for key in key_value:
 		m[key]=search_img_desc(orb, desc, key_value[key])
 
@@ -78,6 +78,6 @@ def write_keys_and_values(output, d):
         write_raw_bytes(output, str(d[key]))
 
 if __name__ == "__main__":
-	key_values = read_keys_and_values(sys.stdin)
-	matches = search_img(sys.argv[1], key_values)
-	write_keys_and_values(sys.stdout, matches)
+#	key_values = read_keys_and_values(sys.stdin)
+	matches = search_img(sys.argv[1], dict())
+	write_keys_and_values(sys.stdout, dict())

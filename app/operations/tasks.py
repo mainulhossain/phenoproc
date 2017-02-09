@@ -6,10 +6,10 @@ from past.builtins.misc import execfile
 from ..models import Task, TaskStatus, TaskLog, Workflow
 from .. import db
 from sqlalchemy import func
-from enum import Enum
+from enum import Enum,IntEnum
 import sys
 
-class TaskStatusTypes(Enum):
+class TaskStatusTypes(IntEnum):
     Unknown = 1
     Created = 2
     Running = 3
@@ -57,9 +57,9 @@ class TaskManager:
             del self.futures[task_id] # remove orphan task
             Task.query.get(task_id).add_log(TaskStatus.query.get(int(TaskStatusTypes.Cancelling)))
             future.cancel()
-            Task.query.get(task_id).add_log(TaskStatus.query.get(int(TaskStatusTypes.Cancelled)))
+            Task.query.get(task_id).add_log(TaskStatus.query.get(int(TaskStatusTypes.Canceled)))
         else:
-            Task.query.get(task_id).add_log(TaskStatus.query.get(int(TaskStatusTypes.Cancelled)))
+            Task.query.get(task_id).add_log(TaskStatus.query.get(int(TaskStatusTypes.Canceled)))
                     
     def manage_running_task(self, task_id):
         status = self.managed_task_status(task_id)
@@ -79,7 +79,7 @@ class TaskManager:
             future = self.futures[task_id]
             status = TaskStatus.query.get(int(TaskStatusTypes.Unknown))
             if future.cancelled():
-                status = TaskStatus.query.get(int(TaskStatusTypes.Cancelled))
+                status = TaskStatus.query.get(int(TaskStatusTypes.Canceled))
             elif future.running:
                 status = TaskStatus.query.get(int(TaskStatusTypes.Running))
             elif future.done():

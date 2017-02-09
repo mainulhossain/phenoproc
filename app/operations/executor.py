@@ -8,6 +8,7 @@ from .wordcount.action import Action
 import time
 from .tasks import task_manager
 import sys
+#import manage.app
 from manage import app
 
 class WorkflowExecutor:
@@ -44,7 +45,9 @@ class WorkflowExecutor:
     
     @staticmethod
     def submit(workflow_id):
+        print(workflow_id, file=sys.stderr)
         with app.app_context():
+            print(workflow_id, file=sys.stderr)
             workitems = WorkItem.query.filter_by(workflow_id = workflow_id)
             for workitem in workitems:
                 if (workitem.operation.id == 3):
