@@ -1,6 +1,6 @@
 function branchListItem(base, o) {
 	//li with children ul
-	base.find('li').has("ul").each(function() {
+	base.find('li').addBack('li').has("ul").each(function() {
 		var branch = $(this);
 		if (branch.hasClass('branch'))
 			return;
