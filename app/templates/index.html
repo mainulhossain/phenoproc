@@ -63,14 +63,21 @@
 	}
 	
 	function dataSourceElementString(folder){
-		return '<li class="draggable-data ui-draggable" data-datasource="' + folder.datasource + '" data-path="' + folder.path + '"><a>' + folder.name + '</a></li>'
+		return $('<li>').attr({
+    		class: "draggable-data ui-draggable",
+			"data-datasource": folder.datasource,
+			"data-path": folder.path
+		}).append($('<a>').text(folder.name));
 	}
 	
 	function addDataSource(parentElement, parentItem){
-		if (parentItem.children.length > 0){
-			parentElement = parentElement.append('<ul />');
-	    	$.each(parentItem.children, function(folder) {
-		    	childElement = parentElement.append(dataSourceElementString(folder));
+		if (parentItem.children !== undefined && parentItem.children.length > 0){
+			var subList = $('<ul />');
+			subList.appendTo(parentElement);
+	    	$.each(parentItem.children, function(index, folder) {
+	    		
+		    	var childElement = dataSourceElementString(folder)
+		    	childElement.appendTo(subList);	    		
 		    	addDataSource(childElement, folder);
         	});
 		}
@@ -78,8 +85,16 @@
 	
 	function addDataSourceFromJSON(element, json){
 		
-		folder = $.parseJSON(json);
-    	addDataSource(element.append(dataSourceElementString(folder)), folder);
+		var folder = $.parseJSON(json);
+		if (!element.has("ul").length) {
+			subList = $('<ul />');
+			subList.appendTo(element);
+		}	
+		var ulElement = element.find('ul').first();
+		
+		var childElement = dataSourceElementString(folder);
+		childElement.appendTo(ulElement);
+    	addDataSource(childElement, folder);
     	branchListItemPlusMinusIcon(element);	
 	}
 	
@@ -87,8 +102,7 @@
 		var fsitem = $('#tree1').find('li > a.selected');
         if (fsitem === undefined)
         	return;
-        fsitem = fsitem.parent();
-        
+        fsitem = fsitem.closest('li');
 		$.post('/addfolder', {
            path: fsitem.data('path'),
            datasource: fsitem.data('datasource')
@@ -102,7 +116,7 @@
 		var fsitem = $('#tree1').find('li > a.selected');
         if (fsitem === undefined)
         	return;
-        fsitem = fsitem.parent();
+        fsitem = fsitem.closest('li');
         
 		$.post('/delete', {
            path: fsitem.data('path'),
@@ -117,12 +131,14 @@
     	$.post('/reloaddatasources', {}, "json")
     	.done(function(datasource_tree) {
     		$('#tree1').empty();
-    		alert(datasource_tree);
-    		datasource_tree = $.parseJSON(datasource_tree);
-         	$.each(datasource_tree, function(item){
-	         	fsitem = $('#tree1').append(dataSourceElementString(item));
+    		var datasource_tree = $.parseJSON(datasource_tree);
+         	$.each(datasource_tree.children, function(index, item){
+	         	var fsitem = dataSourceElementString(item);
+	         	fsitem.appendTo($('#tree1'));
     	        addDataSource(fsitem, item);
      		});
+         	
+        	$('#tree1').treed();
          }).fail(function() {
          });
     }
@@ -391,7 +407,6 @@
 	    });
 	    
 	    $('#rename-filefolder-dialog').on('shown.bs.modal', function () {
-	    	alert('hier');
 	    	var fsitem = $('#tree1').find('li > a.selected');
 	        if (fsitem === undefined)
 	        	return;
