@@ -1,4 +1,4 @@
-activate_this = '/var/www/phenoproc/venv/bin/activate_this.py'
+activate_this = '/home/phenodoop/phenoproc/venv/bin/activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
 
 import sys, os
