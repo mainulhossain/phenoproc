@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from ..models import Task, TaskStatus, TaskLog, Workflow, WorkItem
 from concurrent.futures import ThreadPoolExecutor
-from .discus_p2irc.imgop import register_images
+#from .discus_p2irc.imgop import register_images
 from .image_search.imgproc import search_image
 from .wordcount.action import Action
 import time
