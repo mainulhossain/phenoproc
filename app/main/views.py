@@ -1,22 +1,30 @@
 from __future__ import print_function
 
 from flask import Flask, render_template, redirect, url_for, abort, flash, request,\
-    current_app, make_response, g
+    current_app, make_response, g, jsonify
 from flask import send_from_directory
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
+from sqlalchemy import text
+import os
+import sys
+import flask_sijax
+
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from .. import db
 from ..models import Permission, Role, User, Post, Comment, Workflow, WorkItem, DataSource, Data, DataType, OperationSource, Operation
 from ..decorators import admin_required, permission_required
-from sqlalchemy import text
-import os
-import sys
-import flask_sijax
+
 from .ajax import WorkflowHandler
 from ..util import Utility
-from ..io import PosixFileSystem, HadoopFileSystem, getFileSystem
+#from ..io import PosixFileSystem, HadoopFileSystem, getFileSystem
+from ..biowl.fileop import PosixFileSystem, HadoopFileSystem, IOHelper
+from ..biowl.phenoparser import PhenoWLInterpreter, PhenoWLCodeGenerator, PhenoWLParser, PythonGrammar
+from ..biowl.timer import Timer
+from ..models import Runnable
+from ..biowl.tasks import runnable_manager
+
 import json
 from werkzeug import secure_filename
 import mimetypes
@@ -479,3 +487,246 @@ def download():
                     
             return send_from_directory(directory=os.path.dirname(path), filename=os.path.basename(path))
     return json.dumps(dict())
+
+def load_data_sources_biowl():
+        # construct data source tree
+    datasources = DataSource.query.all()
+    datasource_tree = []
+    for ds in datasources:
+        datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'folder': True}
+        if ds.id == 1:
+            # hdfs tree
+            try:
+                hdfs = HadoopFileSystem(ds.url, 'hdfs')
+                if current_user.is_authenticated:
+                    datasource['nodes'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
+                datasource['nodes'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
+            except:
+                pass
+
+        elif ds.id == 2:
+            # file system tree
+            posixFS = PosixFileSystem(Utility.get_rootdir(ds.id))
+            if current_user.is_authenticated:
+                datasource['nodes'].append(posixFS.make_json(current_user.username))
+            datasource['nodes'].append(posixFS.make_json(current_app.config['PUBLIC_DIR']))
+ 
+        datasource_tree.append(datasource)
+        
+    return datasource_tree
+
+# class DataSource():
+#  
+#     #datasources = [{'path': 'http://sr-p2irc-big1.usask.ca:50070/user/phenodoop', 'text': 'HDFS', 'nodes': [], 'folder': True}, { 'text': 'LocalFS', 'path': current_app.config['DATA_DIR'], 'nodes': [], 'folder': True}]
+#          
+#     @staticmethod
+#     def load_data_sources():
+#         datasource_tree = []
+#         try:
+#             ds = datasources[0]
+#             hdfs = HadoopFileSystem(ds['path'], 'hdfs')
+#             ds['path'] = 'HDFS'
+#             ds['nodes'] = hdfs.make_json(os.sep)['nodes']
+#          #   DataSource.normalize_node_path(ds['path'], ds)
+#             datasource_tree.append(ds)            
+#         except:
+#             pass
+#          
+#         ds = datasources[1]
+#         ds['path'] = 'LocalFS'
+#         fs = PosixFileSystem()
+#         ds['nodes'] = fs.make_json(os.sep)['nodes']
+#         #DataSource.normalize_node_path(ds['path'], ds)
+#         datasource_tree.append(ds)
+#          
+#         return datasource_tree
+#      
+#     @staticmethod
+#     def normalize_node_path(root, ds):
+#         for n in ds['nodes']:
+#             n['path'] =  root + n['path']
+#             if n['folder']:
+#                 DataSource.normalize_node_path(root, n)
+#      
+#     @staticmethod
+#     def get_filesystem(path):
+#         for ds in datasources:
+#             if path.startswith(ds['text']):
+#                 return IOHelper.getFileSystem(ds['path'])
+#      
+#     @staticmethod
+#     def load_data_sources_json():
+#         return json.dumps(DataSource.load_data_sources())
+#      
+#     @staticmethod
+#     def upload(file, fullpath):
+#         fs = DataSource.get_filesystem(fullpath)
+#         return fs.save_upload(file, fullpath)
+#      
+#     @staticmethod
+#     def download(path):
+#         fs = DataSource.get_filesystem(path)
+#         return fs.download(path)
+
+class InterpreterHelper():
+
+    def __init__(self):
+        self.funcs = []
+        self.interpreter = PhenoWLInterpreter()
+        self.codeGenerator = PhenoWLCodeGenerator()
+        self.reload()
+    
+    def reload(self):
+        self.funcs.clear()
+        librariesdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/libraries')
+        librariesdir = os.path.normpath(librariesdir)
+        self.interpreter.context.load_library(librariesdir)
+        funclist = []
+        for f in self.interpreter.context.library.funcs.values():
+            funclist.extend(f)
+        
+        funclist.sort(key=lambda x: (x.package, x.name))
+        for f in funclist:
+            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": f.example if f.example else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else ""}) 
+    
+        self.codeGenerator.context.load_library(librariesdir)
+        
+    def run(self, machine, script):
+        parserdir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/'))
+        os.chdir(parserdir) #set dir of this file to current directory
+        duration = 0
+        try:
+            machine.context.reload()
+            parser = PhenoWLParser(PythonGrammar())   
+            with Timer() as t:
+                prog = parser.parse(script)
+                machine.run(prog)
+            duration = t.secs
+        except:
+            machine.context.err.append("Error in parse and interpretation")
+        return { 'out': machine.context.out, 'err': machine.context.err, 'duration': "{:.4f}s".format(duration) }
+
+interpreter = InterpreterHelper()
+    
+@main.route('/biowl', methods=['GET', 'POST'])
+@login_required
+def biowl():
+    return render_template('biowl.html')
+ 
+@main.route('/datasources', methods=['GET', 'POST'])
+@login_required
+def datasources():
+    return json.dumps({'datasources': load_data_sources_biowl() })
+
+@main.route('/functions', methods=['GET', 'POST'])
+@login_required
+def functions():
+    if request.args.get('script') or request.args.get('code'):
+        script = request.args.get('script') if request.args.get('script') else request.args.get('code')
+        machine = interpreter.interpreter if request.args.get('script') else interpreter.codeGenerator
+        
+        runnable_id = Runnable.create_runnable(current_user.id)
+        runnable = Runnable.query.get(runnable_id)
+        runnable.script = script
+        runnable.name = script[:min(40, len(script))]
+        if len(script) > len(runnable.name):
+               runnable.name += "..."
+        db.session.commit()
+        
+        runnable_manager.submit_func(runnable_id, interpreter.run, machine, script)
+        return json.dumps({ 'out': 'runnable id = {0}'.format(runnable_id), 'err': '', 'duration': '' })
+        
+    return json.dumps({'functions': interpreter.funcs })
+
+class Samples():
+    @staticmethod
+    def load_samples_recursive(library_def_file):
+        if os.path.isfile(library_def_file):
+            return Samples.load_samples(library_def_file)
+        
+        all_samples = []
+        for f in os.listdir(library_def_file):
+            samples = Samples.load_samples_recursive(os.path.join(library_def_file, f))
+            all_samples.extend(samples if isinstance(samples, list) else [samples])
+            #all_samples = {**all_samples, **samples}
+        return all_samples
+       
+    @staticmethod
+    def load_samples(sample_def_file):
+        samples = []
+        if not os.path.isfile(sample_def_file) or not sample_def_file.endswith(".json"):
+            return samples
+        try:
+            with open(sample_def_file, 'r') as json_data:
+                d = json.load(json_data)
+                samples = d["samples"] if d.get("samples") else d 
+        finally:
+            return samples
+        
+    @staticmethod
+    def get_samples_as_list():
+        samples = []
+        samplesdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/samples')
+        for s in Samples.load_samples_recursive(samplesdir):
+            samples.append({"name": s["name"], "desc": s["desc"], "sample": '\n'.join(s["sample"])})
+        return samples
+    
+    @staticmethod
+    def unique_filename(path, prefix, ext):
+        make_fn = lambda i: os.path.join(path, '{0}({1}).{2}'.format(prefix, i, ext))
+
+        for i in range(1, sys.maxsize):
+            uni_fn = make_fn(i)
+            if not os.path.exists(uni_fn):
+                return uni_fn
+            
+    @staticmethod
+    def add_sample(sample):
+        this_path = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(this_path) #set dir of this file to current directory
+        samplesdir = os.path.normpath(os.path.join(this_path, '../biowl/samples'))
+        
+        if sample:
+            try:
+                new_path = os.path.normpath(os.path.join(samplesdir, 'users', current_user.username))
+                if not os.path.isdir(new_path):
+                    os.makedirs(new_path)
+                path = Samples.unique_filename(new_path, 'sample', 'json')
+                
+                with open(path, 'w') as fp:
+                    fp.write("{\n")
+                    fp.write('{0}"name":"{1}",\n'.format(" " * 4, args['name']));
+                    fp.write('{0}"desc":"{1}",\n'.format(" " * 4, args['desc']));
+                    fp.write('{0}"sample":[\n'.format(" " * 4))
+                    sample = sample.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'")
+                    lines = sample.split("\n")
+                    for line in lines[0:-1]:
+                        fp.write('{0}"{1}",\n'.format(" " * 8, line))
+                    fp.write('{0}"{1}"\n'.format(" " * 8, lines[-1]))
+                    fp.write("{0}]\n}}".format(" " * 4))
+#                json.dump(samples, fp, indent=4, separators=(',', ': '))
+            finally:
+                return { 'out': '', 'err': ''}, 201
+    
+    
+@main.route('/samples', methods=['GET', 'POST'])
+@login_required
+def samples():
+    if request.form.get('sample'):
+        return Samples.add_sample(request.form.get('sample'))
+    return json.dumps({'samples': Samples.get_samples_as_list()})
+
+@main.route('/runnables', methods=['GET', 'POST'])
+@login_required
+def runnables():
+    if request.args.get('id'):
+        runnable = Runnable.query.get(int(request.args.get('id')))
+        return jsonify(runnable = runnable.to_json())
+    
+    runnable_manager.sync_task_status_with_db_for_user(current_user.id)
+#     runnables_db = Runnable.query.filter(Runnable.user_id == current_user.id)
+#     rs = []
+#     for r in runnables_db:
+#       rs.append(r.to_json())
+#     return jsonify(runnables = rs)
+    return jsonify(runnables =[i.to_json() for i in Runnable.query.filter(Runnable.user_id == current_user.id)])

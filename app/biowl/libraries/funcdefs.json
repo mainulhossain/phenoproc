@@ -1,0 +1,193 @@
+{
+	"functions": [
+	   {
+	       "org": "p2irc",
+           "package": "p2irc",
+           "module": "p2irc.image_tools.registration",
+           "name":"Register",
+           "internal":"register_channels",
+           "desc": "Takes a folder of images and registers them together.",
+           "params":[  
+            {  
+               "name":"source",
+               "type":"string"
+            },
+            {
+                "name": "destination",
+                "type": "string"
+            }            
+            ],
+            "example":"Register('storage/register/', 'storage/output/')",
+            "runmode": "local"
+	   },
+	   {
+           "org": "p2irc",
+           "package": "p2irc",
+           "module": "p2irc.plot_segmentation.plot_segmentation",
+           "name":"SegmentPlots",
+           "internal":"main",
+           "desc": "Do plot segmentation upon a single stitched image: compute bounding boxes in pixel coordinates for every plot in this image, based upon the provided list of lists of pixels delineating the physical field rows, and a description of the plots",
+           "params":[  
+            {  
+               "name":"img_db_path",
+               "type":"string"
+            },
+            {
+                "name": "rows",
+                "type": "int"
+            }            
+            ],
+            "example":"SegmentPlots('dbname', 10)"
+       },
+       {
+           "org": "Python",
+           "package": "Python",
+           "name":"print",
+           "internal":"print",
+           "desc": "Prints one or more things.",
+           "params":[  
+            {  
+               "name":"expression",
+               "type":"any"
+            }            
+            ],
+            "returns": "string[]",
+            "example": "print('Hello World!')"
+       },
+       {
+           "org": "Python",
+           "package": "Python",
+           "module": "os",
+           "name":"getcwd",
+           "internal":"getcwd",
+           "desc": "Gets the current working directory.",
+            "returns": "string",
+            "example": "getcwd()"
+       },
+       {
+           "org": "Python",
+           "package": "Python",
+           "module": "os",
+           "name":"len",
+           "internal":"len",
+           "desc": "Gets lenght of a list or string.",
+            "returns": "integer",
+            "example": "len([])"
+       },
+       {
+           "org": "Python",
+           "package": "Python",
+           "name":"range",
+           "internal":"range",
+           "returns": "[]",
+           "desc": "Generates a range of numbers.",
+           "example": "range(1, 10)"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "name":"Read",
+           "internal":"read",
+           "desc": "Reads a file.",
+           "params":[  
+            {  
+               "name":"filename",
+               "type":"string"
+            }            
+            ],           
+           "returns": "byte[]",
+           "example": "Read('/texts/test.txt')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "name":"Write",
+           "internal":"write",
+           "desc": "Writes data to a file.",
+           "params":[  
+            {  
+               "name":"filename",
+               "type":"string"
+            },
+            {  
+               "name":"content",
+               "type":"any"
+            }              
+            ],           
+           "example": "Write('/texts/test.txt', 'Text to write')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "name":"GetFiles",
+           "internal":"get_files",
+           "desc": "Gets the names of files in a directory.",
+           "params":[  
+            {  
+               "name":"path",
+               "type":"string"
+            }            
+            ],           
+           "returns": "string[]",
+           "example": "GetFiles('/texts')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "name":"GetFolders",
+           "internal":"get_folders",
+           "desc": "Gets the names of folders in a directory.",
+           "params":[  
+            {  
+               "name":"path",
+               "type":"string"
+            }            
+            ],           
+           "returns": "string[]",
+           "example": "GetFolders('/')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "name":"Remove",
+           "internal":"remove",
+           "desc": "Removes a file or directory.",
+           "params":[  
+            {  
+               "name":"path",
+               "type":"string"
+            }            
+            ],           
+           "example": "Remove('/texts/test.txt')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "name":"CreateFolder",
+           "internal":"makedirs",
+           "desc": "Creates a directory.",
+           "params":[  
+            {  
+               "name":"path",
+               "type":"string"
+            }            
+            ],           
+           "example": "CreateFolder('/testfolder')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "System",
+           "name":"exec",
+           "internal":"exec",
+           "desc": "Runs certain programs. The allowable programs are implementation dependant.",
+           "params":[  
+            {  
+               "name":"program",
+               "type":"string"
+            }            
+            ],
+            "returns": "string",
+           "example": "exec('cat', 'texts/test.txt')"
+       }
+	]
+}

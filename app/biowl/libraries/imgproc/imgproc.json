@@ -1,0 +1,65 @@
+{
+    "functions": [
+       {
+           "org": "SRLAB",
+           "package": "imgproc",
+           "module": "libraries.imgproc.imagefuncs",
+           "name":"ReduceNoise",
+           "internal":"reduce_noise",
+           "desc": "Reduce noises from an image.",
+           "params":[  
+            {  
+               "name":"source",
+               "type":"string"
+            },
+            {  
+               "name":"destination",
+               "type":"string"
+            }            
+            ],           
+           "example": "ReduceNoise('images/test_image.jpg', 'output/test_image.jpg')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "imgproc",
+           "module": "libraries.imgproc.imagefuncs",
+           "name":"ConvertColor",
+           "internal":"convert_color",
+           "desc": "Converts an image from one color space to another.",
+           "params":[  
+            {  
+               "name":"source",
+               "type":"string"
+            },
+            {  
+               "name":"destination",
+               "type":"string"
+            },
+            {  
+               "name":"code",
+               "type":"int"
+            }            
+            ],           
+           "example": "ConvertColor('images/test_image.jpg', 'output/test_image.jpg', 6) # code (3rd param) is conversion code from opencv cv2.COLOR_BGR2GRAY=6"
+       },
+       {
+           "org": "SRLAB",
+           "package": "imgproc",
+           "module": "libraries.imgproc.imagefuncs",
+           "name":"RegisterImage",
+           "internal":"register_image",
+           "desc": "Image registration (alignment). https://www.learnopencv.com/image-alignment-ecc-in-opencv-c-python/",
+           "params":[  
+            {  
+               "name":"source",
+               "type":"string"
+            },
+            {  
+               "name":"destination",
+               "type":"string"
+            }           
+            ],           
+           "example": "RegisterImage('images/test_image1.jpg', 'images/test_image2.jpg', 'output/test_image.jpg')"
+       }
+   ]
+}

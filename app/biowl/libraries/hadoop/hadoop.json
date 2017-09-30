@@ -1,0 +1,48 @@
+{
+    "functions": [
+       {
+           "org": "SRLAB",
+           "package": "Hadoop",
+           "module": "libraries.hadoop.adapter",
+           "name":"CountWords",
+           "internal":"count_words",
+           "params":[  
+            {  
+               "name":"input",
+               "type":"string"
+            },
+            {  
+               "name":"output",
+               "type":"string"
+            } 
+            ],
+           "desc": "Count number of individual words in a collection of documents.",
+           "example": "CountWords('/user/phenodoop/documents', '/user/phenodoop/output')",
+           "runmode": "dist"
+       },
+       {
+           "org": "SRLAB",
+           "package": "Hadoop",
+           "module": "libraries.hadoop.adapter",
+           "name":"SearchWord",
+           "internal":"search_word",
+           "params":[
+            {  
+               "name":"input",
+               "type":"string"
+            },
+            {  
+               "name":"output",
+               "type":"string"
+            },
+            {  
+               "name":"expr",
+               "type":"string"
+            } 
+            ],
+           "desc": "Searches a regular expression inside a directory of documents.",
+           "example": "SearchWord('/user/phenodoop/documents', '/user/phenodoop/output', '[a-z]+')",
+           "runmode": "dist"
+       }
+    ]
+}

@@ -1,0 +1,1169 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}BioWL{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css">
+
+<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+<!-- <script src="http://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script> -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ace.js') }}"></script>
+<!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ext-language_tools.js') }}"></script>
+<!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
+<script src="https://cdn.rawgit.com/mgalante/jquery.redirect/master/jquery.redirect.js"></script>
+<style>
+
+.odd-row {
+background-color: LightGray;
+}
+.even-row {
+background-color: White;
+}
+
+</style>
+
+{% endblock %}
+{% block page_content %}
+
+<div class="container">
+    <div class="col-sm-3" style="padding:0">
+        <div id="dataSourcesPanel" class="panel panel-primary">
+           <div class="panel-heading">
+              <div class="row">
+                  <div><h5  class="col-sm-6">Data Sources</h5></div>
+              </div>
+              <div class="btn-group">
+                   <div class="btn-group-sm">
+                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
+                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" data-bind="click: download"><i class="glyphicon glyphicon-download"></i></button>
+                       <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-bind="click: beginFileUpload"><i class="glyphicon glyphicon-upload"></i></button>
+                       <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-bind="click: beginRename" ><i class="glyphicon glyphicon-edit"></i></button>
+                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button>
+                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: addFolder" ><i class="glyphicon glyphicon-plus"></i></button>
+                   </div>
+               </div>
+           </div>
+           <div class="panel-body draggable-datasources" style="height: 416px; overflow-y: scroll; padding:0">
+               <div id="tree" data-bind="treeview: dataSources"></div>
+           </div>
+       </div>
+       <div id="runnableWorkflowsPanel" class="panel panel-primary">
+           <div class="panel-heading">
+              <div class="row">
+                  <div><h5  class="col-sm-6">Executables</h5></div>
+              </div>
+              <div class="btn-group">
+                   <div class="btn-group-sm">
+                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
+<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" data-bind="click: download"><i class="glyphicon glyphicon-download"></i></button> -->
+<!--                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-bind="click: beginFileUpload"><i class="glyphicon glyphicon-upload"></i></button> -->
+<!--                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-bind="click: beginRename" ><i class="glyphicon glyphicon-edit"></i></button> -->
+<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button> -->
+<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: addFolder" ><i class="glyphicon glyphicon-plus"></i></button> -->
+                   </div>
+               </div>
+           </div>
+           <div class="panel-body" style="max-height: 200px; width: 100%; overflow-y: scroll;" data-bind="foreach: items">
+              <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
+<!--                  <span data-bind="text: status" style="width: 100%; margin:0"></span><span>/</span><span data-bind="text: name" style="width: 100%; margin:0"></span> -->
+<!--                 <span data-bind="css: { 'glyphicon glyphicon-refresh' : status === 'Running', 'glyphicon glyphicon-refresh' : status === 'Completed' }"></span> -->
+                <img width="16px" height="16px" data-bind="attr:{src: statusImg}" />
+                <span data-bind="text: name" style="width: 100%; margin:0"></span>
+              </div>
+           </div>
+       </div>
+    </div>
+        <div class="col" id="main">
+           <div class="col-md-6" style="padding:2px" data-bind="with: tasksViewModel">
+               <div class="panel panel-primary" style="margin:2px">
+                   <div class="panel-heading">
+                    <h3>Bioinformatics Workflow Language</h3>
+                    <span class="bg-info text-info">Write script to create a pipeline.</span><br>
+                    <span class="bg-info text-info">Drag functions/samples from the right.</span>
+                   </div>
+                   <div class="panel-body" style="padding=0; margin=0px;">
+       		        <textarea rows="16" style="width: 100%; height=100%; padding=0; margin=0px;" id="script"></textarea><br>
+	            </div>
+	        </div>
+	        <div class="panel panel-primary" style="padding:0px; border:0;margin:4px">
+		        <div class="panel-body" style="padding:0">
+			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
+			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
+			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddLibrary">Add Library</button>
+<!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddSample">Save</button> -->
+			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: generatePythonCode">Python Code</button>
+			        <div>Time: <span id="duration"></span></div>
+		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
+		        </div>
+	        </div>
+	        <div class="panel panel-success" style="padding:2px; margin:2px">
+		         <div class="panel-heading" style="padding-top:0;padding-bottom:0">
+		          <label>Output:</label>
+		         </div>
+		         <div class="panel-body" style="padding:0">
+		          <textarea rows="5" style="min-width: 100%" id="output"></textarea><br>
+		        </div>
+	        </div>
+	       <div class="panel panel-danger" style="padding:2px; margin:2px">
+               <div class="panel-heading" style="padding-top:0;padding-bottom:0">
+                 <label>Error:</label>
+                </div>
+                <div class="panel-body" style="padding:0">
+	        <textarea rows="3" style="min-width: 100%" id="error"></textarea>
+	        </div>
+	        </div>
+           </div>
+           <div class="col-sm-3" id="functions" style="padding:2px;">
+            <div  class="panel panel-primary"  data-bind="with: tasksViewModel">
+                <div class="panel-heading">
+                   <div class="row">
+                       <div class="col-sm-4"><h5 class="">Functions</h5></div>
+                       <div class="col-sm-4"><h5 class="">Package</h5></div>
+                   </div>
+                </div>
+                <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px">
+                        <!-- ko foreach: tasks -->
+                        <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+                           <div class="col-sm-6 draggable-func" data-bind="text: name"></div>
+                           <div class="col-sm-3" data-bind="text: package_name" style="text-align:right"></div>
+                           <div class="col-sm-3" data-bind="text: runmode" style="text-align:right"></div>
+                        </div>
+                        <!-- /ko -->
+                </div>
+            </div>
+<!-- 	            <div data-bind="stopBinding: true"> -->
+                <div  id="samples" class="panel panel-primary" style="padding:2px" data-bind="with: samplesViewModel">
+                 <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-sm-6"><h5 class="">Workflows</h5></div>
+                    </div>
+                  <div class="btn-group">
+                       <div class="btn-group-sm">
+                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
+<!--                            <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-bind="click: beginRename" ><i class="glyphicon glyphicon-edit"></i></button> -->
+<!--                            <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button> -->
+                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAdd"><i class="glyphicon glyphicon-plus"></i></button>
+                       </div>
+                   </div>
+                 </div>
+                 <div class="panel-body draggable-samples" style="max-height: 200px; width: 100%; overflow-y: scroll;" data-bind="foreach: items">
+                         <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
+                            <input type="checkbox" class="draggable-sample" style="margin-left: 10px;" data-bind="checked: selected" />
+                            <span data-bind="text: name" style="width: 100%; margin:0"></span>
+                         </div>
+                 </div>
+                </div>
+<!--                 </div> -->
+                
+            </div>
+        </div>
+   </div>
+
+    <div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 600px; background: #fff">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3 id="addDialogLabel">Add Library</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="package">Package</label>
+                    <div class="controls">
+                        <input data-bind="value: name" type="text" id="package" placeholder="Package" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="organization">Organization</label>
+                    <div class="controls">
+                        <input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 300px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="module">Module</label>
+                    <div class="controls">
+                        <input type="file" id="module">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="mapper">Module to JSON mapper:</label>
+                    <div class="controls">
+                        <textarea rows="12" style="width: 460px;" id="mapper"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 480px; height: 550px; background: #fff">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3 id="addSampleDialogLabel">Add Sample</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="sampleName">Name</label>
+                    <div class="controls">
+                        <input data-bind="value: name" type="text" id="sampleName" placeholder="Name" style="width: 300px;">
+                    </div>
+                    <label class="control-label" for="sampleDesc">Description</label>
+                    <div class="controls">
+                        <input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 400px;">
+                    </div>
+                    <label class="control-label" for="sample">Sample:</label>
+                    <div class="controls">
+                        <textarea rows="12" style="width: 460px;" id="sample"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: addSample" class="btn btn-primary">Add</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    
+	<div class="modal fade" id="file-upload-dialog" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <!-- Modal Header -->
+	            <div class="modal-header">
+	                <button type="button" class="close" data-dismiss="modal">
+	                       <span aria-hidden="true">&times;</span>
+	                       <span class="sr-only">Close</span>
+	                </button>
+	                <h4 class="modal-title" id="uploadModalLabel">
+	                    File Upload
+	                </h4>
+	            </div>
+	            
+	            <!-- Modal Body -->
+	            <div class="modal-body">
+	                <form id="upload-file" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
+	                  <div class="form-group">
+	                    <div class="col-sm-offset-2 col-sm-10">
+	                        <input type="file" name="file" id="upload" multiple>
+	                    </div>
+	                  </div>
+	                  
+	                  <div class="form-group">
+	                    <div class="col-sm-offset-2 col-sm-10">
+	                      <button data-bind="click: upload" type="button" class="btn btn-default" id="upload-file-btn" data-dismiss="modal">Upload</button>
+	                    </div>
+	                  </div>
+	                </form>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+	<div class="modal fade" id="rename-filefolder-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <!-- Modal Header -->
+	            <div class="modal-header">
+	                <button type="button" class="close" data-dismiss="modal">
+	                       <span aria-hidden="true">&times;</span>
+	                       <span class="sr-only">Close</span>
+	                </button>
+	                <h4 class="modal-title" id="renameModalLabel">
+	                    File/Folder Rename
+	                </h4>
+	            </div>
+	            
+	            <!-- Modal Body -->
+	            <div class="modal-body">
+	                <form id="rename-filefolder" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
+	                  <div class="form-group">
+	                    <div class="col-sm-offset-2 col-sm-10">
+	                        <input type="text" name="rename-filefolder-text" id="rename-filefolder-text">
+	                    </div>
+	                  </div>
+	                  
+	                  <div class="form-group">
+	                    <div class="col-sm-offset-2 col-sm-10">
+	                      <button type="button" class="btn btn-default" id="rename-filefolder-btn" data-dismiss="modal" data-bind="click: rename">Rename</button>
+	                    </div>
+	                  </div>
+	                </form>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+    <div class="modal fade" id="rename-workflow-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                           <span aria-hidden="true">&times;</span>
+                           <span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="renameModalLabel">
+                        Rename Workflow
+                    </h4>
+                </div>
+                
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <form id="rename-filefolder" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
+                      <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <input type="text" name="rename-filefolder-text" id="rename-workflow-text" />
+                        </div>
+                      </div>
+                      
+                      <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                          <button type="button" class="btn btn-default" id="rename-workflow-btn" data-dismiss="modal" data-bind="click: rename">Rename</button>
+                        </div>
+                      </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+    <div id="edit" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true" style="background: #fff">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
+            <h3 id="editDialogLabel">Edit Task</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputTask">Task</label>
+                    <div class="controls">
+                        <input data-bind="value: module" type="text" id="inputTask" placeholder="Module" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputDescription">Name</label>
+                    <div class="controls">
+                        <input data-bind="value: name" type="text" id="inputDescription" placeholder="Name" style="width: 300px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <label class="checkbox">
+                            <input type="checkbox"> Done
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click:editTask" class="btn btn-primary">Update Task</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    <div id="login" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+        <div class="modal-header">
+            <h3 id="loginLabel">Sign In</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputUsername">Username</label>
+                    <div class="controls">
+                        <input data-bind="value: username" type="text" id="inputUsername" placeholder="Username">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputPassword">Password</label>
+                    <div class="controls">
+                        <input data-bind="value: password" type="password" id="inputPassword" placeholder="Password">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: login" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Sign In</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+
+    
+    <script type="text/javascript">
+
+    $(window).on('load', function() {
+    	    	
+    	$('#refresh').hide();
+    	   	 
+        $('.draggable-functions').each(function() {
+             // inner scope
+             var phrase = $(this);
+             
+             $(this).find('div.draggable-func').each(function() {
+                 // cache jquery object
+                 var current = $(this);
+                current.addClass("draggable-func");
+                 
+                 current.draggable({
+                     revert : 'invalid',
+                     stack : '.draggable-func',
+                     helper : 'clone'
+                 });
+                 
+                 
+//                  current.on("dragstart", function(e) {
+//                 	 e.originalEvent.dataTransfer.setData("text/plain", this.textContent)
+//                  });
+                 
+//                  current.bind('dragstart', function(e) {
+//                         e.dataTransfer.setData("text/plain", this.textContent)
+//                  });
+                 
+             });
+         });
+        
+        $('.draggable-samples').each(function() {
+            // inner scope
+            var phrase = $(this);
+            
+            $(this).find('div.draggable-sample').each(function() {
+                // cache jquery object
+                var current = $(this);
+                current.draggable({
+                    revert : 'invalid',
+                    stack : '.draggable-sample',
+                    helper : 'clone'
+                });
+            });
+        });
+        
+        centerDialog = function(dlg) {
+            var windowHeight = $(window).height();
+            var windowWidth = $(window).width();
+            var boxHeight = dlg.height();
+            var boxWidth = dlg.width();
+            dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
+        }
+        
+    });
+
+    var AjaxCalls = function(username, password) {
+    	var self = this;
+    	self.username = username;
+    	self.password = password;
+    	
+    	self.form = function(uri, method, data) {
+            var request = {
+                    url: uri,
+                    type: method,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: data,
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Authorization", 
+                            "Basic " + btoa(self.username + ":" + self.password));
+                    },
+                    error: function(jqXHR) {
+                        console.log("ajax error " + jqXHR.status);
+                    }
+                };
+                return $.ajax(request);
+        }
+        
+        self.simple = function(uri, method, data) {
+            var request = {
+                    url: uri,
+                    type: method,
+                    contentType: "application/json",
+                    accepts: "application/json",
+                    cache: false,
+                    dataType: 'json',
+                    data: data,
+//                     beforeSend: function (xhr) {
+//                         xhr.setRequestHeader("Authorization", 
+//                             "Basic " + btoa(self.username + ":" + self.password));
+//                     },
+                    error: function(jqXHR) {
+                        console.log("ajax error " + jqXHR.status);
+                    }
+                };
+                return $.ajax(request);
+        }
+    }
+    
+    ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
+    
+    // Create the View Model.
+    var DataSourceViewModel = function() {
+      var self = this;
+      self.dataSourcesURI = '/datasources';
+      self.dataSources = ko.observableArray();
+      
+      
+      self.refresh = function(path) {
+          ajaxcalls.simple(self.samplesURI, 'POST', {'path': path}).done(function(data) {
+          });
+      }
+      
+      self.beginFileUpload = function() {
+          centerDialog($('#file-upload-dialog'));
+          $('#file-upload-dialog').modal('show');
+      }
+      
+      self.beginRename= function() {
+          centerDialog($('#rename-filefolder-dialog'));
+          $('#rename-filefolder-dialog').modal('show');
+      }
+      
+      self.load = function() {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET').done(function(data) {
+        	  self.dataSources(data.datasources);
+              ko.cleanNode($("#dataSourcesPanel")[0]);
+              ko.applyBindings(self, $("#dataSourcesPanel")[0]);
+              //ko.mapping.fromJS($("#dataSourcesPanel")[0], self);
+              
+              $('#tree').find('li.list-group-item').each(function() {
+                  // cache jquery object
+                  var current = $(this);
+                  current.draggable({
+                      revert : 'invalid',
+                      stack : '.draggable-data',
+                      helper : 'clone',
+                      zIndex:10000
+                  });
+              });
+              
+          }).fail(function(jqXHR) {
+              if (jqXHR.status == 403)
+                  setTimeout(self.beginLogin, 500);
+          });
+      }
+      
+      self.selectedNode = function()
+      {
+    	  nodes = $('#tree').treeview('getSelected')
+          if (nodes !== undefined && nodes.length > 0)
+        	    return nodes[0];
+      }
+      
+      self.upload = function() {
+
+     	  $('#file-upload-dialog').modal('hide');
+     	 
+          var files = $("#upload").get(0).files;
+          var formdata = new FormData();
+          formdata.append('upload', files[0]); //use get('files')[0]
+          node = self.selectedNode();
+          if (node === undefined)
+        	  return;
+          formdata.append('path', node.path);//you can append it to formdata with a proper parameter name
+
+          self.formajax(self.dataSourcesURI, 'POST', formdata).done(function(data) {
+        	  self.load();
+          });
+       }
+      
+      self.download = function() {
+    	  
+    	  node = self.selectedNode();
+          if (node === undefined)
+              return;
+          $.redirect(self.dataSourcesURI, { 'download': node.path });
+      }
+      
+      self.addFolder = function() {
+    	  node = self.selectedNode();
+          if (node === undefined)
+              return;
+          ajaxcalls.simple(self.dataSourcesURI, 'POST', { 'addfolder': node.path }).done(function(data) {
+        	  self.load();
+          });
+      }
+      
+      self.remove = function() {
+    	  node = self.selectedNode();
+          if (node === undefined)
+              return;
+          ajaxcalls.simple(self.dataSourcesURI, 'POST', { 'delete': node.path }).done(function(data) {
+              self.load();
+          });
+      }
+      
+      self.rename = function() {
+    	  $('#rename-filefolder-dialog').modal('hide');
+    	  
+          node = self.selectedNode();
+          if (node === undefined)
+              return;
+          
+          ajaxcalls.simple(self.dataSourcesURI, 'POST', { 'oldpath': node.path, 'rename': $('#rename-filefolder-text').val() }).done(function(data) {
+              self.load();
+          });
+      }
+      
+      self.load();
+    }
+   
+    
+    ko.bindingHandlers.treeview = {
+            init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+                $(element).treeview({data: ko.toJS(valueAccessor())}).on('nodeSelected', function(event, data) {
+                });
+            },
+            update: function(element, valueAccessor, allBindings) {
+            }
+        };
+    
+    // Create the View Model and initialise with initial data 
+    var dataSourceViewModel = new DataSourceViewModel();
+    ko.applyBindings(dataSourceViewModel, $("#dataSourcesPanel")[0]);
+    
+    ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
+    ko.applyBindings(dataSourceViewModel, $("#rename-filefolder-dialog")[0]);
+    
+    $('#rename-filefolder-dialog').on('shown.bs.modal', function () {
+    	var node = dataSourceViewModel.selectedNode();
+    	if (node === undefined)
+    		return;
+    	var filename = node.path.replace(/^.*[\\\/]/, '')
+        $('#rename-filefolder-text').val(filename);
+        $('#rename-filefolder-text').focus();
+    });
+    
+    // configure ace.js for code editor
+    var textarea = $("#script");
+    
+    var editDiv = $('<div>', {
+        position: 'absolute',
+        id: 'aceeditor',
+        width: textarea.width(),
+        height: textarea.height(),
+        'class': textarea.attr('class'),
+        'css': 'border:2px solid black'
+    }).insertBefore(textarea);
+        
+    textarea.css('visibility', 'hidden');
+    var offset = editDiv.offset();
+    textarea.attr('rows', 1);
+    
+    var editor = ace.edit(editDiv[0]);
+    editor.renderer.setShowGutter(false);
+    editor.getSession().setValue(textarea.val());
+    editor.getSession().setMode("ace/mode/python");
+    editor.setOptions({highlightSelectedWord: true, enableBasicAutocompletion: true});
+    editor.renderer.setOptions({showGutter: true, displayIndentGuides: true});
+    //editor.setKeyboardHandler("ace/keyboard/vim");
+    //editor.setTheme("ace/theme/idle_fingers");
+    //editor.setTheme("ace/theme/twilight");
+    editor.setTheme("ace/theme/iplastic");
+//     editor.setOptions({       
+//         fontSize: "12pt"
+//       });
+    
+    $("#aceeditor").droppable({
+
+        activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
+        
+        drop: function(event, ui) {
+          var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
+          var v = ko.dataFor(ui.draggable[0]);
+          example = ''
+          if (v)
+        	  if (v.example)
+        		  example = v.example();
+        	  else if (v.sample)
+        		  example = v.sample();
+              else {
+            	  node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
+            	  if (node){
+            		  example = node.path;
+//             		  path = split(node.path, ';');
+//             		  if (path.length >= 2)
+//             			  example = node[]
+            	  }
+            	  else
+            		  example = v.name() + "()";
+              }
+            	  
+            	  
+          
+          editor.session.insert(pos, example);
+          editor.focus();
+          return true;
+        }
+      });
+
+    
+        function TasksViewModel() {
+            var self = this;
+            self.tasksURI = '/functions';
+            self.username = "";
+            self.password = "";
+            self.tasks = ko.observableArray();
+            self.samplesURI = '/samples';
+            self.samples = ko.observableArray();
+            
+            self.clearEditor = function() {
+                editor.session.setValue("");
+                $("#output").val("");
+                $("#error").val("");
+                $("#duration").text("");
+            }
+
+            self.updateTask = function(task, newTask) {
+                var i = self.tasks.indexOf(task);
+                self.tasks()[i].package_name(newTask.package_name);
+                self.tasks()[i].name(newTask.name);
+                self.tasks()[i].internal(newTask.internal);
+                self.tasks()[i].example(newTask.example);
+                self.tasks()[i].desc(newTask.desc);
+                self.tasks()[i].desc(newTask.runmode);
+            }
+            
+            self.beginAddLibrary = function() {
+            	var obj = { "functions": [{ "name": "", "internal": "", "example": ""} ] };
+
+            	addLibraryViewModel.getCodeEditor().setValue(JSON.stringify(obj, null, 4), 1);
+            	centerDialog($('#add'));
+                $('#add').modal('show');
+            }
+            
+            self.runBioWL = function(task) {
+              $('#refresh').show();
+              ajaxcalls.simple(self.tasksURI, 'GET', {'script': editor.getSession().getValue()}).done(function(data) {
+
+            	  $('#refresh').hide();
+                	
+                	if (data === undefined)
+                		return;
+                	
+//                 	var text = '';
+//                 	if (data.out !== undefined) {
+// 	                    $.each(data.out, function(i, t) {
+// 	                    	text += t + '\n';
+// 	                    });
+//                 	}
+//                 	$("#output").val(text);
+                    
+//                 	text = '';
+//                 	if (data.out !== undefined) {
+// 	                    $.each(data.err, function(i, t) {
+// 	                        text += t + '\n';
+// 	                    });
+//                 	}
+                    
+//                  $("#error").val(text);
+//                  $("#duration").text(data.duration);
+                    $("#output").val(data['out']);
+                    $("#error").val(data['err']);
+                    $("#duration").text(data['duration']);
+                    runnablesViewModel.load();                    
+                });
+            }
+            self.generatePythonCode = function(task) {
+                $('#refresh').show();
+              ajaxcalls.simple(self.tasksURI, 'POST', {'code': editor.getSession().getValue()}).done(function(data) {
+                    $('#refresh').hide();
+
+                    $("#output").val(data.out);
+                    
+                    text = '';
+                    $.each(data.err, function(i, t) {
+                        text += t + '\n';
+                    });
+                    
+                    $("#error").val(text);
+                    $("#duration").text(data.duration);
+                });
+            }
+            self.beginEditLibrary = function(task) {
+               // editTaskViewModel.setTask(task);
+                $('#edit').modal('show');
+            }
+            self.edit = function(task, data) {
+              ajaxcalls.simple(task.uri(), 'PUT', data).done(function(res) {
+                    self.updateTask(task, res.task);
+                });
+            }
+            self.remove = function(task) {
+              ajaxcalls.simple(task.uri(), 'DELETE').done(function() {
+                    self.tasks.remove(task);
+                });
+            }
+            self.markInProgress = function(task) {
+              ajaxcalls.simple(task.uri(), 'PUT', { internal: "" }).done(function(res) {
+                    self.updateTask(task, res.task);
+                });
+            }
+            self.markDone = function(task) {
+              ajaxcalls.simple(task.uri(), 'PUT', { internal: "" }).done(function(res) {
+                    self.updateTask(task, res.task);
+                });
+            }
+            self.beginLogin = function() {
+                $('#login').modal('show');
+            }
+            self.login = function() {
+              ajaxcalls.simple(self.tasksURI, 'GET').done(function(data) {
+            	  $.each(data.functions, function(i, f) {
+            		  self.tasks.push({
+                          package_name: ko.observable(f.package_name),
+                          name: ko.observable(f.name),
+                          internal: ko.observable(f.internal),
+                          example: ko.observable(f.example),
+                          desc: ko.observable(f.desc),
+                          runmode: ko.observable(f.runmode)
+                      });
+            	  });
+                }).fail(function(jqXHR) {
+                    if (jqXHR.status == 403)
+                        setTimeout(self.beginLogin, 500);
+                });
+            }
+            //self.beginLogin();
+            
+            self.copyToEditor = function(item) {
+               var pos = editor.selection.getCursor();             
+               editor.session.insert(pos, item.example());
+               editor.focus();
+           }
+        }
+        
+       function SamplesViewModel(sampleViewModel) {
+           var self = this;
+           self.samplesURI = '/samples';
+           self.items = ko.observableArray();
+           self.sampleViewModel = sampleViewModel;
+
+           self.remove = function() {
+        	   
+        	   var item = self.firstSelectedItem();
+               if (item == null)
+                   return;
+               
+               ajaxcalls.simple(self.samplesURI, 'POST', { 'delete': item.name }).done(function(data) {
+                   self.load();
+               });
+           }
+           
+           self.beginAdd = function() {
+               script = editor.getSession().getValue();
+               if (script.length > 0)
+               {
+                   self.sampleViewModel.getCodeEditor().setValue(script, 1);
+               }
+               centerDialog($('#addSample'));
+               $('#addSample').modal('show');
+           }
+           
+           self.firstSelectedItem = function() {
+               var items = self.items();
+               for (var i = 0; i < items.length; i++) {
+                   if (items[i].selected()){
+                       return items[i];
+                   }
+               }
+               return null;
+           }
+           
+           self.beginRename = function() {
+        	   
+        	   var item = self.firstSelectedItem();
+        	   if (item !== null){
+        		   centerDialog($('#rename-workflow-dialog'));
+                   $('#rename-workflow-dialog').modal('show');
+        	   }
+           }
+           
+           self.rename = function() {
+               $('#rename-workflow-dialog').modal('hide');
+               
+               var item = self.firstSelectedItem();
+               if (item == null)
+            	   return;
+               
+               ajaxcalls.simple(self.samplesURI, 'POST', { 'oldname': item.name, 'rename': $('#rename-workflow-text').val() }).done(function(data) {
+                   self.load();
+               });
+           }
+       
+           self.copyToEditor = function(item) {
+        	   var pos = editor.selection.getCursor();        	   
+               editor.session.insert(pos, item.sample());
+               editor.focus();
+           }
+           
+           self.load = function() {
+               ajaxcalls.simple(self.samplesURI, 'GET').done(function(data) {
+            	   self.items([]);
+            	   $.each(data.samples, function(i, s){
+            		   self.items.push({
+                           name: ko.observable(s.name),
+                           sample: ko.observable(s.sample),
+                           desc: ko.observable(s.desc),
+                           selected: ko.observable(false)
+                       });
+            	   });
+            	   
+               }).fail(function(jqXHR) {
+                   if (jqXHR.status == 403)
+                       setTimeout(self.beginLogin, 500);
+               });
+           }
+       }
+       
+        function SampleViewModel() {
+            var self = this;
+            self.samplesURI = '/samples';
+            
+            self.name = ko.observable();
+            self.desc = ko.observable();
+ 
+            // configure ace.js for code editor
+            var mapperArea = $("#sample");
+            
+            var mapperDiv = $('<div>', {
+                position: 'absolute',
+                id: 'aceeditor',
+                width: mapperArea.width(),
+                height: 200,//mapperArea.height(),
+                'class': mapperArea.attr('class'),
+                'css': 'border:2px solid black'
+            }).insertBefore(mapperArea);
+                
+            mapperArea.css('visibility', 'hidden');
+            var offset = mapperDiv.offset();
+            mapperArea.attr('rows', 1);
+            
+            var mapperEditor = ace.edit(mapperDiv[0]);
+            mapperEditor.renderer.setShowGutter(false);
+            mapperEditor.getSession().setValue(mapperArea.val());
+            mapperEditor.getSession().setMode("ace/mode/python");
+            mapperEditor.setOptions({highlightSelectedWord: true, enableBasicAutocompletion: true});
+            mapperEditor.renderer.setOptions({showGutter: true, displayIndentGuides: true});
+            //editor.setKeyboardHandler("ace/keyboard/vim");
+            //editor.setTheme("ace/theme/idle_fingers");
+            //editor.setTheme("ace/theme/twilight");
+            mapperEditor.setTheme("ace/theme/iplastic");
+//             editor.setOptions({       
+//                 fontSize: "12pt"
+//               });
+
+            self.addSample = function(task) {
+                $('#addSample').modal('hide');
+                
+                var formdata = new FormData();
+                formdata.append('sample', mapperEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
+                
+                if (self.name() === undefined)
+                	return;
+                formdata.append('name', self.name());
+                
+                if (self.desc() !== undefined)
+                	formdata.append('desc', self.desc());
+
+                ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
+                	mainViewModel.samplesViewModel.load();
+                });
+            }
+            
+            self.getCodeEditor = function() { return mapperEditor; }
+        }
+        
+        function AddLibraryViewModel() {
+            var self = this;
+            self.tasksURI = '/functions';
+            
+            self.name = ko.observable();
+            self.org = ko.observable();
+ 
+            // configure ace.js for code editor
+            var mapperArea = $("#mapper");
+            
+            var mapperDiv = $('<div>', {
+                position: 'absolute',
+                id: 'aceeditor',
+                width: mapperArea.width(),
+                height: 200,//mapperArea.height(),
+                'class': mapperArea.attr('class'),
+                'css': 'border:2px solid black'
+            }).insertBefore(mapperArea);
+                
+            mapperArea.css('visibility', 'hidden');
+            var offset = mapperDiv.offset();
+            mapperArea.attr('rows', 1);
+            
+            var mapperEditor = ace.edit(mapperDiv[0]);
+            mapperEditor.renderer.setShowGutter(false);
+            mapperEditor.getSession().setValue(mapperArea.val());
+            mapperEditor.getSession().setMode("ace/mode/json");
+            mapperEditor.setOptions({highlightSelectedWord: true, enableBasicAutocompletion: true});
+            mapperEditor.renderer.setOptions({showGutter: true, displayIndentGuides: true});
+            //editor.setKeyboardHandler("ace/keyboard/vim");
+            //editor.setTheme("ace/theme/idle_fingers");
+            //editor.setTheme("ace/theme/twilight");
+            mapperEditor.setTheme("ace/theme/iplastic");
+//             editor.setOptions({       
+//                 fontSize: "12pt"
+//               });
+
+            self.addLibrary = function(task) {
+            	$('#add').modal('hide');
+            	
+            	var files = $("#module").get(0).files;
+            	var formdata = new FormData();
+            	formdata.append('library', files[0]); //use get('files')[0]
+            	formdata.append('mapper', mapperEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
+            	
+            	if (self.name() !== undefined)
+            		formdata.append('package', self.name());
+            	if (self.org() !== undefined)
+            		   formdata.append('org', self.org());
+
+                ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
+                                   	
+                    text = '';
+                    $.each(data.out, function(i, t) {
+                        text += t + '\n';
+                    });
+                    $("#output").val(text);
+                    
+                    text = '';
+                    $.each(data.err, function(i, t) {
+                        text += t + '\n';
+                    });
+                    
+                    $("#error").val(text);
+                });
+            }
+            
+            self.getCodeEditor = function() { return mapperEditor; }
+        }
+        
+        function EditTaskViewModel() {
+            var self = this;
+            self.package_name = ko.observable();
+            self.name = ko.observable();
+            self.internal = ko.observable();
+            self.example = ko.observable();
+ 
+            self.setTask = function(task) {
+                self.task = task;
+                self.package_name(task.package_name());
+                self.name(task.name());
+                self.internal(task.internal());
+                self.example(task.example());
+                $('edit').modal('show');
+            }
+ 
+            self.editTask = function() {
+                $('#edit').modal('hide');
+                tasksViewModel.edit(self.task, {
+                	package_name: self.package_name(),
+                	name: self.name(),
+                    internal: self.internal(),
+                    example: self.example()
+                });
+            }
+        }
+        
+        function LoginViewModel() {
+            var self = this;
+            self.username = ko.observable();
+            self.password = ko.observable();
+//             tasksViewModel.login('mainulhossain@gmail.com', 'mainul');
+//             tasksViewModel.loadSamples()
+            
+            self.login = function() {
+                $('#login').modal('hide');
+                tasksViewModel.login(self.username(), self.password());
+            }
+        }
+        
+        function RunnablesViewModel(sampleViewModel) {
+            var self = this;
+            self.runnablesURI = '/runnables';
+            self.items = ko.observableArray();
+        
+            self.copyToEditor = function(item) {
+            	
+            	$("#output").val(item.out());
+            	$("#error").val(item.err());
+            }
+            
+            self.load = function() {
+                ajaxcalls.simple(self.runnablesURI, 'GET').done(function(data) {
+                	if (data == undefined)
+                		return;
+                	
+                    self.items([]);
+                    $.each(data['runnables'], function(i, s){
+                        self.items.push({
+                            name: ko.observable(s.name),
+                            status: ko.observable(s.status),
+                            statusImg: ko.observable(s.status == "Running" ? "{{ url_for('static', filename='spinner.gif') }}" : "{{ url_for('static', filename='completed.gif') }}"),
+                            out: ko.observable(s.out),
+                            err: ko.observable(s.err)
+                        });
+                    });
+                    
+                }).fail(function(jqXHR) {
+                    if (jqXHR.status == 403)
+                        setTimeout(self.beginLogin, 500);
+                });
+            }
+        }
+        
+        var addLibraryViewModel = new AddLibraryViewModel();
+        var sampleViewModel = new SampleViewModel();
+        var editTaskViewModel = new EditTaskViewModel();
+        var loginViewModel = new LoginViewModel();
+        var runnablesViewModel = new RunnablesViewModel();
+        
+        var MainViewModel = function() {
+            var self = this;
+            self.tasksViewModel = new TasksViewModel();
+            self.tasksViewModel.login();
+            
+            self.samplesViewModel = new SamplesViewModel(sampleViewModel);
+            self.samplesViewModel.load();
+       }
+        
+        mainViewModel = new MainViewModel();
+        runnablesViewModel.load();
+        
+        ko.applyBindings(mainViewModel, $('#main')[0]);
+        ko.applyBindings(addLibraryViewModel, $('#add')[0]);
+        ko.applyBindings(sampleViewModel, $('#addSample')[0]);
+        ko.applyBindings(editTaskViewModel, $('#edit')[0]);
+        ko.applyBindings(loginViewModel, $('#login')[0]);
+        
+        ko.applyBindings(mainViewModel.samplesViewModel, $("#rename-workflow-dialog")[0]);
+        ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
+        
+        $('#rename-workflow-dialog').on('shown.bs.modal', function () {
+            var node = dataSourceViewModel.selectedNode();
+            if (node === undefined)
+                return;
+//             var filename = ;
+//             $('#rename-workflow-text').val(filename);
+//             $('#rename-workflow-text').focus();
+        });
+
+        
+  </script>
+{{ pagedown.include_pagedown() }}
+{% endblock %}

@@ -1,0 +1,29 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "pear",
+           "module": "libraries.pear.adapter",
+           "name":"Pear",
+           "internal":"run_pear",
+           "runmode": "local",
+           "desc": "Pair-end read merger.",
+           "returns": "string",
+           "example":"Pear(forward_fastq, reverse_fastq, output)",
+           "params":[  
+            {  
+               "name":"forward_fastq",
+               "type":"string"
+            },
+            {  
+               "name":"reverse_fastq",
+               "type":"string"
+            },
+            {
+                "name": "output",
+                "type": "string"
+            }            
+            ]
+       }
+   ]
+}

@@ -1,0 +1,25 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "fastqc",
+           "module": "libraries.fastqc.adapter",
+           "name":"FastQC",
+           "internal":"run_fastqc",
+           "runmode": "local",
+           "desc": "Measure the quality of a fastq file using fastqc tool.",
+           "returns": "string",
+           "example":"FastQC(input_file, [output_dir])",
+           "params":[  
+            {  
+               "name":"input_file",
+               "type":"string"
+            },
+            {
+                "name": "output_dir",
+                "type": "string"
+            }            
+            ]
+       }
+   ]
+}

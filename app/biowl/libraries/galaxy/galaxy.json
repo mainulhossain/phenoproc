@@ -1,0 +1,268 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetWorkflowIDs",
+           "internal":"get_workflow_ids",
+           "desc": "Gets the names of all workflows.",
+           "returns": "string[]",
+           "example":"GetWorkflows()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetWorkflow",
+           "internal":"get_workflow",
+           "desc": "Gets the properties of a workflow.",
+           "returns": "string[]",
+           "example":"GetWorkflow(workflow_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetLibraryIDs",
+           "internal":"get_library_ids",
+           "desc": "Gets the ids of all libraries.",
+           "returns": "string[]",
+           "example":"GetLibraryIDs()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetLibrary",
+           "internal":"get_library",
+           "desc": "Gets the properties of a workflow.",
+           "returns": "string[]",
+           "example":"GetLibrary(library_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetHistoryIDs",
+           "internal":"get_history_ids",
+           "desc": "Gets the ids of all histories.",
+           "returns": "string[]",
+           "example":"GetHistoryIDs()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetHistory",
+           "internal":"get_history",
+           "desc": "Gets the properties of a history.",
+           "returns": "string[]",
+           "example":"GetHistory(history_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"Upload",
+           "internal":"upload",
+           "desc": "Uploads a file to history or data library.",
+           "returns": "string[]",
+           "example":"Upload(history_id/library_id, path_to_file)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"RunWorkflow",
+           "internal":"run_workflow",
+           "desc": "Runs a named workflow.",
+           "returns": "string[]",
+           "example":"RunWorkflow(workflow_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetToolsNames",
+           "internal":"get_tools_names",
+           "desc": "Get names of the tools.",
+           "returns": "string[]",
+           "example":"GetToolsNames()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetToolsIDs",
+           "internal":"get_tools_ids",
+           "desc": "Get ids from the name of tool. Multiple ids will be returned for multiple tools of same name.",
+           "returns": "string[]",
+           "example":"GetToolsIDs()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"ToolIDToName",
+           "internal":"tool_id_to_name",
+           "desc": "Gets the name of a tool from id.",
+           "returns": "string",
+           "example":"ToolIDToName(tool_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"ToolNameToID",
+           "internal":"tool_name_to_id",
+           "desc": "Gets the id of a tool from name.",
+           "returns": "string[]",
+           "example":"ToolNameToID(tool_name)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"CreateHistory",
+           "internal":"create_history",
+           "desc": "Create a new history.",
+           "returns": "json",
+           "example":"CreateHistory(New History)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"HistoryIDToName",
+           "internal":"history_id_to_name",
+           "desc": "Gets the name of a history from id.",
+           "returns": "string",
+           "example":"HistoryIDToName(history_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"HistoryNameToIDs",
+           "internal":"history_name_to_ids",
+           "desc": "Gets the ids of history name.",
+           "returns": "string[]",
+           "example":"HistoryNameToIDs(history_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetHistoryDatasets",
+           "internal":"get_history_datasets",
+           "desc": "Gets the ids of datasets in a history.",
+           "returns": "string[]",
+           "example":"GetHistoryDatasets([history_id], [dataset_name])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetToolParams",
+           "internal":"get_tool_params",
+           "desc": "Get tool parameters.",
+           "returns": "json",
+           "example":"GetToolParams([param type])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"UploadToHistory",
+           "internal":"download_and_upload_to_galaxy",
+           "desc": "Uploads a file to history and returns dataset id. If history id is not give, the most recent history is taken.",
+           "returns": "string",
+           "example":"UploadToHistory(ftp_or_http_or_path_to_file, [history id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"RunTool",
+           "internal":"run_tool",
+           "desc": "Runs a tool on history.",
+           "returns": "string",
+           "example":"RunTool(history_id, tool_id, {params})",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"GetLastHistory",
+           "internal":"get_most_recent_history",
+           "desc": "Gets the id of the history which is last used.",
+           "returns": "string",
+           "example":"GetLastHistory()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"DatasetIDToName",
+           "internal":"dataset_id_to_name",
+           "desc": "Gets the name of a dataset from id.",
+           "returns": "string",
+           "example":"DatasetIDToName(dataset_id, [hda_or_ldda])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"DatasetNameToIDs",
+           "internal":"dataset_name_to_ids",
+           "desc": "Gets the id of a dataset from name.",
+           "returns": "string",
+           "example":"DatasetNameToID(dataset_name, [history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"FASTQGroomer",
+           "internal":"run_fastq_groomer",
+           "desc": "Run the fastq groomer tool. If history_id not given, last history is used.",
+           "returns": "string",
+           "example":"FASTQGroomer(input_file, [history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "libraries.galaxy.adapter",
+           "name":"BWAlign",
+           "internal":"run_bwa",
+           "desc": "Map with BWA.",
+           "returns": "string",
+           "example":"BWAlign(input_file, [history_id])",
+           "runmode": "dist"
+       }
+   ]
+}

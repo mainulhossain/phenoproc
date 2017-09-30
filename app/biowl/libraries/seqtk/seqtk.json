@@ -1,0 +1,112 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "seqtk",
+           "module": "libraries.seqtk.adapter",
+           "name":"Seqtk",
+           "internal":"run_seqtk",
+           "runmode": "local",
+           "desc": "Processing sequences in the FASTA or FASTQ format. https://github.com/lh3/seqtk",
+           "returns": "string",
+           "example":"Seqtk(input, command, output)",
+           "params":[  
+            {  
+               "name":"input",
+               "type":"string"
+            },
+            {  
+               "name":"command",
+               "type":"string"
+            },
+            {  
+               "name":"output",
+               "type":"string"
+            }            
+            ]
+       },
+       {
+           "org": "srlab",
+           "package": "seqtk",
+           "module": "libraries.seqtk.adapter",
+           "name":"FastqToFasta",
+           "internal":"seqtk_fastq_to_fasta",
+           "runmode": "local",
+           "desc": "Convert FASTQ to FASTA format. https://github.com/lh3/seqtk",
+           "returns": "string",
+           "example":"FastqToFasta(input, output)",
+           "params":[  
+            {  
+               "name":"input",
+               "type":"string"
+            },
+            {  
+               "name":"output",
+               "type":"string"
+            }            
+            ]
+       },
+       {
+           "org": "srlab",
+           "package": "seqtk",
+           "module": "libraries.seqtk.adapter",
+           "name":"ExtractSample",
+           "internal":"seqtk_extract_sample",
+           "runmode": "local",
+           "desc": "Extracts a random sample. Apply the seed if it's given. 'https://github.com/lh3/seqtk",
+           "returns": "string",
+           "example":"ExtractSample(input, output, sample, [seed])",
+           "params":[  
+            {  
+               "name":"input",
+               "type":"string"
+            },
+            {  
+               "name":"output",
+               "type":"string"
+            },
+            {  
+               "name":"sample",
+               "type":"int"
+            },            
+            {  
+               "name":"seed",
+               "type":"int"
+            }            
+            ]
+       },
+       {
+           "org": "srlab",
+           "package": "seqtk",
+           "module": "libraries.seqtk.adapter",
+           "name":"TrimReads",
+           "internal":"seqtk_trim",
+           "runmode": "local",
+           "desc": "Trim reads with the modified Mott trimming algorithm. https://github.com/lh3/seqtk",
+           "returns": "string",
+           "example":"TrimReads(input, output, [begin], [end], [-q error_threshold])",
+           "params":[  
+            {  
+               "name":"input",
+               "type":"string"
+            },
+            {  
+               "name":"output",
+               "type":"string"
+            },
+            {  
+               "name":"begin",
+               "type":"int"
+            },
+            {  
+               "name":"end",
+               "type":"int"
+            },
+            {  
+               "name":"error_threshold",
+               "type":"float"
+            }            
+            ]
+       }
+   ]
+}

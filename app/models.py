@@ -611,3 +611,55 @@ class TaskLog(db.Model):
     def updateTime(self):
         self.time = datetime.utcnow()
         db.session.add(self)
+        
+class Runnable(db.Model):
+    __tablename__ = 'runnables'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    status_id = db.Column(db.Integer, db.ForeignKey('taskstatus.id'))
+    name = db.Column(db.String(64))
+    script = db.Column(db.Text())
+    out = db.Column(db.Text())
+    err = db.Column(db.Text())
+    
+    status = db.relationship('TaskStatus', backref='runnables')
+    created_on = db.Column(db.DateTime, default=datetime.utcnow)
+    modified_on = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def updateTime(self):
+        self.modified_on = datetime.utcnow()
+        db.session.commit()
+    
+    def update_status(self, status):
+        self.status = status
+        db.session.commit()
+    
+    def update(self):
+        db.session.commit()
+    
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'script': self.script,
+            'status': self.status.name,
+            'out': self.out,
+            'err': self.err
+        }    
+    
+    def to_json_info(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'script': self.script,
+            'status': self.status.name
+        }
+        
+    @staticmethod
+    def create_runnable(user_id):
+        runnable = Runnable()
+        runnable.user_id = user_id
+        runnable.status = TaskStatus.query.get(2)
+        db.session.add(runnable)
+        db.session.commit()
+        return runnable.id

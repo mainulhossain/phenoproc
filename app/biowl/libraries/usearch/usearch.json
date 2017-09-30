@@ -1,0 +1,33 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "usearch",
+           "module": "libraries.usearch.adapter",
+           "name":"Usearch",
+           "internal":"run_usearch",
+           "runmode": "local",
+           "desc": "Ultra-fast bioinformatics search.",
+           "returns": "string",
+           "example":"Usearch(command, input, out_opt, output)",
+           "params":[  
+            {  
+               "name":"command",
+               "type":"string"
+            },
+            {  
+               "name":"input",
+               "type":"string"
+            },
+            {  
+               "name":"out-opt",
+               "type":"string"
+            },
+            {
+                "name": "output",
+                "type": "string"
+            }            
+            ]
+       }
+   ]
+}
