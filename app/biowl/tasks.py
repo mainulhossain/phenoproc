@@ -88,7 +88,7 @@ class RunnableManager:
                     task.out = str(future.result())
                     task.err = str(TaskStatusTypes.Canceled)
                     task.status = status
-                task.update()
+                    task.update()
                 del self.futures[task.id]
             elif future.running():
                 status = TaskStatus.query.get(int(TaskStatusTypes.Running))
@@ -100,13 +100,13 @@ class RunnableManager:
                 if status.id != task.status_id:
                     task.out = str(future.result())
                     task.status = status
-                task.update()
+                    task.update()
                 del self.futures[task.id]
         else:
             if task.status_id == int(TaskStatusTypes.Running):
                 task.err = "Task abandoned."
                 task.status = status
-            task.update()
+                task.update()
                 
         return task.status
                     
