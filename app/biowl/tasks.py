@@ -47,7 +47,7 @@ class RunnableManager:
         self.futures = {}
 
     def submit_func(self, task_id, func, *args):
-        self.futures = { task_id: self.pool.submit(func, *args) }
+        self.futures[task_id] = self.pool.submit(func, *args)
         task = Runnable.query.get(task_id)
         task.update_status(TaskStatus.query.get(int(TaskStatusTypes.Running)))
     
@@ -55,7 +55,7 @@ class RunnableManager:
         execfile = argv[:1]
         args = argv[1:]
         #self.futures = {task_id: self.pool.submit(check_output, argv, shell=True)}
-        self.futures = {task_id: self.pool.submit(check_output, ' '.join(argv), shell=True)}
+        self.futures[task_id] = self.pool.submit(check_output, ' '.join(argv), shell=True)
         task = Runnable.query.get(task_id)        
         task.update_status(TaskStatus.query.get(int(TaskStatusTypes.Running)))
     
