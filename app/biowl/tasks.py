@@ -48,8 +48,6 @@ class RunnableManager:
 
     def submit_func(self, task_id, func, *args):
         self.futures[task_id] = self.pool.submit(func, *args)
-        with open("log.txt", "a") as logfile:
-            logfile.write("[Task thread created]: {0}\n".format(self.futures[task_id]))
         task = Runnable.query.get(task_id)
         task.update_status(TaskStatus.query.get(int(TaskStatusTypes.Running)))
     
@@ -104,13 +102,11 @@ class RunnableManager:
                     task.status = status
                     task.update()
                 del self.futures[task.id]
-        else:
+#         else:
 #             if task.status_id == int(TaskStatusTypes.Running):
 #                 task.err = "Task abandoned."
 #                 task.status = status
 #                 task.update()
-            with open("log.txt", "a") as logfile:
-                logfile.write("[Task not in thread pool]: {0}\n".format(task.id))
                
         return task.status
                     
