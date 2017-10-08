@@ -63,6 +63,7 @@ background-color: White;
               </div>
               <div class="btn-group">
                    <div class="btn-group-sm">
+<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Stop Execution" data-bind="click: stop"><i class="glyphicon glyphicon-stop"></i></button> -->
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
 <!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" data-bind="click: download"><i class="glyphicon glyphicon-download"></i></button> -->
 <!--                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-bind="click: beginFileUpload"><i class="glyphicon glyphicon-upload"></i></button> -->
@@ -76,6 +77,7 @@ background-color: White;
               <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
 <!--                  <span data-bind="text: status" style="width: 100%; margin:0"></span><span>/</span><span data-bind="text: name" style="width: 100%; margin:0"></span> -->
 <!--                 <span data-bind="css: { 'glyphicon glyphicon-refresh' : status === 'Running', 'glyphicon glyphicon-refresh' : status === 'Completed' }"></span> -->
+                <input type="checkbox" style="margin-left: 10px;" data-bind="checked: selected" />
                 <img width="16px" height="16px" data-bind="attr:{src: statusImg}" />
                 <span data-bind="text: name" style="width: 100%; margin:0"></span>
               </div>
@@ -101,7 +103,7 @@ background-color: White;
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddLibrary">Add Library</button>
 <!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddSample">Save</button> -->
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: generatePythonCode">Python Code</button>
-			        <div>Time: <span id="duration"></span></div>
+			        <span>Time: </span><span id="duration">0s</span>
 		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
 		        </div>
 	        </div>
@@ -1102,6 +1104,29 @@ background-color: White;
             	
             	$("#output").val(item.out());
             	$("#error").val(item.err());
+            	$("#duration").html(item.duration().toString() + 's');
+            }
+            
+            self.selectedIds = function() {
+            	ids = [];
+                var items = self.items();
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].selected()){
+                        ids.push(items[i].id());
+                    }
+                }
+                return ids;
+            }
+            
+            self.stop = function(){
+            	
+                ids = self.selectedIds();
+                if (ids.length == 0)
+                	return;
+                
+            	ajaxcalls.simple(self.runnablesURI, 'GET', { 'stop':  ids.join()}).done(function(data) {
+            		
+            	});
             }
             
             self.load = function() {
@@ -1112,11 +1137,14 @@ background-color: White;
                     self.items([]);
                     $.each(data['runnables'], function(i, s){
                         self.items.push({
+                        	id: ko.observable(s.id),
                             name: ko.observable(s.name),
                             status: ko.observable(s.status),
-                            statusImg: ko.observable(s.status == "Running" ? "{{ url_for('static', filename='spinner.gif') }}" : "{{ url_for('static', filename='completed.gif') }}"),
+                            statusImg: ko.observable(s.status == "STARTED" || s.status == "PENDING" || s.status == "RECEIVED" ? "{{ url_for('static', filename='spinner.gif') }}" : "{{ url_for('static', filename='completed.gif') }}"),
                             out: ko.observable(s.out),
-                            err: ko.observable(s.err)
+                            err: ko.observable(s.err),
+                            duration:ko.observable(s.duration),
+                            selected: ko.observable(false)
                         });
                     });
                     

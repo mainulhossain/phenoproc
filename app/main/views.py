@@ -29,6 +29,8 @@ import json
 from werkzeug import secure_filename
 import mimetypes
 
+from ..jobs import long_task, run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
+
 app = Flask(__name__)
 
 @main.after_app_request
@@ -630,11 +632,14 @@ def functions():
         runnable.script = script
         runnable.name = script[:min(40, len(script))]
         if len(script) > len(runnable.name):
-               runnable.name += "..."
+            runnable.name += "..."
         db.session.commit()
         
-        runnable_manager.submit_func(runnable_id, interpreter.run, machine, script)
-        return json.dumps({ 'out': 'runnable id = {0}'.format(runnable_id), 'err': '', 'duration': '' })
+        task = run_script.delay(machine, script)
+        runnable.celery_id = task.id
+        db.session.commit()
+        #runnable_manager.submit_func(runnable_id, interpreter.run, machine, script)
+        return json.dumps({})
         
     return json.dumps({'functions': interpreter.funcs })
 
@@ -722,8 +727,18 @@ def runnables():
     if request.args.get('id'):
         runnable = Runnable.query.get(int(request.args.get('id')))
         return jsonify(runnable = runnable.to_json())
+    elif request.args.get('stop'):
+        ids = request.args.get('stop')
+        ids = ids.split(",")
+        new_status = []
+        for id in ids:
+            runnable = Runnable.query.get(int(id))
+            stop_script(runnable.celery_id)
+            sync_task_status_with_db(runnable)
+            new_status.append(runnable)
+        return jsonify(runnables =[i.to_json() for i in new_status])
     
-    runnable_manager.sync_task_status_with_db_for_user(current_user.id)
+    sync_task_status_with_db_for_user(current_user.id)
 #     runnables_db = Runnable.query.filter(Runnable.user_id == current_user.id)
 #     rs = []
 #     for r in runnables_db:

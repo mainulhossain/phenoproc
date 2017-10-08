@@ -8,17 +8,32 @@ from flask_pagedown import PageDown
 from config import config
 import os
 import flask_sijax
+from celery import Celery
+from config import config, Config
 
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 pagedown = PageDown()
+celery = Celery(__name__, broker=Config.broker_url, backend=Config.result_backend)
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
+# # Initialize Celery
+# def make_celery(app):
+#     celery = Celery(app.name, broker=app.config['broker_url'])
+#     celery.conf.update(app.config)
+#     TaskBase = celery.Task
+#     class ContextTask(TaskBase):
+#         abstract = True
+#         def __call__(self, *args, **kwargs):
+#             with app.app_context():
+#                 return TaskBase.__call__(self, *args, **kwargs)
+#     celery.Task = ContextTask
+#     return celery
 
 def create_app(config_name):
     app = Flask(__name__)
@@ -33,7 +48,8 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     pagedown.init_app(app)
-
+    celery.conf.update(app.config)
+    
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify
         sslify = SSLify(app)

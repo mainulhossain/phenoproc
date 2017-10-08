@@ -573,6 +573,12 @@ class TaskStatus(db.Model):
     __tablename__ = 'taskstatus'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30))
+    
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name
+            }
 #     Unknown = 0x00
 #     Created = 0x01
 #     Running = 0x02
@@ -616,13 +622,13 @@ class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    status_id = db.Column(db.Integer, db.ForeignKey('taskstatus.id'))
+    celery_id = db.Column(db.String(64))
     name = db.Column(db.String(64))
-    script = db.Column(db.Text())
-    out = db.Column(db.Text())
-    err = db.Column(db.Text())
-    
-    status = db.relationship('TaskStatus', backref='runnables')
+    status = db.Column(db.String(30), default='PENDING')
+    script = db.Column(db.Text)
+    out = db.Column(db.Text)
+    err = db.Column(db.Text)
+    duration = db.Column(db.Integer, default = 0)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -632,9 +638,11 @@ class Runnable(db.Model):
     
     def update_status(self, status):
         self.status = status
+        self.modified_on = datetime.utcnow()
         db.session.commit()
     
     def update(self):
+        self.modified_on = datetime.utcnow()
         db.session.commit()
     
     def to_json(self):
@@ -642,9 +650,10 @@ class Runnable(db.Model):
             'id': self.id,
             'name': self.name,
             'script': self.script,
-            'status': self.status.name,
+            'status': self.status,
             'out': self.out,
-            'err': self.err
+            'err': self.err,
+            'duration': self.duration
         }    
     
     def to_json_info(self):
@@ -652,14 +661,14 @@ class Runnable(db.Model):
             'id': self.id,
             'name': self.name,
             'script': self.script,
-            'status': self.status.name
+            'status': self.status
         }
         
     @staticmethod
     def create_runnable(user_id):
         runnable = Runnable()
         runnable.user_id = user_id
-        runnable.status = TaskStatus.query.get(2)
+        runnable.status = 'PENDING'
         db.session.add(runnable)
         db.session.commit()
         return runnable.id
