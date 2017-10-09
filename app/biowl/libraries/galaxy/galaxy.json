@@ -3,10 +3,10 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetWorkflowIDs",
            "internal":"get_workflow_ids",
-           "desc": "Gets the names of all workflows.",
+           "desc": "Gets the ids of all workflows.",
            "returns": "string[]",
            "example":"GetWorkflows()",
            "runmode": "dist"
@@ -14,7 +14,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetWorkflow",
            "internal":"get_workflow",
            "desc": "Gets the properties of a workflow.",
@@ -25,7 +25,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetLibraryIDs",
            "internal":"get_library_ids",
            "desc": "Gets the ids of all libraries.",
@@ -36,7 +36,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetLibrary",
            "internal":"get_library",
            "desc": "Gets the properties of a workflow.",
@@ -47,7 +47,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetHistoryIDs",
            "internal":"get_history_ids",
            "desc": "Gets the ids of all histories.",
@@ -58,32 +58,32 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetHistory",
            "internal":"get_history",
            "desc": "Gets the properties of a history.",
-           "returns": "string[]",
+           "returns": "json",
            "example":"GetHistory(history_id)",
            "runmode": "dist"
        },
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"Upload",
            "internal":"upload",
            "desc": "Uploads a file to history or data library.",
-           "returns": "string[]",
+           "returns": "string",
            "example":"Upload(history_id/library_id, path_to_file)",
            "runmode": "dist"
        },
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"RunWorkflow",
            "internal":"run_workflow",
-           "desc": "Runs a named workflow.",
+           "desc": "Runs a workflow by id.",
            "returns": "string[]",
            "example":"RunWorkflow(workflow_id)",
            "runmode": "dist"
@@ -91,7 +91,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetToolsNames",
            "internal":"get_tools_names",
            "desc": "Get names of the tools.",
@@ -102,7 +102,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetToolsIDs",
            "internal":"get_tools_ids",
            "desc": "Get ids from the name of tool. Multiple ids will be returned for multiple tools of same name.",
@@ -113,7 +113,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"ToolIDToName",
            "internal":"tool_id_to_name",
            "desc": "Gets the name of a tool from id.",
@@ -124,29 +124,29 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"ToolNameToID",
            "internal":"tool_name_to_id",
            "desc": "Gets the id of a tool from name.",
-           "returns": "string[]",
+           "returns": "string",
            "example":"ToolNameToID(tool_name)",
            "runmode": "dist"
        },
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"CreateHistory",
            "internal":"create_history",
            "desc": "Create a new history.",
-           "returns": "json",
-           "example":"CreateHistory(New History)",
+           "returns": "string",
+           "example":"CreateHistory('New History')",
            "runmode": "dist"
        },
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"HistoryIDToName",
            "internal":"history_id_to_name",
            "desc": "Gets the name of a history from id.",
@@ -157,7 +157,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"HistoryNameToIDs",
            "internal":"history_name_to_ids",
            "desc": "Gets the ids of history name.",
@@ -168,7 +168,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetHistoryDatasets",
            "internal":"get_history_datasets",
            "desc": "Gets the ids of datasets in a history.",
@@ -179,7 +179,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetToolParams",
            "internal":"get_tool_params",
            "desc": "Get tool parameters.",
@@ -190,7 +190,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"UploadToHistory",
            "internal":"download_and_upload_to_galaxy",
            "desc": "Uploads a file to history and returns dataset id. If history id is not give, the most recent history is taken.",
@@ -201,7 +201,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"RunTool",
            "internal":"run_tool",
            "desc": "Runs a tool on history.",
@@ -212,7 +212,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"GetLastHistory",
            "internal":"get_most_recent_history",
            "desc": "Gets the id of the history which is last used.",
@@ -223,7 +223,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"DatasetIDToName",
            "internal":"dataset_id_to_name",
            "desc": "Gets the name of a dataset from id.",
@@ -234,7 +234,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"DatasetNameToIDs",
            "internal":"dataset_name_to_ids",
            "desc": "Gets the id of a dataset from name.",
@@ -245,7 +245,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"FASTQGroomer",
            "internal":"run_fastq_groomer",
            "desc": "Run the fastq groomer tool. If history_id not given, last history is used.",
@@ -256,7 +256,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "libraries.galaxy.adapter",
+           "module": "app.biowl.libraries.galaxy.adapter",
            "name":"BWAlign",
            "internal":"run_bwa",
            "desc": "Map with BWA.",

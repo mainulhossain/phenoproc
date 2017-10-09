@@ -62,7 +62,7 @@ def stop_script(task_id):
 def sync_task_status_with_db(task):
     status = None
     
-    if task.status != 'FAILURE' and task.status != 'SUCCESS' and task.status != 'REVOKED':
+    if task.celery_id is not None and task.status != 'FAILURE' and task.status != 'SUCCESS' and task.status != 'REVOKED':
         celeryTask = run_script.AsyncResult(task.celery_id)
         task.status = celeryTask.state
         
