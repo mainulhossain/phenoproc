@@ -16,7 +16,7 @@ from collections import namedtuple
 import os
 import time
 
-from fileop import IOHelper
+from ...fileop import IOHelper
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)
