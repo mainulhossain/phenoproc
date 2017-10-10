@@ -686,13 +686,13 @@ class Samples():
                 return uni_fn
             
     @staticmethod
-    def add_sample(sample):
+    def add_sample(sample, name, desc):
         this_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(this_path) #set dir of this file to current directory
         samplesdir = os.path.normpath(os.path.join(this_path, '../biowl/samples'))
-        
-        if sample:
-            try:
+
+        try:
+            if sample and name:
                 new_path = os.path.normpath(os.path.join(samplesdir, 'users', current_user.username))
                 if not os.path.isdir(new_path):
                     os.makedirs(new_path)
@@ -700,8 +700,8 @@ class Samples():
                 
                 with open(path, 'w') as fp:
                     fp.write("{\n")
-                    fp.write('{0}"name":"{1}",\n'.format(" " * 4, args['name']));
-                    fp.write('{0}"desc":"{1}",\n'.format(" " * 4, args['desc']));
+                    fp.write('{0}"name":"{1}",\n'.format(" " * 4, name));
+                    fp.write('{0}"desc":"{1}",\n'.format(" " * 4, desc));
                     fp.write('{0}"sample":[\n'.format(" " * 4))
                     sample = sample.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'")
                     lines = sample.split("\n")
@@ -710,15 +710,15 @@ class Samples():
                     fp.write('{0}"{1}"\n'.format(" " * 8, lines[-1]))
                     fp.write("{0}]\n}}".format(" " * 4))
 #                json.dump(samples, fp, indent=4, separators=(',', ': '))
-            finally:
-                return { 'out': '', 'err': ''}, 201
+        finally:
+            return { 'out': '', 'err': ''}, 201
     
     
 @main.route('/samples', methods=['GET', 'POST'])
 @login_required
 def samples():
     if request.form.get('sample'):
-        return Samples.add_sample(request.form.get('sample'))
+        return Samples.add_sample(request.form.get('sample'), request.form.get('name'), request.form.get('desc'))
     return json.dumps({'samples': Samples.get_samples_as_list()})
 
 @main.route('/runnables', methods=['GET', 'POST'])

@@ -328,8 +328,8 @@ def run_fastq_groomer(*args):
     tool_args = list(args[:3])
     tool_args.extend([historyid, tool_id, input])
 
-    return run_tool(*tool_args)
-
+    output = run_tool(*tool_args)
+    return output['outputs']['output_file']['id']
 
 #===============================================================================
 # run_bwa
@@ -443,4 +443,13 @@ def run_bwa(*args):
     tool_args = list(args[:3])
     tool_args.extend([historyid, tool_id, input])
 
-    return run_tool(*tool_args)
+    output = run_tool(*tool_args)
+    return output['outputs']['output_file']['id']
+
+def download(*args):
+    gi = create_galaxy_instance(*args)
+    dc = DatasetClient(gi)
+    name = dataset_id_to_name(*args)
+    r = dc.download_dataset(args[3], wait_for_completion=True)
+    return name
+    
