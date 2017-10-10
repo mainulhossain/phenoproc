@@ -315,12 +315,12 @@ def run_fastq_groomer(*args):
     historyid = args[4] if len(args) > 4 else get_most_recent_history(*args)
 #    historyid = get_most_recent_history(*args)
 
-    dataset_ids = dataset_name_to_ids(*datasetargs)
-    if len(dataset_ids) == 0:
-        raise "Input dataset not found"
+#     dataset_ids = dataset_name_to_ids(*args)
+#     if len(dataset_ids) == 0:
+#         raise "Input dataset not found"
 
-    dataset_id = dataset_ids[0]
-    input = {"input_file":{"values":[{"src":"hda", "id":dataset_id}]}}
+#     dataset_id = dataset_ids[0]
+    input = {"input_file":{"values":[{"src":"hda", "id":args[3]}]}}
 
     server_args = list(args[:3])
     server_args.append('FASTQ Groomer')
@@ -374,30 +374,34 @@ def run_fastq_groomer(*args):
 #===============================================================================
 def run_bwa(*args):
     
-    #historyid = args[4] if len(args) > 4 else get_most_recent_history(*args)
-    historyid = get_most_recent_history(*args)
+    historyid = args[6] if len(args) > 6 else get_most_recent_history(*args)
+#     historyid = get_most_recent_history(*args)
     
-    ref_datasetargs = list(args[:4])
-    ref_datasetargs.append(historyid)
-    refdataset_ids = dataset_name_to_ids(*args)
-    if len(refdataset_ids) == 0:
-        raise "Reference dataset not found"
-    
-    datasetargs = list(args[:3])
-    datasetargs.append(args[5])
-    dataset_ids1 = dataset_name_to_ids(*args)
-    if len(dataset_ids1) == 0:
-        raise "Pair1 dataset not found"
-    
-    datasetargs = list(args[:3])
-    datasetargs.append(args[6])
-    dataset_ids2 = dataset_name_to_ids(*args)
-    if len(dataset_ids2) == 0:
-        raise "Pair2 dataset not found"
+#     ref_datasetargs = list(args[:4])
+#     ref_datasetargs.append(historyid)
+#     refdataset_ids = dataset_name_to_ids(*args)
+#     if len(refdataset_ids) == 0:
+#         raise "Reference dataset not found"
+#     
+#     datasetargs = list(args[:3])
+#     datasetargs.append(args[5])
+#     dataset_ids1 = dataset_name_to_ids(*args)
+#     if len(dataset_ids1) == 0:
+#         raise "Pair1 dataset not found"
+#     
+#     datasetargs = list(args[:3])
+#     datasetargs.append(args[6])
+#     dataset_ids2 = dataset_name_to_ids(*args)
+#     if len(dataset_ids2) == 0:
+#         raise "Pair2 dataset not found"
 
-    dataset_id1 = dataset_ids1[0]
-    dataset_id2 = dataset_ids2[0]
-    refdataset_id = refdataset_ids[0]
+#     dataset_id1 = dataset_ids1[0]
+#     dataset_id2 = dataset_ids2[0]
+#     refdataset_id = refdataset_ids[0]
+
+    refdataset_id = args[3]
+    dataset_id1 = args[4]
+    dataset_id2 = args[5]
     
     input = {
      "reference_source|reference_source_selector":"history",
