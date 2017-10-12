@@ -250,7 +250,7 @@
            "internal":"dataset_name_to_ids",
            "desc": "Gets the id of a dataset from name.",
            "returns": "string",
-           "example":"DatasetNameToID(dataset_name, [history_id])",
+           "example":"DatasetNameToIDs(dataset_name, [history_id])",
            "runmode": "dist"
        },
        {

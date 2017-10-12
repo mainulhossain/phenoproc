@@ -15,6 +15,7 @@ from ftplib import FTP
 from collections import namedtuple
 import os
 import time
+from flask import current_app
 
 from ...fileop import IOHelper
 
@@ -277,6 +278,12 @@ def dataset_id_to_name(*args):
     ds_info = dc.show_dataset(dataset_id = args[3], hda_ldda = t)
     return ds_info['name']
 
+def hda_dataset_id_to_name(*args):
+    gi = create_galaxy_instance(*args)
+    dc = DatasetClient(gi)
+    ds_info = dc.show_dataset(dataset_id = args[3], hda_ldda = 'hda')
+    return ds_info['name']
+
 def dataset_name_to_ids(*args):
     gi = create_galaxy_instance(*args)
     h = HistoryClient(gi)
@@ -467,7 +474,9 @@ def run_bwa(*args):
 def download(*args):
     gi = create_galaxy_instance(*args)
     dc = DatasetClient(gi)
-    name = dataset_id_to_name(*args)
-    r = dc.download_dataset(args[3], wait_for_completion=True)
+    name = hda_dataset_id_to_name(*args)
+    
+    path = args[4] if len(args) > 4 else current_app.config['PUBLIC_DIR']
+    r = dc.download_dataset(args[3], file_path = path, use_default_filename=True, wait_for_completion=True)
     return name
     
