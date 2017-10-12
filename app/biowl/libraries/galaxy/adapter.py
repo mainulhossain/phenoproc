@@ -448,7 +448,21 @@ def run_bwa(*args):
     tool_args.extend([historyid, tool_id, input])
 
     output = run_tool(*tool_args)
-    return output['outputs']['output_file']['id']
+#     {'model_class': 'Job', 
+#      'outputs': {
+#          'bam_output': {
+#              'src': 'hda', 'id': '7b326180327c3fcc', 'uuid': 'ccfaaa0a-946a-4a51-87b0-bdf71f13f3e6'
+#           }
+#       }, 
+#      'state': 'ok', 
+#      'create_time': '2017-10-12T11:13:34.731974', 
+#      'command_line': 'ln -s "/home/phenodoop/galaxy/galaxy/database/files/000/dataset_105.dat" "localref.fa" && bwa index "localref.fa" &&                 bwa aln -t "${GALAXY_SLOTS:-1}"     "localref.fa"  "/home/phenodoop/galaxy/galaxy/database/files/000/dataset_203.dat"  > first.sai &&  bwa aln -t "${GALAXY_SLOTS:-1}"     "localref.fa"  "/home/phenodoop/galaxy/galaxy/database/files/000/dataset_203.dat"  > second.sai &&  bwa sampe      "localref.fa" first.sai second.sai "/home/phenodoop/galaxy/galaxy/database/files/000/dataset_203.dat" "/home/phenodoop/galaxy/galaxy/database/files/000/dataset_203.dat"    | samtools sort -O bam -o \'/home/phenodoop/galaxy/galaxy/database/files/000/dataset_208.dat\'', 'id': 'd448712f90897b61', 
+#      'inputs': {'fastq_input2': {'src': 'hda', 'id': 'dfd15528ee538abe', 'uuid': '88502312-ba9a-4f2a-bacb-05bf176e69e7'}, 
+#                 'fastq_input1': {'src': 'hda', 'id': 'dfd15528ee538abe', 'uuid': '88502312-ba9a-4f2a-bacb-05bf176e69e7'}, 
+#                 'ref_file': {'src': 'hda', 'id': '7ef8021ae23ac2fc', 'uuid': 'ba22f14a-18bc-410e-ab76-160b41584436'}}, 
+#      'update_time': '2017-10-12T11:16:29.151400', 'tool_id': 'toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa/0.7.15.2', 'exit_code': 0, 'external_id': '429', 
+#      'params': {'input_type': '{"adv_pe_options": {"__current_case__": 1, "adv_pe_options_selector": "do_not_set"}, "fastq_input2": {"values": [{"src": "hda", "id": 204}]}, "__current_case__": 0, "input_type_selector": "paired", "fastq_input1": {"values": [{"src": "hda", "id": 204}]}}', 'rg': '{"rg_selector": "do_not_set", "__current_case__": 3}', 'dbkey': '"?"', 'chromInfo': '"/home/phenodoop/galaxy/galaxy/tool-data/shared/ucsc/chrom/?.len"', 'analysis_type': '{"analysis_type_selector": "illumina", "__current_case__": 0}', 'reference_source': '{"ref_file": {"values": [{"src": "hda", "id": 205}]}, "reference_source_selector": "history", "__current_case__": 1, "index_a": "auto"}'}}
+    return output['outputs']['bam_output']['id']
 
 def download(*args):
     gi = create_galaxy_instance(*args)
