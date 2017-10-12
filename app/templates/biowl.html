@@ -571,7 +571,7 @@ background-color: White;
         	  return;
           formdata.append('path', node.path);//you can append it to formdata with a proper parameter name
 
-          self.formajax(self.dataSourcesURI, 'POST', formdata).done(function(data) {
+          ajaxcalls.form(self.dataSourcesURI, 'POST', formdata).done(function(data) {
         	  self.load();
           });
        }
@@ -588,7 +588,7 @@ background-color: White;
     	  node = self.selectedNode();
           if (node === undefined)
               return;
-          ajaxcalls.simple(self.dataSourcesURI, 'POST', { 'addfolder': node.path }).done(function(data) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': node.path }).done(function(data) {
         	  self.load();
           });
       }
@@ -597,7 +597,7 @@ background-color: White;
     	  node = self.selectedNode();
           if (node === undefined)
               return;
-          ajaxcalls.simple(self.dataSourcesURI, 'POST', { 'delete': node.path }).done(function(data) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'delete': node.path }).done(function(data) {
               self.load();
           });
       }
@@ -609,7 +609,7 @@ background-color: White;
           if (node === undefined)
               return;
           
-          ajaxcalls.simple(self.dataSourcesURI, 'POST', { 'oldpath': node.path, 'rename': $('#rename-filefolder-text').val() }).done(function(data) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'oldpath': node.path, 'rename': $('#rename-filefolder-text').val() }).done(function(data) {
               self.load();
           });
       }

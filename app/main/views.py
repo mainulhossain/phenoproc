@@ -547,6 +547,10 @@ def download_biowl(path):
     mime = mimetypes.guess_type(fullpath)[0]
     return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
+def upload_biowl(file, fullpath):
+    fs = fs_id_by_prefix(fullpath)
+    return fs.save_upload(file, fullpath)
+                
 class InterpreterHelper():
 
     def __init__(self):
@@ -597,6 +601,24 @@ def biowl():
 def datasources():
     if request.form.get('download'):
         return download_biowl(request.form['download'])
+    elif request.files and request.files['upload']:
+        upload_biowl(request.files['upload'], request.form['path'])
+    elif request.args.get('addfolder'):
+        path = request.args['addfolder']
+        fileSystem = fs_id_by_prefix(path)
+        parent = path if fileSystem.isdir(path) else os.path.dirname(path)
+        unique_filename = IOHelper.unique_fs_name(fileSystem, parent, 'newfolder', '')
+        return json.dumps({'path' : fileSystem.create_folder(unique_filename) })
+    elif request.args.get('delete'):
+        path = request.args['delete']
+        fileSystem = fs_id_by_prefix(path)
+        return json.dumps({'path' : fileSystem.remove(fileSystem.strip_root(path))})
+    elif request.args.get('rename'):
+        fileSystem = fs_id_by_prefix(request.args['oldpath'])
+        oldpath = fileSystem.strip_root(request.args['oldpath'])
+        newpath = os.path.join(os.path.dirname(oldpath), request.args['rename'])
+        return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})
+        
     return json.dumps({'datasources': load_data_sources_biowl() })
 
 @main.route('/functions', methods=['GET', 'POST'])
