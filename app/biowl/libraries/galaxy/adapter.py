@@ -480,6 +480,7 @@ def download(*args):
     app = current_app._get_current_object()
     with app.app_context():
         path = args[4] if len(args) > 4 else current_app.config['PUBLIC_DIR']
-    r = dc.download_dataset(args[3], file_path = path, use_default_filename=True, wait_for_completion=True)
-    return os.path.join(path, name)
+        dc.download_dataset(args[3], file_path = path, use_default_filename=True, wait_for_completion=True)
+        path = os.path.join(path, name)
+    return path
     
