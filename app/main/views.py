@@ -517,58 +517,35 @@ def load_data_sources_biowl():
         
     return datasource_tree
 
-# class DataSource():
-#  
-#     #datasources = [{'path': 'http://sr-p2irc-big1.usask.ca:50070/user/phenodoop', 'text': 'HDFS', 'nodes': [], 'folder': True}, { 'text': 'LocalFS', 'path': current_app.config['DATA_DIR'], 'nodes': [], 'folder': True}]
-#          
-#     @staticmethod
-#     def load_data_sources():
-#         datasource_tree = []
-#         try:
-#             ds = datasources[0]
-#             hdfs = HadoopFileSystem(ds['path'], 'hdfs')
-#             ds['path'] = 'HDFS'
-#             ds['nodes'] = hdfs.make_json(os.sep)['nodes']
-#          #   DataSource.normalize_node_path(ds['path'], ds)
-#             datasource_tree.append(ds)            
-#         except:
-#             pass
-#          
-#         ds = datasources[1]
-#         ds['path'] = 'LocalFS'
-#         fs = PosixFileSystem()
-#         ds['nodes'] = fs.make_json(os.sep)['nodes']
-#         #DataSource.normalize_node_path(ds['path'], ds)
-#         datasource_tree.append(ds)
-#          
-#         return datasource_tree
-#      
-#     @staticmethod
-#     def normalize_node_path(root, ds):
-#         for n in ds['nodes']:
-#             n['path'] =  root + n['path']
-#             if n['folder']:
-#                 DataSource.normalize_node_path(root, n)
-#      
-#     @staticmethod
-#     def get_filesystem(path):
-#         for ds in datasources:
-#             if path.startswith(ds['text']):
-#                 return IOHelper.getFileSystem(ds['path'])
-#      
-#     @staticmethod
-#     def load_data_sources_json():
-#         return json.dumps(DataSource.load_data_sources())
-#      
-#     @staticmethod
-#     def upload(file, fullpath):
-#         fs = DataSource.get_filesystem(fullpath)
-#         return fs.save_upload(file, fullpath)
-#      
-#     @staticmethod
-#     def download(path):
-#         fs = DataSource.get_filesystem(path)
-#         return fs.download(path)
+def fs_id_by_prefix(path):
+    path = os.path.normpath(path)
+    fs = path.split(os.sep)
+    if not fs:
+        return None
+    
+    dsid = 0
+    if fs[0] == 'HDFS':
+        dsid = 1
+    elif fs[0] == 'LocalFS':
+        dsid = 2
+    else:
+        return None
+
+    ds = DataSource.query.get(dsid)
+    root = Utility.get_rootdir(ds.id)
+    
+    if dsid == 1:
+        return HadoopFileSystem(ds.url, 'hdfs')
+    else:
+        return PosixFileSystem(root)
+
+       
+def download_biowl(path):
+    # construct data source tree
+    fs = fs_id_by_prefix(path)
+    fullpath = fs.download(path)
+    mime = mimetypes.guess_type(fullpath)[0]
+    return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
 class InterpreterHelper():
 
@@ -618,6 +595,8 @@ def biowl():
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
+    if request.form.get('download'):
+        return download_biowl(request.form['download'])
     return json.dumps({'datasources': load_data_sources_biowl() })
 
 @main.route('/functions', methods=['GET', 'POST'])
