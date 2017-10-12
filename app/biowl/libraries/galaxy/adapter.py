@@ -410,10 +410,10 @@ def run_bwa(*args):
              "src":"hda",
 #              "name":"all.cDNA",
              "tags":[],
-             "keep":false,
+#             "keep":False,
 #              "hid":2,
              "id":refdataset_id}],
-         "batch":false},
+         "batch":False},
          "reference_source|index_a":"auto",
          "input_type|input_type_selector":"paired",
          "input_type|fastq_input1":{
@@ -421,20 +421,20 @@ def run_bwa(*args):
                  "src":"hda",
 #                 "name":"FASTQ Groomer on data 1",
                  "tags":[],
-                 "keep":false,
+#                 "keep":False,
 #                  "hid":10,
                  "id": dataset_id1}],
-             "batch":false
+             "batch":False
          },
      "input_type|fastq_input2":{
          "values":[{
              "src":"hda",
 #             "name":"FASTQ Groomer on data 1",
              "tags":[],
-             "keep":false,
+#             "keep":False,
 #              "hid":11,
              "id": dataset_id2}],
-         "batch":false
+         "batch":False
      },
      "input_type|adv_pe_options|adv_pe_options_selector":"do_not_set",
      "rg|rg_selector":"do_not_set",
