@@ -18,6 +18,7 @@ import time
 from flask import current_app
 
 from ...fileop import IOHelper
+from ....util import Utility
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)
@@ -480,7 +481,8 @@ def download(*args):
     app = current_app._get_current_object()
     with app.app_context():
         path = args[4] if len(args) > 4 else current_app.config['PUBLIC_DIR']
-        dc.download_dataset(args[3], file_path = path, use_default_filename=True, wait_for_completion=True)
+        fullpath = os.path.join(Utility.get_rootdir(2), path)
+        dc.download_dataset(args[3], file_path = fullpath, use_default_filename=True, wait_for_completion=True)
         path = os.path.join(path, name)
     return path
     
