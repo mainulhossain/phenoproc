@@ -478,10 +478,12 @@ def download(*args):
     name = hda_dataset_id_to_name(*args)
     
     path = ''
-    app = current_app._get_current_object()
+#    app = current_app._get_current_object()
+    app = Flask(__name__)
     with app.app_context():
+        fs = PosixFileSystem(Utility.get_rootdir(2))
         path = args[4] if len(args) > 4 else current_app.config['PUBLIC_DIR']
-        fullpath = os.path.join(Utility.get_rootdir(2), path)
+        fullpath = fs.normalize_path(path)
         dc.download_dataset(args[3], file_path = fullpath, use_default_filename=True, wait_for_completion=True)
         path = os.path.join(path, name)
     return path

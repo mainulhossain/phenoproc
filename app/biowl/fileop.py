@@ -225,7 +225,7 @@ class HadoopFileSystemBase():
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
         self.client = InsecureClient(self.url, user=user)
         self.localdir = u.path
-        self.prefix = 'LocalFS'
+        self.prefix = 'HDFS'
     
     def normalize_path(self, path):
         path = self.strip_root(path)
