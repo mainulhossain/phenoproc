@@ -85,79 +85,79 @@ def load_data_sources():
 def load_data_sources_json():
     return json.dumps(load_data_sources())
 
-@main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
-@main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
-def index(id=None):
-              
-    id = Utility.ValueOrNone(id)
-    if id <= 0:
-        id = request.args.get('workflow')
-                                                               
-    if g.sijax.is_sijax_request:
-        # Sijax request detected - let Sijax handle it
-        g.sijax.register_object(WorkflowHandler)
-        return g.sijax.process_request()
-
-    form = PostForm()
-    if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
-        post = Post(body=form.body.data, author=current_user._get_current_object())
-        db.session.add(post)
-        return redirect(url_for('.index'))
-    page = request.args.get('page', 1, type=int)
-    show_followed = False
-    if current_user.is_authenticated:
-        show_followed = bool(request.cookies.get('show_followed', ''))
-    if show_followed:
-        query = current_user.followed_posts
-    else:
-        query = Post.query
-    pagination = query.order_by(Post.timestamp.desc()).paginate(
-        page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
-        error_out=False)
-    posts = pagination.items
-    
-    datasource_tree = load_data_sources()
-    
-    # construct operation source tree
-    operationsources = OperationSource.query.all()
-    operation_tree = { 'name' : ('operations', ''), 'children' : [] }
-    for ops in operationsources:
-        operation_tree['children'].append({ 'name' : (ops.name, ops.id), 'children' : [] })
-        for op in ops.operations:
-            operation_tree['children'][-1]['children'].append({ 'name' : (op.name, op.id), 'children' : [] })
-    
-    # workflows tree
-    workflows = []
-    if current_user.is_authenticated:
-        #workflows = Workflow.query.filter_by(user_id=current_user.id)
-        #sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows JOIN users ON workflows.user_id = users.id LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id JOIN taskstatus ON tasklogs.status_id=taskstatus.id GROUP BY workflows.id HAVING users.id=' + str(current_user.id)
-        sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id LEFT JOIN taskstatus ON tasklogs.status_id=taskstatus.id WHERE workflows.user_id={0} GROUP BY workflows.id'.format(current_user.id)
-        workflows = db.engine.execute(sql)
-    
-    workitems = []
-#    Workflow.query.join(WorkItem).join(Operation).filter_by(id=1).c
-#    sql = text('SELECT workitems.*, operations.name AS opname FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id WHERE workflows.id=' + str(id))
-    
-    workflow_name = ''
-    if id is not None and Workflow.query.get(id) is not None:
-        workflow_name = Workflow.query.get(id).name
-#        sql = text('SELECT workitems.*, operations.name AS opname, datasources.id AS datasource_id, datasources.name AS datasource_name, data.url AS path FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id INNER JOIN data ON workitems.id = data.id INNER JOIN datasources ON data.datasource_id=datasources.id WHERE workflows.id=' + str(id))
-#        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
-#        sql = text('SELECT s.id AS id, s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id) s LEFT JOIN datasources dx ON dx.id=s.input_datasource LEFT JOIN datasources dx2 ON dx2.id=s.output_datasource LEFT JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
-        sql = text('SELECT w.id AS id, w.name AS name, w.desc as desc, ops.name AS opsname, operations.name AS opname, d1.url AS input, d2.url AS output, dx1.id AS input_datasourceid, dx1.type AS input_datasource, dx1.url AS input_root, dx2.id AS output_datasourceid, dx2.type AS output_datasource, dx2.url AS output_root FROM workitems w LEFT JOIN operations ON w.operation_id=operations.id LEFT JOIN operationsources ops ON ops.id=operations.operationsource_id LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id LEFT JOIN datasources dx1 ON dx1.id=d1.datasource_id LEFT JOIN datasources dx2 ON dx2.id=d2.datasource_id WHERE w.workflow_id=' + str(id))
-        workitems = db.engine.execute(sql)        
-#         result = db.engine.execute(sql)
-#         for row in result:
-#             workitems.append(row);
-        
-#     if id is not None:
-#         workflow = Workflow.query.filter_by(id=id)
-#         if workflow is not None and workflow.count() > 0:
-#             workitems = workflow.first().workitems
-    
-    
-    return render_template('index.html', form=form, posts=posts, datasources=datasource_tree, operations=operation_tree, workflow=workflow_name, workflows=workflows, workitems=workitems,
-                           show_followed=show_followed, pagination=pagination)
+# @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
+# @main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
+# def index(id=None):
+#               
+#     id = Utility.ValueOrNone(id)
+#     if id <= 0:
+#         id = request.args.get('workflow')
+#                                                                
+#     if g.sijax.is_sijax_request:
+#         # Sijax request detected - let Sijax handle it
+#         g.sijax.register_object(WorkflowHandler)
+#         return g.sijax.process_request()
+# 
+#     form = PostForm()
+#     if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
+#         post = Post(body=form.body.data, author=current_user._get_current_object())
+#         db.session.add(post)
+#         return redirect(url_for('.index'))
+#     page = request.args.get('page', 1, type=int)
+#     show_followed = False
+#     if current_user.is_authenticated:
+#         show_followed = bool(request.cookies.get('show_followed', ''))
+#     if show_followed:
+#         query = current_user.followed_posts
+#     else:
+#         query = Post.query
+#     pagination = query.order_by(Post.timestamp.desc()).paginate(
+#         page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
+#         error_out=False)
+#     posts = pagination.items
+#     
+#     datasource_tree = load_data_sources()
+#     
+#     # construct operation source tree
+#     operationsources = OperationSource.query.all()
+#     operation_tree = { 'name' : ('operations', ''), 'children' : [] }
+#     for ops in operationsources:
+#         operation_tree['children'].append({ 'name' : (ops.name, ops.id), 'children' : [] })
+#         for op in ops.operations:
+#             operation_tree['children'][-1]['children'].append({ 'name' : (op.name, op.id), 'children' : [] })
+#     
+#     # workflows tree
+#     workflows = []
+#     if current_user.is_authenticated:
+#         #workflows = Workflow.query.filter_by(user_id=current_user.id)
+#         #sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows JOIN users ON workflows.user_id = users.id LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id JOIN taskstatus ON tasklogs.status_id=taskstatus.id GROUP BY workflows.id HAVING users.id=' + str(current_user.id)
+#         sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id LEFT JOIN taskstatus ON tasklogs.status_id=taskstatus.id WHERE workflows.user_id={0} GROUP BY workflows.id'.format(current_user.id)
+#         workflows = db.engine.execute(sql)
+#     
+#     workitems = []
+# #    Workflow.query.join(WorkItem).join(Operation).filter_by(id=1).c
+# #    sql = text('SELECT workitems.*, operations.name AS opname FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id WHERE workflows.id=' + str(id))
+#     
+#     workflow_name = ''
+#     if id is not None and Workflow.query.get(id) is not None:
+#         workflow_name = Workflow.query.get(id).name
+# #        sql = text('SELECT workitems.*, operations.name AS opname, datasources.id AS datasource_id, datasources.name AS datasource_name, data.url AS path FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id INNER JOIN data ON workitems.id = data.id INNER JOIN datasources ON data.datasource_id=datasources.id WHERE workflows.id=' + str(id))
+# #        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
+# #        sql = text('SELECT s.id AS id, s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id) s LEFT JOIN datasources dx ON dx.id=s.input_datasource LEFT JOIN datasources dx2 ON dx2.id=s.output_datasource LEFT JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
+#         sql = text('SELECT w.id AS id, w.name AS name, w.desc as desc, ops.name AS opsname, operations.name AS opname, d1.url AS input, d2.url AS output, dx1.id AS input_datasourceid, dx1.type AS input_datasource, dx1.url AS input_root, dx2.id AS output_datasourceid, dx2.type AS output_datasource, dx2.url AS output_root FROM workitems w LEFT JOIN operations ON w.operation_id=operations.id LEFT JOIN operationsources ops ON ops.id=operations.operationsource_id LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id LEFT JOIN datasources dx1 ON dx1.id=d1.datasource_id LEFT JOIN datasources dx2 ON dx2.id=d2.datasource_id WHERE w.workflow_id=' + str(id))
+#         workitems = db.engine.execute(sql)        
+# #         result = db.engine.execute(sql)
+# #         for row in result:
+# #             workitems.append(row);
+#         
+# #     if id is not None:
+# #         workflow = Workflow.query.filter_by(id=id)
+# #         if workflow is not None and workflow.count() > 0:
+# #             workitems = workflow.first().workitems
+#     
+#     
+#     return render_template('index.html', form=form, posts=posts, datasources=datasource_tree, operations=operation_tree, workflow=workflow_name, workflows=workflows, workitems=workitems,
+#                            show_followed=show_followed, pagination=pagination)
 
 
 @main.route('/user/<username>')
@@ -592,8 +592,9 @@ class InterpreterHelper():
 interpreter = InterpreterHelper()
     
 @main.route('/biowl', methods=['GET', 'POST'])
-@login_required
-def biowl():
+@main.route('/', methods = ['GET', 'POST'])
+#@login_required
+def index():
     return render_template('biowl.html')
  
 @main.route('/datasources', methods=['GET', 'POST'])
