@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "flash",
-           "module": "libraries.flash.adapter",
+           "module": "app.biowl.libraries.flash.adapter",
            "name":"Flash",
            "internal":"run_flash",
            "runmode": "local",
@@ -32,7 +32,7 @@
        {
            "org": "srlab",
            "package": "flash",
-           "module": "libraries.flash.adapter",
+           "module": "app.biowl.libraries.flash.adapter",
            "name":"FlashRecursive",
            "internal":"run_flash_recursive",
            "runmode": "local",
