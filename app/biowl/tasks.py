@@ -46,8 +46,20 @@ class RunnableManager:
         self.pool = ThreadPoolExecutor(max_count)
         self.futures = {}
 
+    def done_callback(self, f):
+#         with app.app_context():
+        for task_id, fut in self.futures.items():
+            if fut == f:
+                try:
+                    task = Runnable.query.get(task_id)
+                    self.sync_task_status_with_db(task)
+                    break
+                except:
+                    pass
+        
     def submit_func(self, task_id, func, *args):
         self.futures[task_id] = self.pool.submit(func, *args)
+#         self.futures[task_id].add_done_callback(self.done_callback)
         task = Runnable.query.get(task_id)
         task.update_status(TaskStatus.query.get(int(TaskStatusTypes.Running)))
     
@@ -74,7 +86,10 @@ class RunnableManager:
         tasks = Runnable.query.filter(Runnable.user_id == user_id)
         for task in tasks:
             self.sync_task_status_with_db(task)
-                    
+    
+    def split_result(self, result):
+        out = str(future.result())
+                        
     def sync_task_status_with_db(self, task):
         status = None
       
@@ -83,23 +98,20 @@ class RunnableManager:
             future = self.futures[task.id]
             
             if future.cancelled():
-                status = TaskStatus.query.get(int(TaskStatusTypes.Canceled))
                 if status.id != task.status_id:
                     task.out = str(future.result())
                     task.err = str(TaskStatusTypes.Canceled)
-                    task.status = status
+                    task.status = TaskStatus.query.get(int(TaskStatusTypes.Canceled))
                     task.update()
                 del self.futures[task.id]
             elif future.running():
-                status = TaskStatus.query.get(int(TaskStatusTypes.Running))
                 if status.id != task.status_id:
-                    task.status = status
+                    task.status = TaskStatus.query.get(int(TaskStatusTypes.Running))
                     task.update()
             elif future.done():
-                status = TaskStatus.query.get(int(TaskStatusTypes.Completed))
                 if status.id != task.status_id:
                     task.out = str(future.result())
-                    task.status = status
+                    task.status = TaskStatus.query.get(int(TaskStatusTypes.Completed))
                     task.update()
                 del self.futures[task.id]
 #         else:
@@ -125,7 +137,12 @@ class RunnableManager:
             if not future.done():
                 return False
         return True
-                
+    
+    def stop(self, task):
+        if task.id in self.futures and self.futures[task.id].running():
+            self.futures[task.id].cancel()
+        return self.sync_task_status_with_db(task)
+                    
 task_manager = TaskManager()
                 
 runnable_manager = RunnableManager()

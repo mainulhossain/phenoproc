@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "fastqc",
-           "module": "libraries.fastqc.adapter",
+           "module": "app.biowl.libraries.fastqc.adapter",
            "name":"FastQC",
            "internal":"run_fastqc",
            "runmode": "local",

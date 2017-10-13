@@ -1,12 +1,13 @@
 import os
 from os import path
-from exechelper import func_exec_run
-from fileop import PosixFileSystem
+from ...exechelper import func_exec_run
+from ...fileop import IOHelper, PosixFileSystem
+from ....util import Utility
 
 flash = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'flash'))
 
 def run_flash(*args):
-    fs = PosixFileSystem()
+    fs = PosixFileSystem(Utility.get_rootdir(2))
     input1 = fs.normalize_path(args[0])
     input2 = fs.normalize_path(args[1])
     cmdargs = []
@@ -25,7 +26,7 @@ def run_flash(*args):
     return func_exec_run(flash, *cmdargs)
 
 def run_flash_recursive(*args):
-    fs = PosixFileSystem()
+    fs = PosixFileSystem(Utility.get_rootdir(2))
     input_path = fs.normalize_path(args[0])
     
     if len(args) > 1:

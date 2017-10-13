@@ -1,12 +1,13 @@
 import os
 from os import path
-from exechelper import func_exec_run
-from fileop import PosixFileSystem
+from ...exechelper import func_exec_run
+from ...fileop import IOHelper, PosixFileSystem
+from ....util import Utility
 
 fastqc = path.join(path.abspath(path.dirname(__file__)), path.join('lib', 'fastqc'))
 
 def run_fastqc(*args):
-    fs = PosixFileSystem()
+    fs = PosixFileSystem(Utility.get_rootdir(2))
     input = fs.normalize_path(args[0])
     cmdargs = [input]
     outdir = path.dirname(input)
