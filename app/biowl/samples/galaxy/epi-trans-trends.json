@@ -3,12 +3,12 @@
     "desc":"Global epigenetic and transcriptional trends among two rice subspecies and their reciprocal hybrids.",
     "sample":[
         "task ('http://sr-p2irc-big8.usask.ca:8080', '7483fa940d53add053903042c39f853a'):",
-        "    history_id = CreateHistory()",
-        "    dataset = FtpToHistory('ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR034/SRR034608/SRR034608.fastq.gz', history_id)",
-        "    groomed_data = FASTQGroomer(dataset, history_id)",
+        "    history_id = CreateHistory('Epigenetic and transcriptional trends')",
+        "    dataset = UploadToHistory('ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR034/SRR034608/SRR034608.fastq.gz')",
+        "    groomed_data = FASTQGroomer(dataset)",
         "",
-        "    ref_data = FtpToHistory('ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_6.1/all.dir/all.cDNA', history_id)    ",
-        "    aligned_data = BWAlign(ref_data, groomed_data, groomed_data, history_id)",
+        "    ref_data = UploadToHistory('ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_6.1/all.dir/all.cDNA')",
+        "    aligned_data = BWAlign(ref_data, groomed_data, groomed_data)",
         "    bam_file = download(aligned_data)",
         "    print(bam_file)"
     ]
