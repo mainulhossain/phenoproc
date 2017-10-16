@@ -482,6 +482,7 @@ def download(*args):
     
     fs = PosixFileSystem(Utility.get_rootdir(2))
     path = os.path.join(current_user.username, args[4]) if len(args) > 4 else current_app.config['PUBLIC_DIR']
+    path = os.path.join(path, name)
     fullpath = fs.normalize_path(path)
-    dc.download_dataset(args[3], file_path = fullpath, use_default_filename=True, wait_for_completion=True)
-    return os.path.join(path, name)
+    dc.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
+    return path
