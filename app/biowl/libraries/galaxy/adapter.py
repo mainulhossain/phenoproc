@@ -15,10 +15,13 @@ from ftplib import FTP
 from collections import namedtuple
 import os
 import time
+
 from flask import current_app
+from flask_login import current_user
 
 from ...fileop import IOHelper
 from ....util import Utility
+from ....models import User
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)
@@ -477,14 +480,8 @@ def download(*args):
     dc = DatasetClient(gi)
     name = hda_dataset_id_to_name(*args)
     
-    path = ''
-#    app = current_app._get_current_object()
-    app = Flask(__name__)
-    with app.app_context():
-        fs = PosixFileSystem(Utility.get_rootdir(2))
-        path = args[4] if len(args) > 4 else current_app.config['PUBLIC_DIR']
-        fullpath = fs.normalize_path(path)
-        dc.download_dataset(args[3], file_path = fullpath, use_default_filename=True, wait_for_completion=True)
-        path = os.path.join(path, name)
-    return path
-    
+    fs = PosixFileSystem(Utility.get_rootdir(2))
+    path = os.path.join(current_user.username, args[4]) if len(args) > 4 else current_app.config['PUBLIC_DIR']
+    fullpath = fs.normalize_path(path)
+    dc.download_dataset(args[3], file_path = fullpath, use_default_filename=True, wait_for_completion=True)
+    return os.path.join(path, name)
