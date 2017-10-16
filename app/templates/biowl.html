@@ -402,7 +402,7 @@ background-color: White;
 
     
     <script type="text/javascript">
-
+    var refreshId = 0;
     $(window).on('load', function() {
     	    	
     	$('#refresh').hide();
@@ -456,6 +456,18 @@ background-color: White;
             var boxWidth = dlg.width();
             dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
         }
+        
+        
+        $(document).ready(function() {
+            //$('[data-toggle="tooltip"]').tooltip();
+            
+            refreshId = setInterval( function() 
+            {
+                if (runnablesViewModel !== undefined) {
+                	runnablesViewModel.load();
+                }
+            }, 3000);
+        });
         
     });
 
@@ -1190,8 +1202,11 @@ background-color: White;
 //             $('#rename-workflow-text').val(filename);
 //             $('#rename-workflow-text').focus();
         });
-
         
+        $(window).on('unload', function() {
+            if (refreshId != 0)
+                clearInterval(refreshId);
+        });
   </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}
