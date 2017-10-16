@@ -1,4 +1,3 @@
-from . import celery
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
 from celery.states import state, PENDING, SUCCESS
 from datetime import datetime
@@ -9,12 +8,18 @@ import time
 import json
 
 from config import Config
+from . import celery, create_app
 from .biowl.phenoparser import PhenoWLParser, PythonGrammar
 from .biowl.timer import Timer
-from pkg_resources import run_script
 from .models import Runnable
 
-@celery.task(bind=True)
+class ContextTask(AbortableTask):
+    abstract = True
+    def __call__(self, *args, **kwargs):
+        app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+        with app.app_context():
+            return AbortableTask.__call__(self, *args, **kwargs)
+
 def long_task(self):
     """Background task that runs a long function with progress reports."""
     verb = ['Starting up', 'Booting', 'Repairing', 'Loading', 'Checking']
@@ -33,7 +38,7 @@ def long_task(self):
         time.sleep(1)
     return {'current': 100, 'total': 100, 'status': 'Task completed!', 'result': 42}
 
-@celery.task(bind=True, base=AbortableTask)
+@celery.task(bind=True, base=ContextTask)#, base = AbortableTask
 def run_script(self, machine, script):
     parserdir = Config.BIOWL
     curdir = os.getcwd()
