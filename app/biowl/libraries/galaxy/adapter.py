@@ -19,7 +19,7 @@ import time
 from flask import current_app
 from flask_login import current_user
 
-from ...fileop import IOHelper
+from ...fileop import IOHelper, PosixFileSystem
 from ....util import Utility
 from ....models import User
 
