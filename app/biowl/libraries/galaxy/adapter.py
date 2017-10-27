@@ -22,9 +22,28 @@ from flask_login import current_user
 from ...fileop import IOHelper, PosixFileSystem
 from ....util import Utility
 from ....models import User
+from matplotlib.style.core import library
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)
+srlab_galaxy = 'http://sr-p2irc-big8.usask.ca:8080'
+srlab_key='7483fa940d53add053903042c39f853a'
+
+galaxies = {}
+
+def get_galaxy_server(*args):
+    return args[0] if len(args) > 0 and args[0] is not None else srlab_galaxy
+
+def get_galaxy_key(*args):
+    return args[1] if len(args) > 1 and args[1] is not None else srlab_key
+
+def get_galaxy_instance(server, key):
+    if (server, key) in galaxies:
+        return galaxies[(server, key)]
+    
+    gi = GalaxyInstance(server, key)
+    galaxies[(server, key)] = gi
+    return gi
 
 def _json_object_hook(d):
     return namedtuple('X', d.keys())(*d.values())
@@ -33,10 +52,11 @@ def json2obj(data):
     return json.loads(data, object_hook=_json_object_hook)
 
 def create_galaxy_instance(*args):
-    server = args[0] if len(args) > 0 and args[0] is not None else 'http://sr-p2irc-big8.usask.ca:8080'
-    key = args[1] if len(args) > 1 and args[1] is not None else '7483fa940d53add053903042c39f853a'
-    return GalaxyInstance(server, key)
-    
+    server = get_galaxy_server(*args)
+    key = get_galaxy_key(*args)
+    return get_galaxy_instance(server, key)
+
+#workflow  
 def get_workflows_json(*args):
     gi = create_galaxy_instance(*args)
     return gi.workflows.get_workflows()
@@ -49,12 +69,19 @@ def get_workflow_ids(*args):
         wf_ids.append(j['id'])
     return wf_ids
 
-def get_workflow(*args):
-    wf = get_workflows_json(*args)
-    for j in wf:
-        if j['id'] == args[3]:
-            return j
-        
+def get_workflow_info(*args):
+    gi = create_galaxy_instance(*args)
+    workflows = gi.get_workflows(workflow_id=args[3])
+    return workflows[0] if workflows else None
+
+def run_workflow(*args):
+    gi = create_galaxy_instance(*args)
+    workflow_id = args[3]
+    datamap = dict()
+    datamap['252'] = { 'src':'hda', 'id':str(args[4]) }
+    return gi.workflows.run_workflow(args[3], datamap, history_name='New Workflow Execution History')
+
+#library       
 def get_libraries_json(*args):
     gi = create_galaxy_instance(*args)
     return gi.libraries.get_libraries()
@@ -67,134 +94,108 @@ def get_library_ids(*args):
         wf_ids.append(j['id'])
     return wf_ids
 
-def get_library(*args):
-    wf = get_libraries_json(*args)
-    for j in wf:
-        if j['id'] == args[3]:
-            return j
-        
+def get_library_info(*args):
+    gi = create_galaxy_instance(*args)
+    libraries = gi.libraries.get_libraries(library_id = args[3])
+    return libraries[0] if libraries else None
+
+def create_library(*args):
+    gi = create_galaxy_instance(*args)
+    name = args[3] if len(args) > 3 else str(uuid.uuid4())
+    library = gi.libraries.create_library(name)
+    return library["id"]
+
+#history
 def get_histories_json(*args):
     gi = create_galaxy_instance(*args)
     return gi.histories.get_histories()
     
 def get_history_ids(*args):
-    wf = get_histories_json(*args)
-    wf_ids = []
-    for j in wf:
+    histories = get_histories_json(*args)
+    history_ids = []
+    for h in histories:
         #yield j.name
-        wf_ids.append(j['id'])
-    return wf_ids
+        history_ids.append(h['id'])
+    return history_ids
 
-def get_history(*args):
-    wf = get_histories_json(*args)
-    for j in wf:
-        if j['id'] == args[3]:
-            return j
-
-def get_most_recent_history_id(gi):
-    hc = HistoryClient(gi)
-    hi = hc.get_most_recently_used_history()
-    return hi['id']
-    
+def get_history_info(*args):
+    gi = create_galaxy_instance(*args)
+    histories = gi.histories.get_histories(history_id = args[3])
+    return histories[0] if histories else None
+  
 def get_most_recent_history(*args):
     gi = create_galaxy_instance(*args)
-    return get_most_recent_history_id(gi)
+    hi = gi.histories.get_most_recently_used_history()
+    return hi['id']
         
 def create_history(*args):
     gi = create_galaxy_instance(*args)
-    hc = HistoryClient(gi)
     historyName = args[3] if len(args) > 3 else str(uuid.uuid4())
-    h = hc.create_history(historyName)
+    h = gi.histories.create_history(historyName)
     return h["id"]
 
 def history_id_to_name(*args):
-    wf = get_histories_json(*args)
-    for j in wf:
-        if j['id'] == args[3]:
-            return j['name']
+    info = get_history_info(*args)
+    if info:
+        return info['name']
 
 def history_name_to_ids(*args):
-    wf = get_histories_json(*args)
-    history_name = args[3].lower()
-    ids = []
-    for j in wf:
-        if j['name'].lower() == history_name:
-            ids.append(j['id'])
-    return ids
-        
+    gi = create_galaxy_instance(*args)
+    histories = gi.histories.get_histories(name = args[3])
+    history_ids = []
+    for history in histories:
+        history_ids.append(history['id'])
+    return history_ids
+
+#tool        
 def get_tools_json(*args):
     gi = create_galaxy_instance(*args)
-    tc = ToolClient(gi)
-    return tc.get_tools()
+    return gi.tools.get_tools()
 
-def get_tools_ids(*args):
-    wf = get_tools_json(*args)
-    wf_ids = []
-    for j in wf:
+def get_tool_ids(*args):
+    tools = get_tools_json(*args)
+    tool_ids = []
+    for t in tools:
         #yield j.name
-        wf_ids.append(j['id'])
-    return wf_ids
-
-def get_tools_names(*args):
-    wf = get_tools_json(*args)
-    wf_ids = []
-    for j in wf:
-        #yield j.name
-        wf_ids.append(j['name'])
-    return wf_ids
-    
-def get_tool(*args):
-    wf = get_tools_json(*args)
-    for j in wf:
-        if j['id'] == args[3]:
-            return j
-
-def get_tools_by_name(*args):
-    wf = get_tools_json(*args)
-    tool_name = args[3].lower()
-    named = []
-    for j in wf:
-        if j['name'].lower() == tool_name:
-            named.append(j)
-    return named
+        tool_ids.append(t['id'])
+    return tool_ids
+   
+def get_tool_info(*args):
+    gi = create_galaxy_instance(*args)
+    tools = gi.tools.get_tools(tool_id = args[3])
+    if tools:
+        return tools[0]
 
 def tool_id_to_name(*args):
-    wf = get_tools_json(*args)
-    for j in wf:
-        if j['id'] == args[3]:
-            return j['name']
+    tool = get_tool_info(*args)
+    if tool:
+        return tool['name']
 
-def tool_name_to_id(*args):
-    wf = get_tools_json(*args)
-    tool_name = args[3].lower()
-    for j in wf:
-        if j['name'].lower() == tool_name:
-            return j['id']
-
-def get_tool_params_by_tool_name(*args):
-    tools = get_tools_json(*args)
-    tc = ToolClient(gi)
-    tool_name = args[3].lower()     
+def tool_name_to_ids(*args):
+    gi = create_galaxy_instance(*args)
+    tools = gi.tools.get_tools(name = args[3])
+    tool_ids = []
     for t in tools:
-        if t['name'].lower() == tool_name:
-            ts = tc.show_tool(tool_id = t['id'], io_details=True)
-            if len(args) > 4:
-                return ts[args[4]]
-            else:
-                return ts
-                            
+        tools_ids.append(t['id'])
+    return tool_ids
+
+def get_tool_names(*args):
+    tools = get_tools_json(*args)
+    tool_names = []
+    for t in tools:
+        #yield j.name
+        tool_names.append(t['name'])
+    return tool_names
+                          
 def get_tool_params(*args):
     gi = create_galaxy_instance(*args)
-    tc = ToolClient(gi)
-    ts = tc.show_tool(tool_id = args[3], io_details=True)
-    if len(args) > 4:
-        return ts[args[4]]
-    else:
-        return ts
-                                        
+    ts = gi.tools.show_tool(tool_id = args[3], io_details=True)
+    return ts[args[4]]  if len(args) > 4 else ts
+ 
+# dataset                                       
 def get_history_datasets(*args):
     gi = create_galaxy_instance(*args)
-    historyid = args[3] if len(args) > 3 else get_most_recent_history_id(gi)
+    historyid = args[3] if len(args) > 3 else get_most_recent_history(gi)
     name = args[4] if len(args) > 4 else None
 
     datasets = gi.histories.show_matching_datasets(historyid, name)
@@ -203,40 +204,35 @@ def get_history_datasets(*args):
         ids.append(dataset['id'])
     return ids
                           
-def upload(*args):
+def dataset_id_to_name(*args):
     gi = create_galaxy_instance(*args)
-    library = get_library(*args)
-    if library is not None:
-        return gi.libraries.upload_file_from_local_path(library['id'], args[4])
-    else:
-        r = gi.tools.upload_file(args[4], args[3])
+    t = args[4] if len(args) > 4 else 'hda'
+    info = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = t)
+    if info:
+        return info['name']
+
+def dataset_name_to_ids(*args):
+    gi = create_galaxy_instance(*args)
+    h = HistoryClient(gi)
+    historyid = args[4] if len(args) > 4 else get_most_recent_history(*args)
+    ds_infos = h.show_matching_datasets(historyid, args[3])
+    ids = []
+    for info in ds_infos:
+        ids.append(info['id'])
+    return ids
+
+# def upload(*args):
+#     gi = create_galaxy_instance(*args)
+#     library = get_library(*args)
+#     if library is not None:
+#         return gi.libraries.upload_file_from_local_path(library['id'], args[4])
+#     else:
+#         r = gi.tools.upload_file(args[4], args[3])
     
-def run_workflow(*args):
-    gi = create_galaxy_instance(*args)
-    workflow_id = args[3]
-    datamap = dict()
-    datamap['252'] = { 'src':'hda', 'id':str(args[4]) }
-    return gi.workflows.run_workflow(args[3], datamap, history_name='New Workflow Execution History')
-
-def create_library(*args):
-    gi = create_galaxy_instance(*args)
-    hc = LibraryClient(gi)
-    historyName = args[2] if len(args) > 2 else str(uuid.uuid4())
-    h = hc.create_library(historyName)
-    return h["id"]
-
 def upload_to_library_from_url(*args):
     gi = create_galaxy_instance(*args)
-    hc = LibraryClient(gi)
-    libraryid = args[2]
-    d = hc.upload_file_from_url(libraryid, args[3])
+    d = gi.libraries.upload_file_from_url(args[4], args[3])
     return d["id"]
-
-def ftp_to_history(u, destfile):       
-    ftp = FTP(u.netloc)
-    ftp.login()
-    ftp.cwd(os.path.dirname(u.path))
-    ftp.retrbinary("RETR " + os.path.basename(u.path), open(destfile, 'wb').write)
 
 def http_to_history(remote_name, destfile):
     with urllib.request.urlopen(remote_name) as response, open(destfile, 'wb') as out_file:
@@ -270,34 +266,123 @@ def download_and_upload_to_galaxy(*args):
         destfile = IOHelper.normaize_path(remote_name)
 
     gi = create_galaxy_instance(*args)
-    historyid = args[4] if len(args) > 4 else get_most_recent_history_id(gi)
+    historyid = args[4] if len(args) > 4 else get_most_recent_history(gi)
     d = gi.tools.upload_file(destfile, historyid) #hid: a799d38679e985db 03501d7626bd192f
     job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
     return job_info['outputs']['output0']['id']
 
-def dataset_id_to_name(*args):
-    gi = create_galaxy_instance(*args)
-    dc = DatasetClient(gi)
-    t = args[4] if len(args) > 4 else 'hda'
-    ds_info = dc.show_dataset(dataset_id = args[3], hda_ldda = t)
-    return ds_info['name']
+def ftp_download(u, destfile):       
+    ftp = FTP(u.netloc)
+    ftp.login()
+    ftp.cwd(os.path.dirname(u.path))
+    ftp.retrbinary("RETR " + os.path.basename(u.path), open(destfile, 'wb').write)
 
-def hda_dataset_id_to_name(*args):
+def fs_upload(*args, local_file, history_id = None, library_id = None):
     gi = create_galaxy_instance(*args)
-    dc = DatasetClient(gi)
-    ds_info = dc.show_dataset(dataset_id = args[3], hda_ldda = 'hda')
-    return ds_info['name']
 
-def dataset_name_to_ids(*args):
-    gi = create_galaxy_instance(*args)
-    h = HistoryClient(gi)
-    historyid = args[4] if len(args) > 4 else get_most_recent_history(*args)
-    ds_infos = h.show_matching_datasets(historyid, args[3])
-    ids = []
-    for info in ds_infos:
-        ids.append(info['id'])
-    return ids
+    if library_id is not None:
+        return gi.libraries.upload_file_from_local_path(library_id, local_file)
+    else:
+        return gi.tools.upload_file(local_file, history_id)
 
+def temp_file_from_urlpath(u):
+    filename = os.path.basename(u.path)   
+    destfile = os.path.join(tempfile.gettempdir(), filename)
+    if os.path.exists(destfile):
+        os.remove(destfile)
+    return destfile
+    
+def ftp_upload(u, *args, history_id = None, library_id = None):
+    
+    srcFTP = ftplib.FTP(u.netloc)
+    srcFTP.login()
+    srcFTP.cwd(os.path.dirname(u.path))
+    srcFTP.voidcmd('TYPE I')
+    
+    try:
+        destFTP = ftplib.FTP("sr-p2irc-big8.usask.ca", 'phenodoop', 'sr-hadoop')
+        destFTP.login()
+        destFTP.cwd("galaxy_import")
+        destFTP.voidcmd('TYPE I')
+        
+        from_Sock = srcFTP.transfercmd("RETR " + os.path.basename(u.path))
+        to_Sock = destFTP.transfercmd("STOR " + os.path.basename(u.path))
+        
+        state = 0
+        while 1:
+            block = from_Sock.recv(1024)
+            if len(block) == 0:
+                break
+            state += len(block)
+            while len(block) > 0:
+                sentlen = to_Sock.send(block)
+                block = block[sentlen:]     
+        
+        from_Sock.close()
+        to_Sock.close()
+        srcFTP.quit()
+        destFTP.quit()
+        
+        gi = create_galaxy_instance(*args)
+        if library_id:
+            return gi.libraries.upload_file_from_server(library_id, 'galaxy_import')
+        else:
+            libs = gi.libraries.get_libraries(name='import_dir')
+            if not libs:
+                lib = gi.libraries.create_library(name='import_dir')
+            else:
+                lib = libs[0]
+            d = gi.libraries.upload_file_from_server(lib['id'], 'galaxy_import')
+            job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
+            id = job_info['outputs']['output0']['id']
+            dataset = gi.histories.import_dataset([id])
+            return dataset['id']
+    except:
+        destfile = temp_file_from_urlpath(u)
+        ftp_download(u, destfile)
+        fs_upload(*args, destfile , history_id, library_id)
+          
+def local_upload(*args, history_id = None, library_id = None):
+    u = urlparse(args[3])
+        
+    job = None
+    if u.scheme:
+        if u.scheme.lower() == 'http' or u.scheme.lower() == 'https':
+            tempfile = temp_file_from_urlpath(u)
+            http_to_history(args[3], tempfile)
+            job = fs_upload(*args, tempfile, history_id, library_id)
+        elif u.scheme.lower() == 'ftp':
+            if get_galaxy_server(*args) == srlab_galaxy:
+                return ftp_upload(u, *args, history_id, library_id)
+        else:
+            raise 'No http(s) or ftp addresses given.'
+    else:
+        fs = PosixFileSystem(Utility.get_rootdir(2))
+        if args[3].startswith(current_app.config['PUBLIC_DIR']):
+            path = os.path.join(current_app.config['PUBLIC_DIR'], remote_name)
+        else:
+            path = os.path.join(current_user.username, args[3])
+        path = fs.normalize_path(path)
+        job = fs_upload(*args, path, history_id, library_id)
+    
+    job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
+    return job_info['outputs']['output0']['id']
+
+def upload(*args):
+    tempargs = args[:3]
+    library_id = None
+    history_id = None
+    if len(args) > 4:
+        tempargs.append(args[4])
+        library = get_library_info(*tempargs)
+        if library:
+            library_id = library['id']
+            
+    if not library_id:
+        history_id = args[4] if len(args) > 4 else get_most_recent_history(*args)
+    
+    return local_upload(*args, history_id, library_id)
+    
 def run_tool(*args):
     gi = create_galaxy_instance(*args)
     toolClient = ToolClient(gi)
@@ -477,12 +562,13 @@ def run_bwa(*args):
 
 def download(*args):
     gi = create_galaxy_instance(*args)
-    dc = DatasetClient(gi)
-    name = hda_dataset_id_to_name(*args)
+    
+    dataset = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = 'hda')
+    name = dataset['name']
     
     fs = PosixFileSystem(Utility.get_rootdir(2))
     path = os.path.join(current_user.username, args[4]) if len(args) > 4 else current_app.config['PUBLIC_DIR']
     path = os.path.join(path, name)
     fullpath = fs.normalize_path(path)
-    dc.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
+    gi.datasets.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
     return path

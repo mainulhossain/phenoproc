@@ -4,7 +4,7 @@
            "org": "srlab",
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetWorkflowIDs",
+           "name":"GetWorkflows",
            "internal":"get_workflow_ids",
            "desc": "Gets the ids of all workflows.",
            "returns": "string[]",
@@ -15,66 +15,11 @@
            "org": "srlab",
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetWorkflow",
-           "internal":"get_workflow",
+           "name":"GetWorkflowInfo",
+           "internal":"get_workflow_info",
            "desc": "Gets the properties of a workflow.",
-           "returns": "string[]",
-           "example":"GetWorkflow(workflow_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetLibraryIDs",
-           "internal":"get_library_ids",
-           "desc": "Gets the ids of all libraries.",
-           "returns": "string[]",
-           "example":"GetLibraryIDs()",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetLibrary",
-           "internal":"get_library",
-           "desc": "Gets the properties of a workflow.",
-           "returns": "string[]",
-           "example":"GetLibrary(library_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetHistoryIDs",
-           "internal":"get_history_ids",
-           "desc": "Gets the ids of all histories.",
-           "returns": "string[]",
-           "example":"GetHistoryIDs()",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetHistory",
-           "internal":"get_history",
-           "desc": "Gets the properties of a history.",
            "returns": "json",
-           "example":"GetHistory(history_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"Upload",
-           "internal":"upload",
-           "desc": "Uploads a file to history or data library.",
-           "returns": "string",
-           "example":"Upload(history_id/library_id, path_to_file)",
+           "example":"GetWorkflowInfo(workflow_id)",
            "runmode": "dist"
        },
        {
@@ -92,22 +37,77 @@
            "org": "srlab",
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetToolsNames",
-           "internal":"get_tools_names",
-           "desc": "Get names of the tools.",
+           "name":"GetLibraries",
+           "internal":"get_library_ids",
+           "desc": "Gets the ids of all libraries.",
            "returns": "string[]",
-           "example":"GetToolsNames()",
+           "example":"GetLibraries()",
            "runmode": "dist"
        },
        {
            "org": "srlab",
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"GetToolsIDs",
-           "internal":"get_tools_ids",
-           "desc": "Get ids from the name of tool. Multiple ids will be returned for multiple tools of same name.",
+           "name":"GetLibraryInfo",
+           "internal":"get_library_info",
+           "desc": "Gets the properties of a library.",
            "returns": "string[]",
-           "example":"GetToolsIDs()",
+           "example":"GetLibraryInfo(library_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "name":"GetHistories",
+           "internal":"get_history_ids",
+           "desc": "Gets the ids of all histories.",
+           "returns": "string[]",
+           "example":"GetHistories()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "name":"GetHistoryInfo",
+           "internal":"get_history_info",
+           "desc": "Gets the properties of a history.",
+           "returns": "json",
+           "example":"GetHistoryInfo(history_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "name":"GetTools",
+           "internal":"get_tool_ids",
+           "desc": "Get ids of the available tools. Multiple ids will be returned for multiple tools of same name.",
+           "returns": "string[]",
+           "example":"GetTools()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "name":"GetToolInfo",
+           "internal":"get_tool_info",
+           "desc": "Gets the properties of a tool.",
+           "returns": "json",
+           "example":"GetToolInfo(workflow_id)",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "name":"GetToolNames",
+           "internal":"get_tool_names",
+           "desc": "Get names of the available tools.",
+           "returns": "string[]",
+           "example":"GetToolNames()",
            "runmode": "dist"
        },
        {
@@ -126,9 +126,9 @@
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
            "name":"ToolNameToID",
-           "internal":"tool_name_to_id",
-           "desc": "Gets the id of a tool from name.",
-           "returns": "string",
+           "internal":"tool_name_to_ids",
+           "desc": "Gets the ids of a tool from name. It may return multiple ids if multiple tools with same name are installed. Use GetToolInfo to select the right one.",
+           "returns": "string[]",
            "example":"ToolNameToID(tool_name)",
            "runmode": "dist"
        },
@@ -184,18 +184,18 @@
            "internal":"get_tool_params",
            "desc": "Get tool parameters.",
            "returns": "json",
-           "example":"GetToolParams([param type])",
+           "example":"GetToolParams(['input'])",
            "runmode": "dist"
        },
        {
            "org": "srlab",
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
-           "name":"UploadToHistory",
-           "internal":"download_and_upload_to_galaxy",
-           "desc": "Uploads a file to history and returns dataset id. If history id is not give, the most recent history is taken.",
+           "name":"Upload",
+           "internal":"upload",
+           "desc": "Uploads a file to a history or a library. If no history or library is given, the most recent history is taken.",
            "returns": "string",
-           "example":"UploadToHistory(ftp_or_http_or_path_to_file, [history id])",
+           "example":"dataset_id = UploadToHistory(ftp_or_http_or_path_to_file, [history_id/library_id])",
            "runmode": "dist"
        },
        {
@@ -206,7 +206,7 @@
            "internal":"download",
            "desc": "Download a dataset to file.",
            "returns": "string",
-           "example":"Download(data)",
+           "example":"filepath = Download(data_id)",
            "runmode": "dist"
        },
        {
@@ -217,7 +217,7 @@
            "internal":"run_tool",
            "desc": "Runs a tool on history.",
            "returns": "string",
-           "example":"RunTool(history_id, tool_id, {params})",
+           "example":"result = RunTool(history_id, tool_id, {params})",
            "runmode": "dist"
        },
        {
@@ -228,7 +228,7 @@
            "internal":"get_most_recent_history",
            "desc": "Gets the id of the history which is last used.",
            "returns": "string",
-           "example":"GetLastHistory()",
+           "example":"history_id = GetLastHistory()",
            "runmode": "dist"
        },
        {
@@ -239,7 +239,7 @@
            "internal":"dataset_id_to_name",
            "desc": "Gets the name of a dataset from id.",
            "returns": "string",
-           "example":"DatasetIDToName(dataset_id, [hda_or_ldda])",
+           "example":"dataset_name = DatasetIDToName(dataset_id, [hda_or_ldda])",
            "runmode": "dist"
        },
        {
@@ -248,9 +248,9 @@
            "module": "app.biowl.libraries.galaxy.adapter",
            "name":"DatasetNameToIDs",
            "internal":"dataset_name_to_ids",
-           "desc": "Gets the id of a dataset from name.",
-           "returns": "string",
-           "example":"DatasetNameToIDs(dataset_name, [history_id])",
+           "desc": "Gets the ids of a dataset from name. ",
+           "returns": "string[]",
+           "example":"dataset_ids = DatasetNameToIDs(dataset_name, [history_id])",
            "runmode": "dist"
        },
        {
@@ -261,7 +261,7 @@
            "internal":"run_fastq_groomer",
            "desc": "Run the fastq groomer tool. If history_id not given, last history is used.",
            "returns": "string",
-           "example":"FASTQGroomer(data, [history_id])",
+           "example":"groomed_data = FASTQGroomer(data, [history_id])",
            "runmode": "dist"
        },
        {
@@ -272,7 +272,7 @@
            "internal":"run_bwa",
            "desc": "Map with BWA.",
            "returns": "string",
-           "example":"BWAlign(ref_data, data1, data2, [history_id])",
+           "example":"align_data = BWAlign(ref_data, data1, data2, [history_id])",
            "runmode": "dist"
        },
        {
@@ -283,7 +283,7 @@
            "internal":"run_sam2bam",
            "desc": "Convert SAM files to BAM files for viewing the dataset graphically.",
            "returns": "string",
-           "example":"Sam2Bam(ref_data, data, [history_id])",
+           "example":"bam_data = Sam2Bam(ref_data, data, [history_id])",
            "runmode": "dist"
        }
    ]
