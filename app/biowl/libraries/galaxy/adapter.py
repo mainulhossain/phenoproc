@@ -420,7 +420,7 @@ def run_fastq_groomer(*args):
 
     server_args = list(args[:3])
     server_args.append('FASTQ Groomer')
-    tool_ids = tool_name_to_id(*server_args)
+    tool_ids = tool_name_to_ids(*server_args)
     if not tool_ids:
         raise 'Tool FASTQ Groomer not found'
     tool_args = list(args[:3])
