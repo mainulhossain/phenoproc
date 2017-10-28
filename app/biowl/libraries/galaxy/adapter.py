@@ -420,9 +420,11 @@ def run_fastq_groomer(*args):
 
     server_args = list(args[:3])
     server_args.append('FASTQ Groomer')
-    tool_id = tool_name_to_id(*server_args)
+    tool_ids = tool_name_to_id(*server_args)
+    if not tool_ids:
+        raise 'Tool FASTQ Groomer not found'
     tool_args = list(args[:3])
-    tool_args.extend([historyid, tool_id, input])
+    tool_args.extend([historyid, tool_ids[0], input])
 
     output = run_tool(*tool_args)
     return output['outputs']['output_file']['id']
@@ -539,9 +541,11 @@ def run_bwa(*args):
 
     server_args = list(args[:3])
     server_args.append('Map with BWA')
-    tool_id = tool_name_to_id(*server_args)
+    tool_ids = tool_name_to_ids(*server_args)
+    if not tool_ids:
+        raise 'Tool not found'
     tool_args = list(args[:3])
-    tool_args.extend([historyid, tool_id, input])
+    tool_args.extend([historyid, tool_ids[0], input])
 
     output = run_tool(*tool_args)
 #     {'model_class': 'Job', 
