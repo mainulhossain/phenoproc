@@ -195,7 +195,7 @@
            "internal":"upload",
            "desc": "Uploads a file to a history or a library. If no history or library is given, the most recent history is taken.",
            "returns": "string",
-           "example":"dataset_id = UploadToHistory(ftp_or_http_or_path_to_file, [history_id/library_id])",
+           "example":"dataset_id = Upload(ftp_or_http_or_path_to_file, [history_id/library_id])",
            "runmode": "dist"
        },
        {
