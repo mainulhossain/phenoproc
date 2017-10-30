@@ -246,38 +246,13 @@ def wait_for_job_completion(gi, job_id):
         state = jc.get_state(job_id)
     return jc.show_job(job_id)  
         
-def download_and_upload_to_galaxy(*args):
-    remote_name = args[3]
-    u = urlparse(remote_name)
-    
-    filename = os.path.basename(u.path)   
-    destfile = os.path.join(tempfile.gettempdir(), filename)
-    if os.path.exists(destfile):
-        os.remove(destfile)
-    
-    if u.scheme:
-        if u.scheme.lower() == 'http' or u.scheme.lower() == 'https':
-            http_to_history(remote_name, destfile)
-        elif u.scheme.lower() == 'ftp':
-            ftp_to_history(u, destfile)
-        else:
-            raise 'No http(s) address given.'
-    else:
-        destfile = IOHelper.normaize_path(remote_name)
-
-    gi = create_galaxy_instance(*args)
-    historyid = args[4] if len(args) > 4 else get_most_recent_history(gi)
-    d = gi.tools.upload_file(destfile, historyid) #hid: a799d38679e985db 03501d7626bd192f
-    job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
-    return job_info['outputs']['output0']['id']
-
 def ftp_download(u, destfile):       
     ftp = FTP(u.netloc)
     ftp.login()
     ftp.cwd(os.path.dirname(u.path))
     ftp.retrbinary("RETR " + os.path.basename(u.path), open(destfile, 'wb').write)
 
-def fs_upload(*args, local_file, history_id = None, library_id = None):
+def fs_upload(local_file, history_id, library_id, *args):
     gi = create_galaxy_instance(*args)
 
     if library_id is not None:
@@ -292,7 +267,7 @@ def temp_file_from_urlpath(u):
         os.remove(destfile)
     return destfile
     
-def ftp_upload(u, *args, history_id = None, library_id = None):
+def ftp_upload(u, history_id, library_id, *args):
     
     srcFTP = ftplib.FTP(u.netloc)
     srcFTP.login()
@@ -342,7 +317,7 @@ def ftp_upload(u, *args, history_id = None, library_id = None):
         ftp_download(u, destfile)
         fs_upload(*args, destfile , history_id, library_id)
           
-def local_upload(*args, history_id = None, library_id = None):
+def local_upload(history_id, library_id, *args):
     u = urlparse(args[3])
         
     job = None
@@ -359,7 +334,7 @@ def local_upload(*args, history_id = None, library_id = None):
     else:
         fs = PosixFileSystem(Utility.get_rootdir(2))
         if args[3].startswith(current_app.config['PUBLIC_DIR']):
-            path = os.path.join(current_app.config['PUBLIC_DIR'], remote_name)
+            path = args[3]
         else:
             path = os.path.join(current_user.username, args[3])
         path = fs.normalize_path(path)
@@ -381,7 +356,7 @@ def upload(*args):
     if not library_id:
         history_id = args[4] if len(args) > 4 else get_most_recent_history(*args)
     
-    return local_upload(*args, history_id, library_id)
+    return local_upload(history_id, library_id, *args)
     
 def run_tool(*args):
     gi = create_galaxy_instance(*args)
