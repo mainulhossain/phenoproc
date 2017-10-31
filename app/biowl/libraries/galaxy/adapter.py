@@ -316,10 +316,7 @@ def ftp_upload(u, history_id, library_id, *args):
         fs_upload(destfile , history_id, library_id, *args)
 
 def get_normalized_path(path):
-    if not path:
-        path = current_app.config['PUBLIC_DIR']
-    elif not path.startswith(current_app.config['PUBLIC_DIR']):
-        path = os.path.join(current_app.config['CURRENT_USER'], path)
+    path = Utility.get_quota_path(path)
     fs = PosixFileSystem(Utility.get_rootdir(2))       
     return fs.normalize_path(path)
               

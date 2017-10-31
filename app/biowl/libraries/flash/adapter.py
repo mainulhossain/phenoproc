@@ -8,11 +8,11 @@ flash = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'flash'
 
 def run_flash(*args):
     fs = PosixFileSystem(Utility.get_rootdir(2))
-    input1 = fs.normalize_path(args[0])
-    input2 = fs.normalize_path(args[1])
+    input1 = fs.normalize_path(Utility.get_quota_path(args[0]))
+    input2 = fs.normalize_path(Utility.get_quota_path(args[1]))
     cmdargs = []
     if len(args) > 2 and args[2]:
-        cmdargs.append("-d {0}".format(fs.normalize_path(args[2])))
+        cmdargs.append("-d {0}".format(fs.normalize_path(Utility.get_quota_path(args[2]))))
     
     if len(args) > 3:
          cmdargs.append(" -M " + str(args[3]))
@@ -27,10 +27,10 @@ def run_flash(*args):
 
 def run_flash_recursive(*args):
     fs = PosixFileSystem(Utility.get_rootdir(2))
-    input_path = fs.normalize_path(args[0])
+    input_path = fs.normalize_path(Utility.get_quota_path(args[0]))
     
     if len(args) > 1:
-        output_path = fs.normalize_path(args[1])
+        output_path = fs.normalize_path(Utility.get_quota_path(args[1]))
         log_path = path.join(output_path, "log")
     if len(args) > 2:
         max_overlap = args[2]
