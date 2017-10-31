@@ -15,7 +15,7 @@ def run_fastqc(*args):
         outdir = fs.normalize_path(Utility.get_quota_path(args[1]))
         if not os.path.exists(outdir):
             os.makedirs(outdir)
-        cmdargs.append("--outdir=" + outdir)
+    cmdargs.append("--outdir=" + outdir)
         
     for arg in args[2:]:
         cmdargs.append(arg)
