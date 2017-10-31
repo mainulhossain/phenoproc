@@ -29,6 +29,7 @@ class Utility:
             return ''
         return path.join(Utility.get_rootdir(data.datasource_id), data.url)
     
+    @staticmethod
     def get_quota_path(path):
         if not path:
             path = current_app.config['PUBLIC_DIR']
