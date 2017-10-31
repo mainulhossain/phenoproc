@@ -319,7 +319,7 @@ def get_normalized_path(path):
     if not path:
         path = current_app.config['PUBLIC_DIR']
     elif not path.startswith(current_app.config['PUBLIC_DIR']):
-        path = os.path.join(current_app.config['CURRENT_USER'], args[3])
+        path = os.path.join(current_app.config['CURRENT_USER'], path)
     fs = PosixFileSystem(Utility.get_rootdir(2))       
     return fs.normalize_path(path)
               
