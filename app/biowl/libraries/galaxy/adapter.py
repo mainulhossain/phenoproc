@@ -17,12 +17,10 @@ import os
 import time
 
 from flask import current_app
-from flask_login import current_user
+
 
 from ...fileop import IOHelper, PosixFileSystem
 from ....util import Utility
-from ....models import User
-from matplotlib.style.core import library
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)
@@ -315,8 +313,16 @@ def ftp_upload(u, history_id, library_id, *args):
     except:
         destfile = temp_file_from_urlpath(u)
         ftp_download(u, destfile)
-        fs_upload(*args, destfile , history_id, library_id)
-          
+        fs_upload(destfile , history_id, library_id, *args)
+
+def get_normalized_path(path):
+    if not path:
+        path = current_app.config['PUBLIC_DIR']
+    elif not path.startswith(current_app.config['PUBLIC_DIR']):
+        path = os.path.join(current_app.config['CURRENT_USER'], args[3])
+    fs = PosixFileSystem(Utility.get_rootdir(2))       
+    return fs.normalize_path(path)
+              
 def local_upload(history_id, library_id, *args):
     u = urlparse(args[3])
         
@@ -325,22 +331,18 @@ def local_upload(history_id, library_id, *args):
         if u.scheme.lower() == 'http' or u.scheme.lower() == 'https':
             tempfile = temp_file_from_urlpath(u)
             http_to_history(args[3], tempfile)
-            job = fs_upload(*args, tempfile, history_id, library_id)
+            job = fs_upload(tempfile, history_id, library_id, *args)
+            return job['outputs'][0]['id']
         elif u.scheme.lower() == 'ftp':
             if get_galaxy_server(*args) == srlab_galaxy:
-                return ftp_upload(u, *args, history_id, library_id)
+                return ftp_upload(u, history_id, library_id, *args)
         else:
             raise 'No http(s) or ftp addresses given.'
     else:
-        fs = PosixFileSystem(Utility.get_rootdir(2))
-        if args[3].startswith(current_app.config['PUBLIC_DIR']):
-            path = args[3]
-        else:
-            path = os.path.join(current_user.username, args[3])
-        path = fs.normalize_path(path)
-        job = fs_upload(*args, path, history_id, library_id)
+        job = fs_upload(get_normalized_path(path), history_id, library_id, *args)
+        return job['outputs'][0]['id']
     
-    job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
+    job_info = wait_for_job_completion(gi, job['jobs'][0]['id'])
     return job_info['outputs']['output0']['id']
 
 def upload(*args):
@@ -545,9 +547,7 @@ def download(*args):
     dataset = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = 'hda')
     name = dataset['name']
     
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-    path = os.path.join(current_user.username, args[4]) if len(args) > 4 else current_app.config['PUBLIC_DIR']
-    path = os.path.join(path, name)
-    fullpath = fs.normalize_path(path)
+    path = get_normalized_path(args[4] if len(args) > 4 else None)
+    fullpath = os.path.join(path, name)
     gi.datasets.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
     return path

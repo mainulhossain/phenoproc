@@ -1,7 +1,9 @@
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
 from celery.states import state, PENDING, SUCCESS
-from datetime import datetime
 
+from flask_login import current_user
+
+from datetime import datetime
 import os
 import random
 import time
@@ -17,9 +19,26 @@ class ContextTask(AbortableTask):
     abstract = True
     def __call__(self, *args, **kwargs):
         app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+        app.config['CURRENT_USER'] = current_user.username
         with app.app_context():
             return AbortableTask.__call__(self, *args, **kwargs)
 
+class RequestContextTask(AbortableTask):
+    """Celery task running within Flask test request context.
+    Expects the associated Flask application to be set on the bound
+    Celery application.
+    """
+    abstract = True
+    def __call__(self, *args, **kwargs):
+        """Execute task."""
+        with self.app.flask_app.test_request_context():
+            self.app.flask_app.try_trigger_before_first_request_functions()
+            self.app.flask_app.preprocess_request()
+            res = AbortableTask.__call__(self, *args, **kwargs)
+            self.app.flask_app.process_response(
+                self.app.flask_app.response_class())
+            return res
+        
 def long_task(self):
     """Background task that runs a long function with progress reports."""
     verb = ['Starting up', 'Booting', 'Repairing', 'Loading', 'Checking']
