@@ -19,7 +19,7 @@ class ContextTask(AbortableTask):
     abstract = True
     def __call__(self, *args, **kwargs):
         app = create_app(os.getenv('FLASK_CONFIG') or 'default')
-        app.config['CURRENT_USER'] = current_user.username
+        app.config['CURRENT_USER'] = 'phenoproc' #current_user.username
         with app.app_context():
             return AbortableTask.__call__(self, *args, **kwargs)
 
