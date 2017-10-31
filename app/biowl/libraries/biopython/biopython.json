@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "biopython",
-           "module": "libraries.biopython.adapter",
+           "module": "app.biowl.libraries.biopython.adapter",
            "name":"SearchEntrez",
            "internal":"search_entrez",
            "desc": "Get information with a search string",
@@ -23,7 +23,7 @@
        {
            "org": "srlab",
            "package": "biopython",
-           "module": "libraries.biopython.adapter",
+           "module": "app.biowl.libraries.biopython.adapter",
            "name":"DownloadBySearch",
            "internal":"search_and_download",
            "desc": "Search and download",
