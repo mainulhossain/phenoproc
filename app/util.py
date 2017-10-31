@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 from os import path
 from .models import DataSource, Data
 from flask import current_app
