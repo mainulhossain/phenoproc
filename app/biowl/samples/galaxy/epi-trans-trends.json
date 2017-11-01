@@ -9,7 +9,7 @@
         "",
         "    ref_data = Upload('ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_6.1/all.dir/all.cDNA', history_id)",
         "    aligned_data = BWAlign(ref_data, groomed_data, groomed_data, history_id)",
-        "    bam_file = download(aligned_data)",
+        "    bam_file = Download(aligned_data)",
         "    print(bam_file)"
     ]
 }
