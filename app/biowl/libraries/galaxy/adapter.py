@@ -171,7 +171,7 @@ def tool_name_to_ids(*args):
     tools = gi.tools.get_tools(name = args[3])
     tool_ids = []
     for t in tools:
-        tools_ids.append(t['id'])
+        tool_ids.append(t['id'])
     return tool_ids
 
 def get_tool_names(*args):
