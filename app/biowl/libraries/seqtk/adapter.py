@@ -1,14 +1,17 @@
 import os
 from os import path
-from exechelper import func_exec_stdout
+from ...exechelper import func_exec_stdout
+from ...fileop import PosixFileSystem
+from ....util import Utility
 
-localdir = path.join(path.dirname(path.dirname(path.dirname(__file__))), 'storage')
 seqtk = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'seqtk'))
 
 def run_seqtk(*args):
-    input = path.join(localdir, args[0])
+    fs = PosixFileSystem(Utility.get_rootdir(2))
+
+    input = fs.normalize_path(Utility.get_quota_path(args[0]))
     command = args[1]
-    output = path.join(localdir, args[2])
+    output = fs.normalize_path(Utility.get_quota_path(args[2]))
     
     cmdargs = [command]
     for arg in args[3:]:
@@ -19,17 +22,24 @@ def run_seqtk(*args):
     outdata = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
         f.write(outdata)
-    return output
+    return fs.strip_root(output)
 
 def seqtk_fastq_to_fasta(*args):
-    cmdargs = [args[0], 'seq -a', args[1]]
+    fs = PosixFileSystem(Utility.get_rootdir(2))
+
+    input = fs.normalize_path(Utility.get_quota_path(args[0]))
+    output = fs.normalize_path(Utility.get_quota_path(args[1]))
+    
+    cmdargs = [input, 'seq -a', output]
     for arg in args[2:]:
         cmdargs.append(arg)
     return run_seqtk(*cmdargs)
 
 def seqtk_extract_sample(*args):
-    input = path.join(localdir, args[0])
-    output = path.join(localdir, args[1])
+    fs = PosixFileSystem(Utility.get_rootdir(2))
+
+    input = fs.normalize_path(Utility.get_quota_path(args[0]))
+    output = fs.normalize_path(Utility.get_quota_path(args[1]))
     
     cmdargs = ['sample']
     if len(args) > 3:
@@ -41,10 +51,15 @@ def seqtk_extract_sample(*args):
     outdata = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
         f.write(outdata)
-    return output
+    return fs.strip_root(output)
 
 def seqtk_trim(*args):
-    cmdargs = [args[0], 'trimfq', args[1]]
+    fs = PosixFileSystem(Utility.get_rootdir(2))
+
+    input = fs.normalize_path(Utility.get_quota_path(args[0]))
+    output = fs.normalize_path(Utility.get_quota_path(args[1]))
+    
+    cmdargs = [input, 'trimfq', output]
     if len(args) > 2:
         cmdargs.append('-b ' + str(args[2]))
         

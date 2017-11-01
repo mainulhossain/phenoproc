@@ -1,7 +1,9 @@
 from Bio import Entrez
 from urllib.error import HTTPError  # for Python 3
-from fileop import IOHelper
 from Bio import Cluster
+
+from ....util import Utility
+from ...fileop import IOHelper, PosixFileSystem
 
 Entrez.email = "mainulhossain@gmail.com"
 
@@ -25,27 +27,25 @@ def count_search_results(*args):
     return int(query_search_results(*args))
 
 def search_and_download(*args):
-    search_results = search_entrez(args)
-    db_type = "nucleotide"
-    if len(args) > 1:
-           db_type = args[1]
-    return_type = "fasta"
-    if len(args) > 2:
-        return_type = args[2]
-    return_mode = "text"
-    if len(args) > 3:
-        ret_mode = args[3]
-        
+    
+    db_type = args[1] if len(args) > 1 else "nucleotide"
+    return_type = args[2] if len(args) > 2 else ".fasta"
+    return_mode = args[3] if len(args) > 3 else "text"
+    
+    search_results = search_entrez(*args)
     webenv = search_results["WebEnv"]
     query_key = search_results["QueryKey"]
     count = int(search_results["Count"])
     
     batch_size = 3
-    filename = IOHelper.unique_filename('output/ncbi/', args[0], return_type)
+    path = Utility.get_quota_path('public')
+    fs = PosixFileSystem(Utility.get_rootdir(2))
+    filename = IOHelper.unique_fs_name(fs, fs.normalize_path(path), args[0], return_type)
+    
     with open(filename, "w") as out_handle:
         for start in range(0, count, batch_size):
             end = min(count, start+batch_size)
-            print("Going to download record %i to %i" % (start+1, end))
+            print("Going to download record {0} to {1}".format(start+1, end))
             attempt = 0
             while attempt < 3:
                 attempt += 1
@@ -63,10 +63,7 @@ def search_and_download(*args):
             fetch_handle.close()
             out_handle.write(data)
             
-    return filename
-
-def search_and_download(*args):
-    pass
+    return fs.strip_root(filename)
 
 def cluster(*args):
     #"cyano.txt"

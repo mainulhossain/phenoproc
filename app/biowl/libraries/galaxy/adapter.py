@@ -16,9 +16,6 @@ from collections import namedtuple
 import os
 import time
 
-from flask import current_app
-
-
 from ...fileop import IOHelper, PosixFileSystem
 from ....util import Utility
 

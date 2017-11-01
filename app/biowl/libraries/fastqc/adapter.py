@@ -20,10 +20,14 @@ def run_fastqc(*args):
     for arg in args[2:]:
         cmdargs.append(arg)
     
-    func_exec_run(fastqc, *cmdargs)
     outname = path.basename(input)
     outname = outname.split(os.extsep)[0] + "_fastqc.html"
-    
     outpath = path.join(outdir, outname)
-    return fs.strip_root(outpath)
+    
+    func_exec_run(fastqc, *cmdargs)
+    
+    stripped_path = fs.strip_root(outpath)
+    if not os.path.exists(stripped_path):
+        raise "FastQC could not generate the file " + stripped_path
+    return stripped_path
     

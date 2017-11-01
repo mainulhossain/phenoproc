@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "pear",
-           "module": "libraries.pear.adapter",
+           "module": "app.biowl.libraries.pear.adapter",
            "name":"Pear",
            "internal":"run_pear",
            "runmode": "local",

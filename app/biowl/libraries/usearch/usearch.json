@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "usearch",
-           "module": "libraries.usearch.adapter",
+           "module": "app.biowl.libraries.usearch.adapter",
            "name":"Usearch",
            "internal":"run_usearch",
            "runmode": "local",

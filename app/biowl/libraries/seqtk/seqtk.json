@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "libraries.seqtk.adapter",
+           "module": "app.biowl.libraries.seqtk.adapter",
            "name":"Seqtk",
            "internal":"run_seqtk",
            "runmode": "local",
@@ -28,7 +28,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "libraries.seqtk.adapter",
+           "module": "app.biowl.libraries.seqtk.adapter",
            "name":"FastqToFasta",
            "internal":"seqtk_fastq_to_fasta",
            "runmode": "local",
@@ -49,7 +49,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "libraries.seqtk.adapter",
+           "module": "app.biowl.libraries.seqtk.adapter",
            "name":"ExtractSample",
            "internal":"seqtk_extract_sample",
            "runmode": "local",
@@ -78,7 +78,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "libraries.seqtk.adapter",
+           "module": "app.biowl.libraries.seqtk.adapter",
            "name":"TrimReads",
            "internal":"seqtk_trim",
            "runmode": "local",
