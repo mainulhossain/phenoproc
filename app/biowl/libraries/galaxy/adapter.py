@@ -264,15 +264,19 @@ def temp_file_from_urlpath(u):
     
 def ftp_upload(u, history_id, library_id, *args):
     
-    srcFTP = ftplib.FTP(u.netloc)
+    srcFTP = FTP(u.netloc)
     srcFTP.login()
     srcFTP.cwd(os.path.dirname(u.path))
     srcFTP.voidcmd('TYPE I')
     
+    destDir = str(uuid.uuid4())
     try:
-        destFTP = ftplib.FTP("sr-p2irc-big8.usask.ca", 'phenodoop', 'sr-hadoop')
-        destFTP.login()
+        destFTP = FTP("sr-p2irc-big8.usask.ca", 'phenodoop', 'sr-hadoop')
+        #destFTP.login()
+        
         destFTP.cwd("galaxy_import")
+        destFTP.mkd(destDir)
+        destFTP.cwd(destDir)
         destFTP.voidcmd('TYPE I')
         
         from_Sock = srcFTP.transfercmd("RETR " + os.path.basename(u.path))
@@ -295,18 +299,17 @@ def ftp_upload(u, history_id, library_id, *args):
         
         gi = create_galaxy_instance(*args)
         if library_id:
-            return gi.libraries.upload_file_from_server(library_id, 'galaxy_import')
+            return gi.libraries.upload_file_from_server(library_id, destDir)
         else:
             libs = gi.libraries.get_libraries(name='import_dir')
             if not libs:
                 lib = gi.libraries.create_library(name='import_dir')
             else:
                 lib = libs[0]
-            d = gi.libraries.upload_file_from_server(lib['id'], 'galaxy_import')
-            job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
-            id = job_info['outputs']['output0']['id']
-            dataset = gi.histories.import_dataset([id])
-            return dataset['id']
+            d = gi.libraries.upload_file_from_server(lib['id'], destDir)
+            if d:
+                dataset = gi.histories.upload_dataset_from_library(history_id, d[0]['id'])
+                return dataset['id']
     except:
         destfile = temp_file_from_urlpath(u)
         ftp_download(u, destfile)
@@ -340,7 +343,7 @@ def local_upload(history_id, library_id, *args):
     return job_info['outputs']['output0']['id']
 
 def upload(*args):
-    tempargs = args[:3]
+    tempargs = list(args[:3])
     library_id = None
     history_id = None
     if len(args) > 4:
