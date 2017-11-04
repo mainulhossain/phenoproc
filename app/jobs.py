@@ -11,12 +11,14 @@ import json
 
 from config import Config
 from . import celery, create_app
-from .biowl.phenoparser import PhenoWLParser, PythonGrammar
+from .biowl.dsl.parser import PhenoWLParser, PythonGrammar
 from .biowl.timer import Timer
 from .models import Runnable
 
 class ContextTask(AbortableTask):
     abstract = True
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        print('{0!r} failed: {1!r}'.format(task_id, exc)) # log to runnables by task_id
     def __call__(self, *args, **kwargs):
         app = create_app(os.getenv('FLASK_CONFIG') or 'default')
         app.config['CURRENT_USER'] = 'phenoproc' #current_user.username
