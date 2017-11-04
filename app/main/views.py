@@ -20,7 +20,10 @@ from .ajax import WorkflowHandler
 from ..util import Utility
 #from ..io import PosixFileSystem, HadoopFileSystem, getFileSystem
 from ..biowl.fileop import PosixFileSystem, HadoopFileSystem, IOHelper
-from ..biowl.phenoparser import PhenoWLInterpreter, PhenoWLCodeGenerator, PhenoWLParser, PythonGrammar
+from ..biowl.dsl.parser import PhenoWLParser
+from ..biowl.dsl.interpreter import Interpreter
+from ..biowl.dsl.pygen import CodeGenerator
+ 
 from ..biowl.timer import Timer
 from ..models import Runnable
 from ..biowl.tasks import runnable_manager
@@ -555,8 +558,8 @@ class InterpreterHelper():
 
     def __init__(self):
         self.funcs = []
-        self.interpreter = PhenoWLInterpreter()
-        self.codeGenerator = PhenoWLCodeGenerator()
+        self.interpreter = Interpreter()
+        self.codeGenerator = CodeGenerator()
         self.reload()
     
     def reload(self):
