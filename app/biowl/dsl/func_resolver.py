@@ -5,8 +5,8 @@ from os import path, getcwd
 import os
 import subprocess
 
-from .fileop import IOHelper
-from .exechelper import func_exec_run
+from ..fileop import IOHelper
+from ..exechelper import func_exec_run
 
 #from phenoparser import Context
 

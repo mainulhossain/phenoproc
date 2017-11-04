@@ -19,7 +19,7 @@ def run_seqtk(*args):
             
     cmdargs.append(input)
 
-    outdata = func_exec_stdout(seqtk, *cmdargs)
+    outdata,_ = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
         f.write(outdata)
     return fs.strip_root(output)
@@ -48,7 +48,7 @@ def seqtk_extract_sample(*args):
     cmdargs.append(input)
     cmdargs.append(str(args[2]))
 
-    outdata = func_exec_stdout(seqtk, *cmdargs)
+    outdata,_ = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
         f.write(outdata)
     return fs.strip_root(output)

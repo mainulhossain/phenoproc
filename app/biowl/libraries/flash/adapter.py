@@ -68,7 +68,7 @@ def run_flash_recursive(*args):
             args.append(" -o " + R1[i][:-12])
             args.append(input_path + R1[i])
             args.append(input_path + R2[i])
-            output = func_exec_run(flash, *args)
+            output,_ = func_exec_run(flash, *args)
             
             output_file = path.join(log_path, R1[i][:-12] + ".flash.log")
             

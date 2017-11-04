@@ -4,11 +4,12 @@ def func_exec_stdout(app, *args):
     cmd = app
     if args:
         cmd += ' ' + ' '.join(args)
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-    return p.stdout
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    return p.stdout, p.stderr
 
 def func_exec_run(app, *args):
-    return func_exec_stdout(app, *args).decode('utf-8')
+    out, err = func_exec_stdout(app, *args)
+    return out.decode('utf-8'), err
 
 def func_exec(app, *args):
 
