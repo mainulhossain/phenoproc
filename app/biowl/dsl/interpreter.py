@@ -4,7 +4,7 @@ import logging
 from .func_resolver import Library
 from ..tasks import TaskManager
 from .context import Context
-
+from .provenance import BioProv
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -16,7 +16,7 @@ class Interpreter:
         self.context = Context()
         self.line = 0
     
-    def get_params(self, expr):
+    def get_args(self, expr):
         v = []
         for e in expr:
             v.append(self.eval(e))
@@ -31,7 +31,7 @@ class Interpreter:
         package = expr[0][:-1] if len(expr) > 2 else None
         
         params = expr[1] if len(expr) < 3 else expr[2]
-        v = self.get_params(params)
+        v = self.get_args(params)
         
         # call task if exists
         if package is None and function in self.context.library.tasks:
@@ -268,31 +268,86 @@ class Interpreter:
     # if task has no name, it will be called at once.
     # if task has a name, it will be called like a function call afterwards
     #===========================================================================
+    def get_params(self, expr):
+        params = []
+        for e in expr:
+            param = self.eval(e)
+#             if not isinstance(param, tuple):
+#                 param = param, None
+            params.append(param)
+        return params
+            
     def dotaskdefstmt(self, expr):
         if not expr[0]:
-            v = self.get_params(expr[1])
-            return self.dotaskstmt(expr, v)
+            #v = self.get_args(expr[1])
+            return self.dotaskstmt(expr[1:], None)
         else:
             self.context.library.add_task(expr[0], expr)
     
-    def dotaskstmt(self, expr, args):
-        server = args[0] if len(args) > 0 else None
-        user = args[1] if len(args) > 1 else None
-        password = args[2] if len(args) > 2 else None
-        
-        if not server:
-            server = self.eval(expr[1][0]) if len(expr[1]) > 0 else None
-        if not user:
-            user = self.eval(expr[1][1]) if len(expr[1]) > 1 else None
-        if not password:
-            password = self.eval(expr[1][2]) if len(expr[1]) > 2 else None
-        
-        self.context.append_dci(server, user, password)
-        try:
-            return self.eval(expr[2])
-        finally:
-            self.context.pop_dci()
+    def args_to_symtab(self, expr):
+        for e in expr:
+            if e[0] is not "NAMEDARG":
+                continue
+            param = self.donamedarg(e[1])
             
+            if isinstance(param, tuple):
+                self.context.add_var(param[0], param[1])
+                
+    def dotaskstmt(self, expr, args):
+
+        params, kwparams = Library.split_args(self.get_params(expr[0]))
+        
+        symtab_added, dci_added = False, False
+        try:
+            local_symtab = self.context.append_local_symtab()
+            symtab_added = True
+            for k,v in kwparams.items():
+                local_symtab.add_var(k, v)
+            
+            if args:
+                arguments, kwargs = Library.split_args(args)
+                for k, v in kwargs.items():
+                    if local_symtab.var_exists(k):
+                        local_symtab.update_var(k, v)
+                    else:
+                        local_symtab.add_var(k, v)
+                
+                for index, param in enumerate(params, start = 0):
+                    if index >= len(arguments):
+                        break
+                    local_symtab.add_var(param, arguments[0])
+             
+            if not local_symtab.var_exists('server'):
+                local_symtab.add_var('server', None)
+            if not local_symtab.var_exists('user'):
+                local_symtab.add_var('user', None)
+            if not local_symtab.var_exists('password'):
+                local_symtab.add_var('password', None)
+                    
+            # if no new server name given, parent dci is used
+            if local_symtab.get_var('server') is not None:
+                self.context.append_dci(local_symtab.get_var('server'), local_symtab.get_var('user'), local_symtab.get_var('password'))
+                dci_added = True
+                
+            if local_symtab.var_exists('provenance') and local_symtab.get_var('provenance'):
+                prov = BioProv(lambda: self.eval(expr[1]))
+                result = prov.run()
+                return result[0].ref if result else None
+            else:
+                return self.eval(expr[1])
+            
+        finally:
+            if dci_added:
+                self.context.pop_dci()
+            if symtab_added:
+                self.context.pop_local_symtab()
+                    
+    
+    def donamedarg(self, expr):
+        name = expr[0]
+        arg = expr[2]
+        return str(name), self.eval(arg) 
+                
     def eval(self, expr):        
         '''
         Evaluate an expression
@@ -345,6 +400,8 @@ class Interpreter:
             return self.dostmt(expr[1:])
         elif expr[0] == "MULTISTMT":
             return self.eval(expr[2:])
+        elif expr[0] == "NAMEDARG":
+            return self.donamedarg(expr[1])
         elif expr[0] == "TASK":
             return self.dotaskdefstmt(expr[1:])
         else:
@@ -360,7 +417,7 @@ class Interpreter:
         :param prog: Pyparsing ParseResults
         '''
         try:
-            self.context.reload()
+            #self.context.reload()
             stmt = prog.asList()
             self.eval(stmt)
         except Exception as err:

@@ -631,6 +631,7 @@ def functions():
     if request.args.get('script') or request.args.get('code'):
         script = request.args.get('script') if request.args.get('script') else request.args.get('code')
         machine = interpreter.interpreter if request.args.get('script') else interpreter.codeGenerator
+        args = request.args.get('args') if request.args.get('args') else ''
         
         runnable_id = Runnable.create_runnable(current_user.id)
         runnable = Runnable.query.get(runnable_id)
@@ -640,7 +641,7 @@ def functions():
             runnable.name += "..."
         db.session.commit()
         
-        task = run_script.delay(machine, script)
+        task = run_script.delay(machine, script, args)
         runnable.celery_id = task.id
         db.session.commit()
         #runnable_manager.submit_func(runnable_id, interpreter.run, machine, script)

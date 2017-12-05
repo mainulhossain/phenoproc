@@ -44,7 +44,7 @@ class Library():
     
     def run_task(self, name, args, dotaskstmt):
         if name in self.tasks:
-            return dotaskstmt(self.tasks[name], args)
+            return dotaskstmt(self.tasks[name][1:], args)
 
     def code_run_task(self, name, args, dotaskstmt):
         if name in self.tasks:
@@ -124,15 +124,28 @@ class Library():
         for v in self.funcs.values():
             funcs.extend(v)
         return funcs
+        
+    @staticmethod
+    def split_args(arguments):
+        args = []
+        kwargs = {}
+        for arg in arguments:
+            if isinstance(arg, tuple):
+                kwargs[arg[0]] = arg[1]
+            else:
+                args.append(arg)
+        return args, kwargs
        
-    def call_func(self, context, package, function, arguments):
+    def call_func(self, context, package, function, args):
         '''
         Call a function from a module.
         :param context: The context for output and error
         :param package: The name of the package. If it's empty, local function is called    
         :param function: Name of the function
-        :param arguments: The arguments for the function
+        :param args: The arguments for the function
         '''
+        arguments, kwargs = Library.split_args(args)
+        
         if not package or package == "None":
             if function.lower() == "print":
                 return context.write(*arguments)

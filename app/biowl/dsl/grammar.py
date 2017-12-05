@@ -102,6 +102,8 @@ class BasicGrammar():
         self.namedarg = Group(self.identifier + Literal("=") + self.expr).setParseAction(lambda t: ['NAMEDARG'] + t.asList())
         self.arguments << delimitedList(Group(self.namedarg | self.expr))
         
+        self.params = delimitedList(Group(self.namedarg | self.identifier))
+        
         # Definitions of rules for logical expressions (these are without parenthesis support)
         self.andexpr = Forward()
         self.logexpr = Forward()
@@ -149,7 +151,7 @@ class PythonGrammar(BasicGrammar):
         self.forstmt = Group(Suppress("for") + self.identifier("var") + Suppress("in") + Group(self.expr("range"))  + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['FOR'] + t.asList())
         self.parstmt = Group(Suppress("parallel") + Suppress(":") + self.compoundstmt + ZeroOrMore(Suppress("with:") + self.compoundstmt)).setParseAction(lambda t : ['PAR'] + t.asList())
         self.lockstmt = (Suppress("lock") + Suppress(self.lpar) + self.identifier + Suppress(self.rpar) + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['LOCK'] + t.asList())
-        self.taskdefstmt = (Suppress("task") + Optional(self.identifier, None) + Suppress("(")  + Group(Optional(self.arguments)) + Suppress(")") + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['TASK'] + t.asList())         
+        self.taskdefstmt = (Suppress("task") + Optional(self.identifier, None) + Suppress("(")  + Group(Optional(self.params)) + Suppress(")") + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['TASK'] + t.asList())         
         super().build_program()                                 
                                  
 class PhenoWLGrammar(BasicGrammar):

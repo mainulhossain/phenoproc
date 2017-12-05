@@ -60,7 +60,7 @@ def long_task(self):
     return {'current': 100, 'total': 100, 'status': 'Task completed!', 'result': 42}
 
 @celery.task(bind=True, base=ContextTask)#, base = AbortableTask
-def run_script(self, machine, script):
+def run_script(self, machine, script, args):
     parserdir = Config.BIOWL
     curdir = os.getcwd()
     os.chdir(parserdir) #set dir of this file to current directory
@@ -69,6 +69,9 @@ def run_script(self, machine, script):
         machine.context.reload()
         parser = PhenoWLParser(PythonGrammar())   
         with Timer() as t:
+            if args:
+                args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
+                machine.args_to_symtab(args_tokens) 
             prog = parser.parse(script)
             machine.run(prog)
         duration = t.secs

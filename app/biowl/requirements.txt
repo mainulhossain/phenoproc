@@ -11,3 +11,4 @@ future
 hdfs==2.0.15
 biopython
 bioblend
+couchdb

@@ -7,22 +7,18 @@ import code
 
 from pyparsing import *
 
-from ..timer import Timer
 from .grammar import PythonGrammar
 from .context import Context
 from .interpreter import Interpreter
 from .pygen import CodeGenerator
-
+ 
 class PhenoWLParser(object):
     '''
     The parser for PhenoWL DSL.
     '''
 
     def __init__(self, grammar = None):
-        if grammar is None:
-            self.grammar = PhenoWLGrammar()
-        else:
-            self.grammar = grammar
+        self.grammar = grammar if grammar else PhenoWLGrammar()
         self.tokens = ParseResults()
         self.err = []
     
@@ -32,6 +28,17 @@ class PhenoWLParser(object):
     def parse(self, text):
         try:
             self.tokens = self.grammar.program.ignore(pythonStyleComment).parseString(text, parseAll=True)
+            return self.tokens
+        except ParseException as err:
+            print(err)
+            self.error(err)
+        except Exception as err:
+            print(err)
+            self.error(err)
+    
+    def parse_subgrammar(self, subgrammer, text):
+        try:
+            self.tokens = subgrammer.ignore(pythonStyleComment).parseString(text, parseAll=True)
             return self.tokens
         except ParseException as err:
             print(err)
@@ -52,6 +59,7 @@ class PhenoWLParser(object):
             self.error(err)
         
 if __name__ == "__main__":
+    from ..timer import Timer
     with Timer() as t:
         p = PhenoWLParser(PythonGrammar())
         if len(sys.argv) > 1:
