@@ -573,7 +573,7 @@ class InterpreterHelper():
         
         funclist.sort(key=lambda x: (x.package, x.name))
         for f in funclist:
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": f.example if f.example else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else ""}) 
+            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": f.example if f.example else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else ""}) 
     
         self.codeGenerator.context.load_library(librariesdir)
         
@@ -646,8 +646,10 @@ def functions():
         db.session.commit()
         #runnable_manager.submit_func(runnable_id, interpreter.run, machine, script)
         return json.dumps({})
-        
-    return json.dumps({'functions': interpreter.funcs })
+    
+    level = int(request.args.get('level')) if request.args.get('level') else 0
+    funcs =[func for func in interpreter.funcs if int(func['level']) >= level]
+    return json.dumps({'functions':  funcs})
 
 class Samples():
     @staticmethod

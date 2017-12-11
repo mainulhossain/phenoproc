@@ -126,19 +126,24 @@ background-color: White;
 	        </div>
            </div>
            <div class="col-sm-3" id="functions" style="padding:2px;">
-            <div  class="panel panel-primary"  data-bind="with: tasksViewModel">
+            <div  class="panel panel-primary" >
                 <div class="panel-heading">
+                   <div class="row" data-bind="with: tasksViewModel">
+                      <div class="col-sm-5"><input type="radio" name="level" value="0" data-bind="checked: level, click:click"/>Beginner</div>
+                      <div class="col-sm-5"><input type="radio" name="level" value="1" data-bind="checked: level, click:click" />Advanced</div>
+                   </div>
                    <div class="row">
-                       <div class="col-sm-4"><h5 class="">Functions</h5></div>
-                       <div class="col-sm-4"><h5 class="">Package</h5></div>
+                       <div class="col-sm-6"><h5 class="">Functions</h5></div>
+                       <div class="col-sm-6"><h5 class="">Group(Package)</h5></div>
                    </div>
                 </div>
-                <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px">
+                <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px" data-bind="with: tasksViewModel">
                         <!-- ko foreach: tasks -->
                         <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
                            <div class="col-sm-6 draggable-func" data-bind="text: name"></div>
-                           <div class="col-sm-3" data-bind="text: package_name" style="text-align:right"></div>
-                           <div class="col-sm-3" data-bind="text: runmode" style="text-align:right"></div>
+                           <div class="col-sm-6">
+                                <span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
+                           </div>
                         </div>
                         <!-- /ko -->
                 </div>
@@ -730,6 +735,12 @@ background-color: White;
             self.tasks = ko.observableArray();
             self.samplesURI = '/samples';
             self.samples = ko.observableArray();
+            self.level = "1";
+            
+           	self.click = function(model){
+           		self.login();
+           	    return true;
+            }
             
             self.clearEditor = function() {
                 editor.session.setValue("");
@@ -746,6 +757,7 @@ background-color: White;
                 self.tasks()[i].example(newTask.example);
                 self.tasks()[i].desc(newTask.desc);
                 self.tasks()[i].desc(newTask.runmode);
+                self.tasks()[i].desc(newTask.group);
             }
             
             self.beginAddLibrary = function() {
@@ -832,7 +844,8 @@ background-color: White;
                 $('#login').modal('show');
             }
             self.login = function() {
-              ajaxcalls.simple(self.tasksURI, 'GET').done(function(data) {
+              ajaxcalls.simple(self.tasksURI, 'GET', {'level': self.level}).done(function(data) {
+            	  self.tasks([]);
             	  $.each(data.functions, function(i, f) {
             		  self.tasks.push({
                           package_name: ko.observable(f.package_name),
@@ -840,7 +853,8 @@ background-color: White;
                           internal: ko.observable(f.internal),
                           example: ko.observable(f.example),
                           desc: ko.observable(f.desc),
-                          runmode: ko.observable(f.runmode)
+                          runmode: ko.observable(f.runmode),
+                          group: ko.observable(f.group)
                       });
             	  });
                 }).fail(function(jqXHR) {
