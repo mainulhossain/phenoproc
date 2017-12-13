@@ -206,6 +206,8 @@ class PosixFileSystem():
         path = self.normalize_path(path)
         if self.isfile(path):
             path = os.path.dirname(path)
+        elif not self.exists(path):
+            os.makedirs(textpath)
         file.save(os.path.join(path, file.filename))
         self.make_prefix(os.path.join(path, file.filename))
     

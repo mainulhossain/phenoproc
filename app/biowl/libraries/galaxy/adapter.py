@@ -18,6 +18,7 @@ import time
 
 from ...fileop import IOHelper, PosixFileSystem
 from ....util import Utility
+from ...ssh import ssh_command
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)
@@ -229,7 +230,7 @@ def upload_to_library_from_url(*args):
     d = gi.libraries.upload_file_from_url(args[4], args[3])
     return d["id"]
 
-def http_to_history(remote_name, destfile):
+def http_to_local_file(remote_name, destfile):
     with urllib.request.urlopen(remote_name) as response, open(destfile, 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
 
@@ -247,12 +248,17 @@ def ftp_download(u, destfile):
     ftp.cwd(os.path.dirname(u.path))
     ftp.retrbinary("RETR " + os.path.basename(u.path), open(destfile, 'wb').write)
 
-def fs_upload(local_file, history_id, library_id, *args):
+def fs_upload(local_file, *args, **kwargs):
     gi = create_galaxy_instance(*args)
 
-    if library_id is not None:
+    if 'library_id' in kwargs.keys() and kwargs['library_id'] is not None:
         return gi.libraries.upload_file_from_local_path(library_id, local_file)
     else:
+        if 'history_id' in kwargs.keys() and kwargs['history_id'] is not None:
+            history_id = kwargs['history_id']
+        else:
+            history_id = create_history(*args[:3])
+            
         return gi.tools.upload_file(local_file, history_id)
 
 def temp_file_from_urlpath(u):
@@ -262,100 +268,100 @@ def temp_file_from_urlpath(u):
         os.remove(destfile)
     return destfile
     
-def ftp_upload(u, history_id, library_id, *args):
+def ssh_download(src, dest):
+    wget_cmd = 'wget ' + src + ' -P ' + dest
+    return ssh_command('sr-p2irc-big8.usask.ca', 'phenodoop', 'sr-hadoop', wget_cmd)
     
-    srcFTP = FTP(u.netloc)
-    srcFTP.login()
-    srcFTP.cwd(os.path.dirname(u.path))
-    srcFTP.voidcmd('TYPE I')
-    
-    destDir = str(uuid.uuid4())
+def classic_ftp_upload(u, *args, **kwargs):
+    destfile = temp_file_from_urlpath(u)
+    ftp_download(u, destfile)
+    fs_upload(destfile, *args, **kwargs)
+        
+def ftp_upload(u, *args, **kwargs):
+    src = urlunparse(list(u))
+    destDir = '/home/phenodoop/galaxy_import/' + str(uuid.uuid4())
+    status = ssh_download(src, destDir)
+    if status != 0:
+        raise "ssh download failed."
+#     srcFTP = FTP(u.netloc)
+#     srcFTP.login()
+#     srcFTP.cwd(os.path.dirname(u.path))
+#     srcFTP.voidcmd('TYPE I')
+#     
+#     destDir = str(uuid.uuid4())
     try:
-        destFTP = FTP("sr-p2irc-big8.usask.ca", 'phenodoop', 'sr-hadoop')
-        #destFTP.login()
-        
-        destFTP.cwd("galaxy_import")
-        destFTP.mkd(destDir)
-        destFTP.cwd(destDir)
-        destFTP.voidcmd('TYPE I')
-        
-        from_Sock = srcFTP.transfercmd("RETR " + os.path.basename(u.path))
-        to_Sock = destFTP.transfercmd("STOR " + os.path.basename(u.path))
-        
-        state = 0
-        while 1:
-            block = from_Sock.recv(1024)
-            if len(block) == 0:
-                break
-            state += len(block)
-            while len(block) > 0:
-                sentlen = to_Sock.send(block)
-                block = block[sentlen:]     
-        
-        from_Sock.close()
-        to_Sock.close()
-        srcFTP.quit()
-        destFTP.quit()
-        
+#         destFTP = FTP("sr-p2irc-big8.usask.ca", 'phenodoop', 'sr-hadoop')
+#         #destFTP.login()
+#         
+#         destFTP.cwd("galaxy_import")
+#         destFTP.mkd(destDir)
+#         destFTP.cwd(destDir)
+#         destFTP.voidcmd('TYPE I')
+#         
+#         from_Sock = srcFTP.transfercmd("RETR " + os.path.basename(u.path))
+#         to_Sock = destFTP.transfercmd("STOR " + os.path.basename(u.path))
+#         
+#         state = 0
+#         while 1:
+#             block = from_Sock.recv(1024)
+#             if len(block) == 0:
+#                 break
+#             state += len(block)
+#             while len(block) > 0:
+#                 sentlen = to_Sock.send(block)
+#                 block = block[sentlen:]     
+#         
+#         from_Sock.close()
+#         to_Sock.close()
+#         srcFTP.quit()
+#         destFTP.quit()
         gi = create_galaxy_instance(*args)
-        if library_id:
-            return gi.libraries.upload_file_from_server(library_id, destDir)
+        if 'library_id' in kwargs.keys() and kwargs['library_id'] is not None:
+            return gi.libraries.upload_file_from_server(kwargs['library_id'], destDir)
         else:
-            libs = gi.libraries.get_libraries(name='import_dir')
-            if not libs:
-                lib = gi.libraries.create_library(name='import_dir')
+            # get/create a history first
+            if 'history_id' in kwargs.keys() and kwargs['history_id'] is not None:
+                history_id = kwargs['history_id']
             else:
-                lib = libs[0]
+                history_id = create_history(*args[:3])
+            # get the import_dir library 
+            libs = gi.libraries.get_libraries(name='import_dir')
+            lib = libs[0] if libs else gi.libraries.create_library(name='import_dir')
             d = gi.libraries.upload_file_from_server(lib['id'], destDir)
             if d:
                 dataset = gi.histories.upload_dataset_from_library(history_id, d[0]['id'])
                 return dataset['id']
     except:
-        destfile = temp_file_from_urlpath(u)
-        ftp_download(u, destfile)
-        fs_upload(destfile , history_id, library_id, *args)
+        return classic_ftp_upload(u, *args **kwargs)
 
 def get_normalized_path(path):
     path = Utility.get_quota_path(path)
     fs = PosixFileSystem(Utility.get_rootdir(2))       
     return fs.normalize_path(path)
               
-def local_upload(history_id, library_id, *args):
+def local_upload(*args, **kwargs):
     u = urlparse(args[3])
         
     job = None
     if u.scheme:
         if u.scheme.lower() == 'http' or u.scheme.lower() == 'https':
             tempfile = temp_file_from_urlpath(u)
-            http_to_history(args[3], tempfile)
-            job = fs_upload(tempfile, history_id, library_id, *args)
+            http_to_local_file(args[3], tempfile)
+            job = fs_upload(tempfile, *args, **kwargs)
             return job['outputs'][0]['id']
         elif u.scheme.lower() == 'ftp':
-            if get_galaxy_server(*args) == srlab_galaxy:
-                return ftp_upload(u, history_id, library_id, *args)
+            return ftp_upload(u, *args, **kwargs) if get_galaxy_server(*args) == srlab_galaxy else classic_ftp_upload(u, *args, **kwargs)
         else:
             raise 'No http(s) or ftp addresses given.'
     else:
-        job = fs_upload(get_normalized_path(path), history_id, library_id, *args)
+        job = fs_upload(get_normalized_path(path), *args, **kwargs)
         return job['outputs'][0]['id']
     
     job_info = wait_for_job_completion(gi, job['jobs'][0]['id'])
     return job_info['outputs']['output0']['id']
 
-def upload(*args):
-    tempargs = list(args[:3])
-    library_id = None
-    history_id = None
-    if len(args) > 4:
-        tempargs.append(args[4])
-        library = get_library_info(*tempargs)
-        if library:
-            library_id = library['id']
-            
-    if not library_id:
-        history_id = args[4] if len(args) > 4 else get_most_recent_history(*args)
-    
-    return local_upload(history_id, library_id, *args)
+def upload(*args, **kwargs):    
+    return local_upload(*args, **kwargs)
     
 def run_tool(*args):
     gi = create_galaxy_instance(*args)
@@ -372,7 +378,50 @@ def run_tool(*args):
     job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
     return job_info#['outputs']['output_file']['id']
 
+def find_dataset(*args):
+    gi = create_galaxy_instance(*args)
+    try:
+        src = 'hda'
+        info = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = src)
+    except:
+        try:
+            src = 'ldda'
+            info = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = src)
+        except:
+            return None, None
+        
+    return src, info['id']
+def find_or_upload_dataset(history_id, *dataargs):
+    src, data_id = find_dataset(*dataargs)
+    if not data_id:
+        src, data_id = 'hda', upload(*dataargs, history_id = history_id)
+    return src, data_id
+    
+def get_dataset(hda, ldda, dataname, history_id, *args, **kwargs):
+    if hda in kwargs.keys():
+        return 'hda', kwargs[hda]
+    elif ldda in kwargs.keys():
+        return 'ldda', kwargs[ldda]
+    
+    data = None
+    if dataname in kwargs.keys():
+        data = kwargs[dataname]
+    elif len(args) >= 4:
+        data = args[3]
+    
+    if data:
+        dataargs = list(args[:3])
+        dataargs.append(data)
+        return find_or_upload_dataset(history_id, *dataargs)
+    else:
+        return None, None   
 
+def get_history(**kwargs):
+    if 'history_id' in kwargs.keys():
+        return kwargs['history_id']
+    else:
+        return create_history(*args[:3])
+                       
 #===============================================================================
 # run_fastq_groomer
 # {"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4",
@@ -380,17 +429,25 @@ def run_tool(*args):
 # "inputs":{"input_file":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":1,"id":"c9468fdb6dc5c5f1"}],"batch":false},
 # "input_type":"sanger","options_type|options_type_selector":"basic"}}
 #===============================================================================
-def run_fastq_groomer(*args):
+def run_fastq_groomer(*args, **kwargs):
     
-    historyid = args[4] if len(args) > 4 else get_most_recent_history(*args)
-#    historyid = get_most_recent_history(*args)
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    #history_id = args[4] if len(args) > 4 else get_most_recent_history(*args)
+#    history_id = get_most_recent_history(*args)
 
 #     dataset_ids = dataset_name_to_ids(*args)
 #     if len(dataset_ids) == 0:
 #         raise "Input dataset not found"
 
 #     dataset_id = dataset_ids[0]
-    input = {"input_file":{"values":[{"src":"hda", "id":args[3]}]}}
+    input = {"input_file":{"values":[{"src":src, "id":data_id}]}}
 
     server_args = list(args[:3])
     server_args.append('FASTQ Groomer')
@@ -398,7 +455,7 @@ def run_fastq_groomer(*args):
     if not tool_ids:
         raise 'Tool FASTQ Groomer not found'
     tool_args = list(args[:3])
-    tool_args.extend([historyid, tool_ids[0], input])
+    tool_args.extend([history_id, tool_ids[0], input])
 
     output = run_tool(*tool_args)
     return output['outputs']['output_file']['id']
@@ -444,9 +501,11 @@ def run_fastq_groomer(*args):
 #     "analysis_type|analysis_type_selector":"illumina"
 #     }
 #===============================================================================
-def run_bwa(*args):
+def run_bwa(*args, **kwargs):
     
-    historyid = args[6] if len(args) > 6 else get_most_recent_history(*args)
+    history_id = get_history(**kwargs)
+    
+#    historyid = args[6] if len(args) > 6 else get_most_recent_history(*args)
 #     historyid = get_most_recent_history(*args)
     
 #     ref_datasetargs = list(args[:4])
@@ -470,48 +529,95 @@ def run_bwa(*args):
 #     dataset_id1 = dataset_ids1[0]
 #     dataset_id2 = dataset_ids2[0]
 #     refdataset_id = refdataset_ids[0]
-
-    refdataset_id = args[3]
-    dataset_id1 = args[4]
-    dataset_id2 = args[5]
+    
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    
+    refsrc, refdata_id = get_dataset('refhda', 'refldda', 'ref', history_id, *args, **datakwargs)
+    if not refdata_id:
+        raise "No dataset given for reference data. Give a dataset path or hda or ldda"
+        
+    tempargs = list(args[:3])
+    data, data_id = get_dataset('hda', 'ldda', 'data', history_id, *tempargs, **datakwargs)
+    data1, data1_id = get_dataset('hda1', 'ldda1', 'data1', history_id, *tempargs, **datakwargs)
+    
+    if data_id and not data1_id:
+        data1, data1_id =  data, data_id
+    
+    check_arg = lambda x: x not in kwargs.keys()
+    dataparam = 3
+    if not data1_id:
+        if check_arg('refhda') and check_arg('refldda') and check_arg('ref'):
+            dataparam += 1
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data1_id:
+            raise "No input dataset given. Give a dataset path or hda or ldda"
+    
+    input_type = "paired"
+    data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
+    if not data2_id:
+        if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+            dataparam += 1
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
+        
+        if not data2_id:
+            input_type = "single"
+    
+    refdataset_id = refdata_id
+    dataset_id1 = data1_id
+    dataset_id2 = data2_id
+    
+    input_name1 = "input_type|bam_input1" if 'datatype' in kwargs.keys() and kwargs['datatype'] == 'bam' else "input_type|fastq_input1"
+    input_name2 = "input_type|bam_input2" if 'datatype' in kwargs.keys() and kwargs['datatype'] == 'bam' else "input_type|fastq_input2"
     
     input = {
      "reference_source|reference_source_selector":"history",
      "reference_source|ref_file":{
          "values":[{
-             "src":"hda",
+             "src":refsrc,
 #              "name":"all.cDNA",
              "tags":[],
 #             "keep":False,
 #              "hid":2,
-             "id":refdataset_id}],
-         "batch":False},
-         "reference_source|index_a":"auto",
-         "input_type|input_type_selector":"paired",
-         "input_type|fastq_input1":{
+             "id":refdataset_id
+             }],
+         "batch":False
+         },
+        "reference_source|index_a":"auto",
+         "input_type|input_type_selector":input_type,
+         input_name1:{
              "values":[{
-                 "src":"hda",
+                 "src":data1,
 #                 "name":"FASTQ Groomer on data 1",
                  "tags":[],
 #                 "keep":False,
 #                  "hid":10,
-                 "id": dataset_id1}],
+                 "id": dataset_id1
+                 }],
              "batch":False
          },
-     "input_type|fastq_input2":{
-         "values":[{
-             "src":"hda",
-#             "name":"FASTQ Groomer on data 1",
-             "tags":[],
-#             "keep":False,
-#              "hid":11,
-             "id": dataset_id2}],
-         "batch":False
-     },
      "input_type|adv_pe_options|adv_pe_options_selector":"do_not_set",
      "rg|rg_selector":"do_not_set",
      "analysis_type|analysis_type_selector":"illumina"
      }
+    
+    if data2_id:
+        input[input_name2] = {
+         "values":[{
+             "src":data2,
+#             "name":"FASTQ Groomer on data 1",
+             "tags":[],
+#             "keep":False,
+#              "hid":11,
+             "id": dataset_id2
+             }],
+         "batch":False
+         }
 
     server_args = list(args[:3])
     server_args.append('Map with BWA')
@@ -519,7 +625,7 @@ def run_bwa(*args):
     if not tool_ids:
         raise 'Tool not found'
     tool_args = list(args[:3])
-    tool_args.extend([historyid, tool_ids[0], input])
+    tool_args.extend([history_id, tool_ids[0], input])
 
     output = run_tool(*tool_args)
 #     {'model_class': 'Job', 
