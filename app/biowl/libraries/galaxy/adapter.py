@@ -634,14 +634,18 @@ def run_cut(*args, **kwargs):
     if data_id is None:
         raise "No dataset given. Give a dataset path or hda or ldda"
     
+    check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
     if 'columns' in kwargs.keys():
         columns = kwargs['columns']
-    elif len(args) > argcount:
-        columns = args[argcount]
-        argcount += 1
     else:
-        raise "Invalid arugements: columns not given."
+        if not check_arg('data'):
+            argcount += 1
+        if len(args) > argcount:
+            columns = args[argcount]
+            argcount += 1
+        else:
+            raise "Invalid arugements: columns not given."
     
     if 'delimiter' in kwargs.keys():
         delimiter = kwargs['delimiter']
