@@ -362,21 +362,24 @@ def local_upload(*args, **kwargs):
 
 def upload(*args, **kwargs):    
     return local_upload(*args, **kwargs)
-    
-def run_tool(*args):
+
+def local_run_tool(history_id, tool_id, inputs, *args):
     gi = create_galaxy_instance(*args)
     toolClient = ToolClient(gi)
-    #params = json2obj(args[5])
-    inputs = args[5] #json.loads(args[5]) if len(args) > 5 else None
-#     if params:
-#         params = params.split(",")
-#         for param in params:
-#             param = param.split(":")
-#             inputs[str(param[0]).strip()] = param[1]
-            
-    d = toolClient.run_tool(history_id=args[3], tool_id=args[4], tool_inputs=inputs)
+    d = toolClient.run_tool(history_id=history_id, tool_id=tool_id, tool_inputs=inputs)
     job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
     return job_info#['outputs']['output_file']['id']
+
+def local_run_named_tool(history_id, tool_name, inputs, *args):
+    server_args = list(args)
+    server_args.append(tool_name)
+    tool_ids = tool_name_to_ids(*server_args)
+    if not tool_ids:
+        raise 'Tool {0} not found.'.format(tool_name)
+    return local_run_tool(history_id, tool_ids[0], input)
+            
+def run_tool(*args):
+    return local_run_tool(args[3], args[4], args[5], *arg[:3])
 
 def find_dataset(*args):
     gi = create_galaxy_instance(*args)
@@ -448,16 +451,8 @@ def run_fastq_groomer(*args, **kwargs):
 
 #     dataset_id = dataset_ids[0]
     input = {"input_file":{"values":[{"src":src, "id":data_id}]}}
-
-    server_args = list(args[:3])
-    server_args.append('FASTQ Groomer')
-    tool_ids = tool_name_to_ids(*server_args)
-    if not tool_ids:
-        raise 'Tool FASTQ Groomer not found'
-    tool_args = list(args[:3])
-    tool_args.extend([history_id, tool_ids[0], input])
-
-    output = run_tool(*tool_args)
+    
+    output = local_run_named_tool(history_id, 'FASTQ Groomer', input, *args[:3])
     return output['outputs']['output_file']['id']
 
 #===============================================================================
@@ -504,32 +499,6 @@ def run_fastq_groomer(*args, **kwargs):
 def run_bwa(*args, **kwargs):
     
     history_id = get_history(**kwargs)
-    
-#    historyid = args[6] if len(args) > 6 else get_most_recent_history(*args)
-#     historyid = get_most_recent_history(*args)
-    
-#     ref_datasetargs = list(args[:4])
-#     ref_datasetargs.append(historyid)
-#     refdataset_ids = dataset_name_to_ids(*args)
-#     if len(refdataset_ids) == 0:
-#         raise "Reference dataset not found"
-#     
-#     datasetargs = list(args[:3])
-#     datasetargs.append(args[5])
-#     dataset_ids1 = dataset_name_to_ids(*args)
-#     if len(dataset_ids1) == 0:
-#         raise "Pair1 dataset not found"
-#     
-#     datasetargs = list(args[:3])
-#     datasetargs.append(args[6])
-#     dataset_ids2 = dataset_name_to_ids(*args)
-#     if len(dataset_ids2) == 0:
-#         raise "Pair2 dataset not found"
-
-#     dataset_id1 = dataset_ids1[0]
-#     dataset_id2 = dataset_ids2[0]
-#     refdataset_id = refdataset_ids[0]
-    
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -618,16 +587,8 @@ def run_bwa(*args, **kwargs):
              }],
          "batch":False
          }
-
-    server_args = list(args[:3])
-    server_args.append('Map with BWA')
-    tool_ids = tool_name_to_ids(*server_args)
-    if not tool_ids:
-        raise 'Tool not found'
-    tool_args = list(args[:3])
-    tool_args.extend([history_id, tool_ids[0], input])
-
-    output = run_tool(*tool_args)
+        
+    output = local_run_named_tool(history_id, 'Map with BWA', input, *args[:3])
 #     {'model_class': 'Job', 
 #      'outputs': {
 #          'bam_output': {
@@ -644,6 +605,68 @@ def run_bwa(*args, **kwargs):
 #      'params': {'input_type': '{"adv_pe_options": {"__current_case__": 1, "adv_pe_options_selector": "do_not_set"}, "fastq_input2": {"values": [{"src": "hda", "id": 204}]}, "__current_case__": 0, "input_type_selector": "paired", "fastq_input1": {"values": [{"src": "hda", "id": 204}]}}', 'rg': '{"rg_selector": "do_not_set", "__current_case__": 3}', 'dbkey': '"?"', 'chromInfo': '"/home/phenodoop/galaxy/galaxy/tool-data/shared/ucsc/chrom/?.len"', 'analysis_type': '{"analysis_type_selector": "illumina", "__current_case__": 0}', 'reference_source': '{"ref_file": {"values": [{"src": "hda", "id": 205}]}, "reference_source_selector": "history", "__current_case__": 1, "index_a": "auto"}'}}
     return output['outputs']['bam_output']['id']
 
+# {
+# "tool_id":"Cut1",
+# "tool_version":"1.0.2",
+# "inputs": {
+#     "columnList":"c1,c2",
+#     "delimiter":"T",
+#     "input":{
+#         "values":[{
+#             "src":"hda",
+#             "name":"SRR034608.fastq",
+#             "tags":[],
+#             "keep":false,
+#             "hid":39,
+#             "id":"f2f5db583bb871d6"
+#             }],
+#          "batch":false
+#     }
+#  }
+# }
+def run_cut(*args, **kwargs):
+    
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+    
+    argcount = 3
+    if 'columns' in kwargs.keys():
+        columns = kwargs['columns']
+    elif len(args) > argcount:
+        columns = args[argcount]
+        argcount += 1
+    else:
+        raise "Invalid arugements: columns not given."
+    
+    if 'delimiter' in kwargs.keys():
+        delimiter = kwargs['delimiter']
+    elif len(args) > argcount:
+        delimiter = args[argcount]
+    else:
+        delimiter = "Tab"
+    
+    input = {
+        "columnList":columns,
+        "delimiter":delimiter[:1],
+        "input":{
+            "values":[{
+                "src":src,
+                "name":"SRR034608.fastq",
+                "keep":false,
+                "id":data_id
+                }],
+             "batch":false
+        }
+     }
+    
+    output = local_run_named_tool(history_id, 'Cut1', input, *args[:3])
+    return output['outputs']['output']['id']
+    
 def download(*args):
     gi = create_galaxy_instance(*args)
     

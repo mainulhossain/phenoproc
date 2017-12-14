@@ -278,6 +278,19 @@
            "returns": "string",
            "example":"align_data = BWAlign(ref, data1, [data2], [history_id=history_id], [datatype='fastq/bam'])",
            "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Texts",
+           "level": 0,
+           "name":"Cut",
+           "internal":"run_cut",
+           "desc": "Selects (cuts out) specified columns from the dataset. The output of this tool is always in tabular format (e.g., if your original delimiters are commas, they will be replaced with tabs).",
+           "returns": "string",
+           "example":"cut_data = Cut(data, [columns='c1,c2'], [delimeter='Tab/Whitespace/Comma/Dot/Dash/_/|'], [history_id=history_id])",
+           "runmode": "dist"
        }
    ]
 }
