@@ -4,6 +4,8 @@
            "org": "SRLAB",
            "package": "Hadoop",
            "module": "libraries.hadoop.adapter",
+           "group": "Texts",
+           "level": "1",
            "name":"CountWords",
            "internal":"count_words",
            "params":[  
@@ -24,6 +26,8 @@
            "org": "SRLAB",
            "package": "Hadoop",
            "module": "libraries.hadoop.adapter",
+           "group": "Texts",
+           "level": "1",
            "name":"SearchWord",
            "internal":"search_word",
            "params":[

@@ -632,6 +632,7 @@ def functions():
         script = request.args.get('script') if request.args.get('script') else request.args.get('code')
         machine = interpreter.interpreter if request.args.get('script') else interpreter.codeGenerator
         args = request.args.get('args') if request.args.get('args') else ''
+        immediate = request.args.get('immediate') == 'true' if request.args.get('immediate') else False
         
         runnable_id = Runnable.create_runnable(current_user.id)
         runnable = Runnable.query.get(runnable_id)
@@ -641,11 +642,13 @@ def functions():
             runnable.name += "..."
         db.session.commit()
         
-        task = run_script.delay(machine, script, args)
-        runnable.celery_id = task.id
-        db.session.commit()
-        #runnable_manager.submit_func(runnable_id, interpreter.run, machine, script)
-        return json.dumps({})
+        if immediate:
+            return json.dumps(run_script(machine, script, args))
+        else:
+            task = run_script.delay(machine, script)
+            runnable.celery_id = task.id
+            db.session.commit()
+            return json.dumps({})
     
     level = int(request.args.get('level')) if request.args.get('level') else 0
     funcs =[func for func in interpreter.funcs if int(func['level']) >= level]

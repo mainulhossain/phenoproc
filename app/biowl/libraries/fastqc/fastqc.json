@@ -4,6 +4,8 @@
            "org": "srlab",
            "package": "fastqc",
            "module": "app.biowl.libraries.fastqc.adapter",
+           "group": "Quality",
+           "level": 1,
            "name":"FastQC",
            "internal":"run_fastqc",
            "runmode": "local",

@@ -376,7 +376,7 @@ def local_run_named_tool(history_id, tool_name, inputs, *args):
     tool_ids = tool_name_to_ids(*server_args)
     if not tool_ids:
         raise 'Tool {0} not found.'.format(tool_name)
-    return local_run_tool(history_id, tool_ids[0], input)
+    return local_run_tool(history_id, tool_ids[0], inputs)
             
 def run_tool(*args):
     return local_run_tool(args[3], args[4], args[5], *arg[:3])
@@ -452,7 +452,8 @@ def run_fastq_groomer(*args, **kwargs):
 #     dataset_id = dataset_ids[0]
     input = {"input_file":{"values":[{"src":src, "id":data_id}]}}
     
-    output = local_run_named_tool(history_id, 'FASTQ Groomer', input, *args[:3])
+    tool_id = ToolNameToID('FASTQ Groomer') # 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4'
+    output = local_run_tool(history_id, tool_id, input, *args[:3])
     return output['outputs']['output_file']['id']
 
 #===============================================================================
@@ -525,6 +526,7 @@ def run_bwa(*args, **kwargs):
         if not data1_id:
             raise "No input dataset given. Give a dataset path or hda or ldda"
     
+    tempargs = list(args[:3])
     input_type = "paired"
     data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
     if not data2_id:
@@ -534,8 +536,7 @@ def run_bwa(*args, **kwargs):
             tempargs.append(args[dataparam])
             data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
         
-        if not data2_id:
-            input_type = "single"
+    input_type = "paired" if data2_id else "single"
     
     refdataset_id = refdata_id
     dataset_id1 = data1_id
@@ -587,8 +588,9 @@ def run_bwa(*args, **kwargs):
              }],
          "batch":False
          }
-        
-    output = local_run_named_tool(history_id, 'Map with BWA', input, *args[:3])
+    
+    tool_id = ToolNameToID('Map with BWA') #['toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa/0.7.15.2']
+    output = local_run_tool(history_id, tool_id, input, *args[:3])
 #     {'model_class': 'Job', 
 #      'outputs': {
 #          'bam_output': {
@@ -625,7 +627,7 @@ def run_bwa(*args, **kwargs):
 #  }
 # }
 def run_cut(*args, **kwargs):
-    
+
     history_id = get_history(**kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
@@ -633,44 +635,759 @@ def run_cut(*args, **kwargs):
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
         raise "No dataset given. Give a dataset path or hda or ldda"
-    
+
     check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
     if 'columns' in kwargs.keys():
         columns = kwargs['columns']
     else:
-        if not check_arg('data'):
+        if check_arg('data') and check_arg('hda') and check_arg('ldda'):
             argcount += 1
         if len(args) > argcount:
             columns = args[argcount]
             argcount += 1
         else:
             raise "Invalid arugements: columns not given."
-    
+
     if 'delimiter' in kwargs.keys():
         delimiter = kwargs['delimiter']
-    elif len(args) > argcount:
-        delimiter = args[argcount]
     else:
-        delimiter = "Tab"
-    
-    input = {
+        if check_arg('columns'):
+            argcount += 1
+        if len(args) > argcount:
+            delimiter = args[argcount]
+        else:
+            delimiter = "Tab"
+
+    inputs = {
         "columnList":columns,
         "delimiter":delimiter[:1],
         "input":{
             "values":[{
                 "src":src,
-                "name":"SRR034608.fastq",
-                "keep":false,
+                "tags":[],
+#                "keep":False,
                 "id":data_id
-                }],
-             "batch":false
+                }]
+#             "batch":False
+        }
+     }
+
+    tool_id = ToolNameToID('Cut') # 'Cut1'
+    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+    
+# {
+#     "tool_id":"trimmer",
+#     "tool_version":"0.0.1",
+#     "inputs":{
+#         "input1":{
+#             "values":
+#             [{
+#                 "src":"hda",
+#                 "name":"SRR034608.fastq",
+#                 "tags":[],
+#                 "keep":false,
+#                 "hid":39,
+#                 "id":"f2f5db583bb871d6"
+#                 }],
+#                   "batch":false},
+#               "col":0,"start":1,"end":0,"fastq":"","ignore":["62","64","43","60","42","45","61","124","63","36","46","58","38","37","94","35"]
+#               }
+#               }
+def run_trim(*args, **kwargs):
+
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    check_arg = lambda x: x not in kwargs.keys()
+    argcount = 3
+    if 'col' in kwargs.keys():
+        col = kwargs['col']
+    else:
+        if check_arg('data') and check_arg('hda') and check_arg('ldda'):
+            argcount += 1
+        if len(args) > argcount:
+            col = args[argcount]
+        else:
+            col = 0
+            
+    if 'start' in kwargs.keys():
+        start = kwargs['start']
+    else:
+        if check_arg('col'):
+            argcount += 1
+        if len(args) > argcount:
+            start = args[argcount]
+            argcount += 1
+        else:
+            start = 1
+
+    if 'end' in kwargs.keys():
+        end = kwargs['end']
+    else:
+        if check_arg('start'):
+            argcount += 1
+        if len(args) > argcount:
+            end = args[argcount]
+            argcount += 1
+        else:
+            end = 0
+            
+    if 'ignore' in kwargs.keys():
+        ignore = kwargs['ignore']
+    else:
+        if check_arg('end'):
+            argcount += 1
+        if len(args) > argcount:
+            ignore = args[argcount]
+            argcount += 1
+        else:
+            ignore = ""
+    if ignore:
+        ignore = [ord(x) for x in ignore]#.split(",")]
+    
+    inputs = {
+        "input1":{
+            "values":[{
+                "src":src,
+                "id":data_id
+                }]
+            },
+        "col":col,
+        "start":start,
+        "end":end,
+        "fastq":"",
+        "ignore":ignore
+    }
+    
+    tool_id = ToolNameToID('Trim') # 'trimmer'
+    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+#{"tool_id":"join1","tool_version":"2.0.2",
+# "inputs":{"input1":{"values":[{"src":"hda","name":"Cut on data 1","tags":[],"keep":false,"hid":45,"id":"fee08c51df578e3d"}],"batch":false},"field1":"2","input2":{"values":[{"src":"hda","name":"Cut on data 43","tags":[],"keep":false,"hid":44,"id":"1c84aa7fc4490e6d"}],"batch":false},"field2":"1","unmatched":"-u","partial":"-p","fill_empty_columns|fill_empty_columns_switch":"no_fill"}}
+def run_join(*args, **kwargs):
+
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    
+    tempargs = list(args[:3])
+    dataparam = 3
+    data1, data1_id = get_dataset('hda1', 'ldda1', 'data1', history_id, *tempargs, **datakwargs)
+    if not data1_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data1_id:
+            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+
+    check_arg = lambda x: x not in kwargs.keys()
+    
+    tempargs = list(args[:3])
+    data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
+    if not data2_id:
+        if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+            dataparam += 1
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data2_id:
+            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+        
+    if 'field1' in kwargs.keys():
+        field1 = kwargs['field1']
+    else:
+        if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
+            dataparam += 1
+        if dataparam < len(args):
+            field1 = args[dataparam]
+        else:
+            field1 = 1
+    
+    if 'field2' in kwargs.keys():
+        field2 = kwargs['field2']
+    else:
+        if check_arg('field1'):
+            dataparam += 1
+        if dataparam < len(args):
+            field2 = args[dataparam]
+        else:
+            field2 = 1
+                
+    inputs = {
+        "input1":{
+            "values":[{
+                "src":data1,
+                "id":data1_id
+                }]
+            },
+        "field1":field1,
+        "input2":{
+            "values":[{
+                "src":data2,
+                "id":data2_id
+                }]
+            },
+        "field2":field2,
+        "unmatched":"-u",
+        "partial":"-p",
+        "fill_empty_columns|fill_empty_columns_switch":"no_fill"
+    }
+    
+    tool_id = ToolNameToID('Join two Datasets') # 'join1'
+    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+def get_op(prefix, opindex, argcount, *args, **kwargs):
+    if prefix + str(opindex) in kwargs.keys():
+        return kwargs[prefix + str(opindex)]
+    else:
+        if len(args) > argcount:
+            return args[argcount]
+    
+# {"tool_id":"Grouping1","tool_version":"2.1.1",
+#"inputs":
+#{"input1":{"values":[{"src":"hda","name":"Cut on data 43","tags":[],"keep":false,"hid":44,"id":"1c84aa7fc4490e6d"}],"batch":false},
+#"groupcol":"1","ignorecase":"false","ignorelines":null,
+#"operations_0|optype":"mean","operations_0|opcol":"1","operations_0|opround":"no","operations_1|optype":"mean","operations_1|opcol":"1","operations_1|opround":"yes"}}
+
+#{"tool_id":"Grouping1","tool_version":"2.1.1","inputs":{"input1":{"values":[{"src":"hda","name":"Join two Datasets on data 44 and data 45","tags":[],"keep":false,"hid":47,"id":"13120e62d0fbb985"}],"batch":false},
+#"groupcol":"1","ignorecase":"false","ignorelines":["62","64","43"],"operations_0|optype":"mean","operations_0|opcol":"1","operations_0|opround":"no"}}
+def run_group(*args, **kwargs):
+
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    check_arg = lambda x: x not in kwargs.keys()
+    argcount = 3
+    if check_arg('data') and check_arg('hda') and check_arg('ldda'):
+        argcount += 1
+    if 'groupcol' in kwargs.keys():
+        groupcol = kwargs['groupcol']
+    else:
+        if len(args) > argcount:
+            groupcol = args[argcount]
+        else:
+            groupcol = 1
+    
+    if check_arg('groupcol'):
+        argcount += 1
+        
+    opindex = 1
+    opstr = {}
+    while True:
+        op = get_op('op', opindex, argcount, *args, **kwargs)
+        if not op:
+            break
+        else:
+            if check_arg('op' + str(opindex)):
+                argcount += 1
+                
+            opitems = op.split(',')
+            
+            #"operations_0|optype":"mean","operations_0|opcol":"1","operations_0|opround":"no"
+            if len(opitems) > 0:
+                if opitems[0]:
+                    opstr["operations_{0}|optype".format(opindex - 1)] = opitems[0]
+                if len(opitems) > 1:
+                    if opitems[1]:
+                        opstr["operations_{0}|opcol".format(opindex - 1)] = opitems[1]
+                    if len(opitems) > 2:
+                        if opitems[2]:
+                            opstr["operations_{0}|opround".format(opindex - 1)] = opitems[2]
+    
+    ignorecase = False
+    if 'ignorecase' in kwargs.keys():
+        ignorecase = kwargs['ignorecase']
+    
+    ignorelines = ""
+    if 'ignorelines' in kwargs.keys():
+        ignorelines = [ord(x) for x in kwargs['ignorelines'] ]
+    
+    inputs = {
+        "input1":{
+            "values":[{
+                "src":src,
+                "id":data_id
+                }]
+            },
+        "groupcol":str(groupcol),
+        "ignorecase": "true" if ignorecase else "false",
+        "ignorelines":ignorelines
+    }
+    
+    for k, v in opstr.items():
+        inputs[k] = v
+
+    #tool_id = ToolNameToID('Group') # 'Grouping1'
+    output = local_run_named_tool(history_id, 'Grouping1', inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+#{"tool_id":"sort1","tool_version":"1.0.3","inputs":{"input":{"values":[{"src":"hda","name":"Cut on data 1","tags":[],"keep":false,"hid":45,"id":"fee08c51df578e3d"}],"batch":false},
+# "column":"1","style":"num","order":"DESC","column_set_0|other_column":"2","column_set_0|other_style":"gennum","column_set_0|other_order":"ASC","column_set_1|other_column":"1","column_set_1|other_style":"alpha","column_set_1|other_order":"DESC"}}
+def run_sort(*args, **kwargs):
+
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    check_arg = lambda x: x not in kwargs.keys()
+    argcount = 3
+    if check_arg('data') and check_arg('hda') and check_arg('ldda'):
+        argcount += 1
+    
+    opstr = {}    
+    opindex = 1
+    op = ""
+    if 'col' + str(opindex) in kwargs.keys():
+        op = kwargs['col' + str(opindex)]
+    else:
+        if len(args) > argcount:
+            op = args[argcount]
+            argcount += 1
+    if op:
+        opitems = op.split(',')
+        opstr['column'] = opitems[0] if opitems[0] else 1
+        opstr['style'] = opitems[1] if len(opitems) > 1 and opitems[1] else "num"
+        opstr['order'] = opitems[2] if len(opitems) > 2 and opitems[2] else "DESC"
+        
+    opindex = 1                        
+    while True:
+        op = get_op('col', opindex + 1, argcount, *args, **kwargs)
+        if not op:
+            break
+        else:
+            if check_arg('col' + str(opindex + 1)):
+                argcount += 1
+                
+            opitems = op.split(',')
+            
+            opstr['column_set_{0}|other_column'.format(opindex - 1)] = opitems[0] if opitems[0] else opindex + 1
+            opstr['column_set_{0}|other_style'.format(opindex - 1)] = opitems[1] if len(opitems) > 1 and opitems[1] else "num"
+            opstr['column_set_{0}|other_order'.format(opindex - 1)] = opitems[2] if len(opitems) > 2 and opitems[2] else "DESC"
+
+    inputs = {
+        "input1":{
+            "values":[{
+                "src":src,
+                "id":data_id
+                }]
+            }
+    }
+    
+    for k, v in opstr.items():
+        inputs[k] = v
+        
+    #tool_id = ToolNameToID('Sort') # 'sort1'
+    output = local_run_named_tool(history_id, 'sort1', inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+#{"tool_id":"Show beginning1","tool_version":"1.0.0",
+#"inputs":{"lineNum":10,
+#"input":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":33,"id":"bb7d1d57fc91145a"}],"batch":false}}}
+def run_selectfirst(*args, **kwargs):
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    check_arg = lambda x: x not in kwargs.keys()
+    argcount = 3
+    if check_arg('data') and check_arg('hda') and check_arg('ldda'):
+        argcount += 1
+    if 'lines' in kwargs.keys():
+        lines = kwargs['lines']
+    else:
+        if len(args) > argcount:
+            lines = args[argcount]
+        else:
+            lines = 10
+
+    inputs = {
+        "lineNum":lines,
+        "input":{
+            "values":[{
+                "src":src,
+                "id":data_id
+                }]
         }
      }
     
-    output = local_run_named_tool(history_id, 'Cut1', input, *args[:3])
-    return output['outputs']['output']['id']
+    #tool_id = ToolNameToID('Select First') # 'Show beginning1'
+    output = local_run_tool(history_id, 'Show beginning1', inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+#{"tool_id":"comp1","tool_version":"1.0.2",
+#"inputs":
+#{"input1":{"values":[{"src":"hda","name":"Cut on data 43","tags":[],"keep":false,"hid":44,"id":"1c84aa7fc4490e6d"}],"batch":false},
+#"field1":"1",
+#"input2":{"values":[{"src":"hda","name":"Sort on data 45","tags":[],"keep":false,"hid":52,"id":"7e1ddb768ae0c642"}],"batch":false},
+#"field2":"1","mode":"N"}}
+def run_compare(*args, **kwargs):
+
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
     
+    tempargs = list(args[:3])
+    dataparam = 3
+    data1, data1_id = get_dataset('hda1', 'ldda1', 'data1', history_id, *tempargs, **datakwargs)
+    if not data1_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data1_id:
+            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+    
+    check_arg = lambda x: x not in kwargs.keys()
+    if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+        dataparam += 1
+            
+    tempargs = list(args[:3])
+    data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
+    if not data2_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data2_id:
+            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+    
+    if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
+        dataparam += 1
+            
+    if 'field1' in kwargs.keys():
+        field1 = kwargs['field1']
+    else:
+        if dataparam < len(args):
+            field1 = args[dataparam]
+        else:
+            field1 = 1
+    
+    if check_arg('field1'):
+        dataparam += 1
+            
+    if 'field2' in kwargs.keys():
+        field2 = kwargs['field2']
+    else:
+        if dataparam < len(args):
+            field2 = args[dataparam]
+        else:
+            field2 = 1
+    
+    field1 = str(field1)
+    field2 = str(field2)
+    
+    if check_arg('field2'):
+        dataparam += 1
+            
+    if 'mode' in kwargs.keys():
+        mode = kwargs['mode']
+    else:
+        if dataparam < len(args):
+            mode = args[dataparam]
+        else:
+            mode = "N"
+            
+    inputs = {
+        "input1":{
+            "values":[{
+                "src":data1,
+                "id":data1_id
+                }]
+            },
+        "field1":field1,
+        "input2":{
+            "values":[{
+                "src":data2,
+                "id":data2_id
+                }]
+            },
+        "field2":field2,
+        "mode":mode,
+    }
+
+    #tool_id = ToolNameToID('Compare two Datasets') # 'comp1'
+    output = local_run_tool(history_id, 'comp1', inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/portiahollyoak/fastuniq/fastuniq/1.1","tool_version":"1.1",
+#"inputs":{"fastq_R1":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":30,"id":"b3a78854daef4a5a"}],"batch":false},
+#"fastq_R2":{"values":[{"src":"hda","name":"FASTQ Groomer on data 37","tags":[],"keep":false,"hid":38,"id":"920c23ba6ef2e3da"}],"batch":false},
+#"select_output_format":"f/q"}}
+def run_fastuniq(*args, **kwargs):
+
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    
+    tempargs = list(args[:3])
+    dataparam = 3
+    data1, data1_id = get_dataset('hda1', 'ldda1', 'data1', history_id, *tempargs, **datakwargs)
+    if not data1_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data1_id:
+            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+    
+    check_arg = lambda x: x not in kwargs.keys()
+    if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+        dataparam += 1
+            
+    tempargs = list(args[:3])
+    data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
+    if not data2_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data2_id:
+            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+    
+    if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
+        dataparam += 1
+            
+    if 'format' in kwargs.keys():
+        format = kwargs['format']
+    else:
+        if dataparam < len(args):
+            format = args[dataparam]
+        else:
+            format = "q"
+            
+    inputs = {
+        "fastq_R1":{
+            "values":[{
+                "src":data1,
+                "id":data1_id
+                }]
+            },
+        "fastq_R2":{
+            "values":[{
+                "src":data2,
+                "id":data2_id
+                }]
+            },
+        "format":format,
+    }
+
+    tool_id = ToolNameToID('FastUniq') # 'toolshed.g2.bx.psu.edu/repos/portiahollyoak/fastuniq/fastuniq/1.1'
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+# {"tool_id":"toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1","tool_version":"2.0.1","inputs":{"input":{"values":[{"src":"hda","name":"Select first on data 33","tags":[],"keep":false,"hid":53,"id":"b735ed9e5e005602"}],"batch":false},"min":15,"max":36,"out_format":"fasta","Nmode":"accept","clip_source|clip_source_list":"prebuilt","clip_source|clip_sequence":"TGGAATTCTCGGGTGCCAAG"}}
+def run_clip_adapter(*args, **kwargs):
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    check_arg = lambda x: x not in kwargs.keys()
+    argcount = 3
+    if check_arg('data') and check_arg('hda') and check_arg('ldda'):
+        argcount += 1
+        
+    if 'min' in kwargs.keys():
+        min = kwargs['min']
+    else:
+        if len(args) > argcount:
+            min = args[argcount]
+        else:
+            min = 15
+    
+    if check_arg('min'):
+        argcount += 1
+    if 'max' in kwargs.keys():
+        max = kwargs['max']
+    else:
+        if len(args) > argcount:
+            max = args[argcount]
+        else:
+            max = 15
+    
+    nmode = "accept" if check_args('nmode') else kwargs['nmode']
+    adapter = "TGGAATTCTCGGGTGCCAAG" if check_args('adapter') else kwargs['adapter']
+    source = None
+    if not check_args('src'):
+        source = kwargs['src']
+    
+#    {"tool_id":"toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1","tool_version":"2.0.1","inputs":{"input":{"values":[{"src":"hda","name":"Select first on data 33","tags":[],"keep":false,"hid":53,"id":"b735ed9e5e005602"}],"batch":false},"min":15,"max":36,"out_format":"fastq","Nmode":"accept","clip_source|clip_source_list":"user","clip_source|clip_sequence":"GAATCC"}}            
+    inputs = {
+        "min": min,
+        "max":max,
+        "out_format": "fastq" if format=="q" else "fasta",
+        "Nmode":nmode,
+        "clip_source|clip_source_list":"prebuilt",
+        "clip_source|clip_sequence":adapter,
+        "input":{
+            "values":[{
+                "src":src,
+                "id":data_id
+                }]
+        }
+     }
+    
+    if source:
+        inputs["clip_source|clip_source_list"] = "user"
+        inputs["clip_source|clip_sequence"] = source
+
+    tool_id = ToolNameToID('Clip adapter') #toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33","tool_version":"1.33",
+#"inputs":{"readtype|single_or_paired":"se","readtype|input_single":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":33,"id":"bb7d1d57fc91145a"}],"batch":false},
+#"qual_threshold":20,"length_threshold":20,"no_five_prime":"false","trunc_n":"false"}}
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33","tool_version":"1.33",
+#"inputs":{"readtype|single_or_paired":"pe_sep","readtype|input_paired1":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":30,"id":"b3a78854daef4a5a"}],"batch":false},
+#"readtype|input_paired2":{"values":[{"src":"hda","name":"FASTQ Groomer on data 37","tags":[],"keep":false,"hid":38,"id":"920c23ba6ef2e3da"}],"batch":false},
+#"qual_threshold":20,"length_threshold":20,"no_five_prime":"true","trunc_n":"true"}}
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33","tool_version":"1.33",
+#"inputs":{"readtype|single_or_paired":"pe_combo","readtype|input_combo":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":39,"id":"f2f5db583bb871d6"}],"batch":false},"readtype|output_n":"false","qual_threshold":20,"length_threshold":20,"no_five_prime":"true","trunc_n":"true"}}
+def run_sickle(*args, **kwargs):
+    
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    
+    tempargs = list(args[:3])
+    dataparam = 3
+    data1, data1_id = get_dataset('hda1', 'ldda1', 'data1', history_id, *tempargs, **datakwargs)
+    if not data1_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data1_id:
+            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+    
+    check_arg = lambda x: x not in kwargs.keys()
+    if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+        dataparam += 1
+    
+    if 'mode' in kwargs.keys():
+        mode = kwargs['mode']
+    else:
+        if dataparam < len(args):
+            mode = args[dataparam]
+        else:
+            mode = "se"
+    
+    if mode == "pe":                
+        tempargs = list(args[:3])
+        data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
+        if not data2_id:
+            if dataparam < len(args):
+                tempargs.append(args[dataparam])
+                data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
+                    
+        if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
+            dataparam += 1
+            
+    if 'quality' in kwargs.keys():
+        field1 = kwargs['quality']
+    else:
+        quality = 20
+    
+    if 'length' in kwargs.keys():
+        length = kwargs['length']
+    else:
+        length = 20
+           
+    inputs = {
+        "qual_threshold":quality,
+        "length_threshold":length,
+        "no_five_prime":"true",
+        "trunc_n":"true",
+        "readtype|single_or_paired":mode
+    }
+    
+    if mode == "se":
+        inputs["readtype|input_single"] = {
+         "values":[{
+             "src":data1,
+             "id": data1_id
+             }]
+         }
+    elif mode == "pe":
+        inputs["readtype|input_single"] = {
+         "values":[{
+             "src":data1,
+             "id": data1_id
+             }]
+         }
+        inputs["readtype|input_paired2"] = {
+         "values":[{
+             "src":data2,
+             "id": data2_id
+             }]
+         }
+    else:
+        inputs["readtype|input_combo"] = {
+         "values":[{
+             "src":data1,
+             "id": data1_id
+             }]
+         }
+        inputs["readtype|output_n"] = "false"
+    
+    tool_id = ToolNameToID('Sickle') # toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33
+    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['output']['id']
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70","tool_version":"0.70",
+#"inputs":{"input_file":{"values":[{"src":"hda","name":"FASTQ Groomer on data 1","tags":[],"keep":false,"hid":26,"id":"d343a822bd747ee4"}],"batch":false},"contaminants":null,"limits":null}}
+def run_fastqc(*args, **kwargs):    
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+
+    inputs = {
+        "contaminants":null,
+        "limits":null,
+        "input_file":{
+            "values":[{
+                "src":src, 
+                "id":data_id
+                }]
+            }
+        }
+    
+    tool_id = ToolNameToID('FastQC') # toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70
+    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['output_file']['id']
+
 def download(*args):
     gi = create_galaxy_instance(*args)
     

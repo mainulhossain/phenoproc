@@ -104,7 +104,8 @@ background-color: White;
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddLibrary">Add Library</button>
 <!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddSample">Save</button> -->
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: generatePythonCode">Python Code</button>
-			        <span>Time: </span><span id="duration">0s</span>
+			        <label class="checkbox-inline"><input type="checkbox" id="immediate">Immediate</label> 
+			        <span class="label label-default">Time: </span><span id="duration">0s</span>
 		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
 		        </div>
 	        </div>
@@ -770,30 +771,29 @@ background-color: White;
             
             self.runBioWL = function(task) {
               $('#refresh').show();
-              ajaxcalls.simple(self.tasksURI, 'GET', {'script': editor.getSession().getValue(), 'args': $('#args').val()}).done(function(data) {
+              ajaxcalls.simple(self.tasksURI, 'GET', {'script': editor.getSession().getValue(), 'args': $('#args').val(), 'immediate': $('#immediate').prop('checked')}).done(function(data) {
 
             	  $('#refresh').hide();
                 	
                 	if (data === undefined)
                 		return;
-                	
-//                 	var text = '';
-//                 	if (data.out !== undefined) {
-// 	                    $.each(data.out, function(i, t) {
-// 	                    	text += t + '\n';
-// 	                    });
-//                 	}
-//                 	$("#output").val(text);
-                    
-//                 	text = '';
-//                 	if (data.out !== undefined) {
-// 	                    $.each(data.err, function(i, t) {
-// 	                        text += t + '\n';
-// 	                    });
-//                 	}
-                    
-//                  $("#error").val(text);
-//                  $("#duration").text(data.duration);
+                	if ($('#immediate').prop('checked'))
+                	{
+	                	var text = '';
+	                	if (data.out !== undefined) {
+		                    $.each(data.out, function(i, t) {
+		                    	text += t + '\n';
+		                    });
+	                	}
+	                	$("#output").val(text);
+	                    
+	                	text = '';
+	                	if (data.out !== undefined) {
+		                    $.each(data.err, function(i, t) {
+		                        text += t + '\n';
+		                    });
+	                	}
+                	}                    
                     $("#output").val(data['out']);
                     $("#error").val(data['err']);
                     $("#duration").text(data['duration']);
