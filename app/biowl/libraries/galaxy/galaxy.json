@@ -467,6 +467,32 @@
            "returns": "string",
            "example":"checked_data = CheckQuality(data1=, [history_id=history_id])",
            "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Analysis",
+           "level": 0,
+           "name":"Filter",
+           "internal":"run_filter",
+           "desc": "Allows to restrict the dataset using simple conditional statements. Columns are referenced with c and a number (e.g. c1). Data must be tabular.",
+           "returns": "string",
+           "example":"filtered_data = Filter(data1=, condition=, [history_id=history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"ToTabular",
+           "internal":"run_convert_to_tab",
+           "desc": "Converts all delimiters of a specified type into TABs. Consecutive delimiters can be condensed in a single TAB.",
+           "returns": "string",
+           "example":"tabular_data = ToTabular(data1=, [delimeter='Tab Whitespace , . - _ |'], [history_id=history_id])",
+           "runmode": "dist"
        }
    ]
 }

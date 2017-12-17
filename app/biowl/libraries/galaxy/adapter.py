@@ -1388,6 +1388,82 @@ def run_fastqc(*args, **kwargs):
     output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output_file']['id']
 
+#{"tool_id":"Filter1","tool_version":"1.1.0","inputs":{"input":{"values":[{"src":"hda","name":"all.cDNA (as tabular)","tags":[],"keep":false,"hid":3,"id":"7ef8021ae23ac2fc"}],"batch":false},"cond":"c1=='chr22'","header_lines":0}}
+def run_filter(*args, **kwargs):    
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    dataparam = 3
+    check_arg = lambda x: x not in kwargs.keys()
+    if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+        dataparam += 1
+    
+    if 'condition' in kwargs.keys():
+        condition = kwargs['condition']
+    else:
+        if dataparam < len(args):
+            condition = args[dataparam]
+        else:
+            raise "No filtering condition is given."
+            
+    inputs = {
+        "cond":cond,
+        "input":{
+            "values":[{
+                "src":src, 
+                "id":data_id
+                }]
+            }
+        }
+    
+    #tool_id = ToolNameToID('Filter') # Filter1
+    output = local_run_named_tool(history_id, 'Filter1', inputs, *args[:3])
+    return output['outputs']['output_file']['id']
+
+#{"tool_id":"Convert characters1","tool_version":"1.0.0","inputs":{"convert_from":"Dt","input":{"values":[{"src":"hda","name":"Filter on data 3","tags":[],"keep":false,"hid":57,"id":"4eb3d2698c4eef35"}],"batch":false},"strip":"true","condense":"true"}}
+def run_convert_to_tab(*args, **kwargs):    
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    dataparam = 3
+    check_arg = lambda x: x not in kwargs.keys()
+    if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+        dataparam += 1
+    
+    if 'delimiter' in kwargs.keys():
+        delimiter = kwargs['delimiter']
+    else:
+        if len(args) > argcount:
+            delimiter = args[argcount]
+        else:
+            delimiter = "Tab"
+            
+    inputs = {
+        "convert_from":cond,
+        "strip":"true",
+        "condense":"true",
+        "input":{
+            "values":[{
+                "src":src, 
+                "id":data_id
+                }]
+            }
+        }
+    
+    #tool_id = ToolNameToID('Filter') # Convert characters1
+    output = local_run_named_tool(history_id, 'Convert characters1', inputs, *args[:3])
+    return output['outputs']['output_file']['id']
+
 def download(*args):
     gi = create_galaxy_instance(*args)
     

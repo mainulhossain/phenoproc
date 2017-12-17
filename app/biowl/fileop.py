@@ -469,7 +469,133 @@ class HadoopFileSystem():
             return self.client.download(path, localpath, True)
         else:
             return None
-               
+
+class GalaxyFileSystem():
+    def __init__(self, url, user):
+        u = urlsplit(url)
+        if u.scheme != 'http' and u.scheme != 'https':
+            raise "Invalid name node address"
+        
+        self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
+        self.localdir = u.path
+        self.prefix = 'GalaxyFS'
+    
+    def normalize_path(self, path):
+        path = os.path.normpath(path)
+        if path.startswith(self.prefix):
+            path = path[len(self.prefix):]
+        while path and path[0] == os.sep:
+            path = path[1:]
+        return os.path.join(self.localdir, path)
+    
+    def strip_root(self, path):
+        if path.startswith(self.url):
+            path = path[len(self.url):]
+            if not path.startswith(self.localdir):
+                raise 'Invalid hdfs path. It must start with the root directory'
+      
+        if not path.startswith(self.localdir):
+            return path
+        return path[len(self.localdir):]
+        
+    def create_folder(self, path):
+        try:
+            path = self.normalize_path(path)
+            self.client.makedirs(path)
+        except:
+            return None
+        return path
+    
+    def remove(self, path):
+        try: 
+            path = self.normalize_path(path)
+            if self.client.status(path, False) is not None:
+                self.client.delete(path, True)
+        except Exception as e: print(e)
+           
+    def rename(self, oldpath, newpath):
+        try:
+            oldpath = self.normalize_path(oldpath)
+            newpath = self.normalize_path(newpath)
+            self.client.rename(oldpath, newpath)
+        except Exception as e:
+            print(e)
+    
+    def get_files(self, path):
+        path = self.normalize_path(path)
+        files = []
+        for f in self.client.list(path):
+            status = self.client.status(join(path, f), False)
+            if status['type'] != "DIRECTORY":
+                files.append(f)
+        return files
+    
+    def get_folders(self, path):
+        path = self.normalize_path(path)
+        folders = []
+        for f in self.client.list(path):
+            status = self.client.status(join(path, f), False)
+            if status['type'] == "DIRECTORY":
+                folders.append(f)
+        return folders
+    
+    def exists(self, path):
+        path = self.normalize_path(path)
+        status = self.client.status(path, False)
+        return not (status is None)
+        
+    def isdir(self, path):
+        path = self.normalize_path(path)
+        status = self.client.status(path, False)
+        return status['type'] == "DIRECTORY"
+    
+    def isfile(self, path):
+        path = self.normalize_path(path)
+        status = self.client.status(path, False)
+        return status['type'] == "FILE"
+        
+    def read(self, path):
+        path = self.normalize_path(path)
+        with self.client.read(path) as reader:
+            return reader.read().decode('utf-8')
+    
+    def write(self, path, content):
+        path = self.normalize_path(path)
+        self.client.write(path, content)
+    
+    def make_json(self, path):
+        normalized_path = self.normalize_path(path)
+        data_json = { 'path': urljoin(self.url, normalized_path), 'text': os.path.basename(path) }
+        status = self.client.status(normalized_path, False)
+
+        if status is not None:
+            data_json['folder'] = status['type'] == "DIRECTORY"
+            if status['type'] == "DIRECTORY":
+                data_json['nodes'] = [self.make_json(os.path.join(path, fn)) for fn in self.client.list(normalized_path)]
+        #print(json.dumps(data_json))
+        return data_json
+     
+    def save_upload(self, file, fullpath):
+        localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
+        if os.path.isfile(localpath):
+            os.remove(localpath)
+        try:
+            file.save(localpath)
+            if isfile(fullpath):
+                fullpath = os.path.dirname(fullpath)
+            self.client.upload(self.normalize_path(fullpath), localpath, True)
+        except:
+            pass
+        
+    def download(self, path):
+        path = self.normalize_path(path)
+        status = self.client.status(path, False)
+        if status is not None and status['type'] == "FILE":
+            localpath = os.path.join(tempfile.gettempdir(), os.path.basename(path))
+            return self.client.download(path, localpath, True)
+        else:
+            return None
+        
 class IOHelper():
     @staticmethod
     def getFileSystem(url):
