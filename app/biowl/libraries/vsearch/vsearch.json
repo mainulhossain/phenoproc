@@ -4,6 +4,8 @@
            "org": "srlab",
            "package": "vsearch",
            "module": "app.biowl.libraries.vsearch.adapter",
+           "group": "Search",
+           "level": 1,
            "name":"Vsearch",
            "internal":"run_usearch",
            "runmode": "local",
