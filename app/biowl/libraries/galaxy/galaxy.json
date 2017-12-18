@@ -374,7 +374,7 @@
            "internal":"run_group",
            "desc": "Allows to group the input dataset by a particular column and perform aggregate functions: Mean, Median, Mode, Sum, Max, Min, Count, Concatenate, and Randomly pick on any column(s). If your data is not TAB delimited, use Text Manipulation->Convert",
            "returns": "string",
-           "example":"grouped_data = Group(data1=, [groupcol=1], [op1='optype,opcol,opround', ...], [ignorecase=True/False], ignorelines=['>@+<*-=|?$.:&%^#'], [history_id=history_id])",
+           "example":"grouped_data = Group(data1=, [groupcol=1], [op1='optype|opcol|opround', ...], [ignorecase=True/False], ignorelines=['>@+<*-=|?$.:&%^#'], [history_id=history_id]) # op1='Mean|1|no' optype=mean|median|mode|maximum|minimum|sum|count|count distinct|concatenate|randomly pick|standard deviation",
            "runmode": "dist"
        },
        {
@@ -400,7 +400,7 @@
            "internal":"run_selectfirst",
            "desc": "Outputs specified number of lines from the beginning of a dataset.",
            "returns": "string",
-           "example":"joined_data = Join(data1=, data2=, field1=, field2=, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id])",
+           "example":"selected_data = SelectFirst(data1=, [lines=10], [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -413,7 +413,7 @@
            "internal":"run_compare",
            "desc": "Outputs specified number of lines from the beginning of a dataset.",
            "returns": "string",
-           "example":"joined_data = Join(data1=, data2=, field1=, field2=, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id])",
+           "example":"compared_data = Compare(data1=, data2=, [field1=1], [field2=1], [history_id=history_id])",
            "runmode": "dist"
        },
        {

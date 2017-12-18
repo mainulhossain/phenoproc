@@ -1,0 +1,17 @@
+{
+    "name":"galaxy_101",
+    "desc":"https://www.myexperiment.org/workflows/2939.html",
+    "sample":[
+        "task ():",
+        "    history_id = CreateHistory('galaxy_101')",
+        "    data1 = FASTQGroomer('ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR034/SRR034608/SRR034608.fastq.gz', history_id = history_id)",
+        "    data1_tab = ToTabular(data1, history_id=history_id)",
+        "    joined_data = Join(data1_tab, data1_tab, history_id=history_id)",
+        "    grouped_data = Group(joined_data, 4, op1='Count,4,NO', history_id=history_id)",
+        "    sorted_data = Sort(grouped_data, col='2|style|DESC', history_id=history_id)",
+        "    selected_data = SelectFirst(sorted_data, lines=10, history_id=history_id)",
+        "    compared_data = Compare(data1=, data2=, field1=4, field2=1, history_id=history_id)",
+        "    ",
+        "    print(compared_data)"
+    ]
+}

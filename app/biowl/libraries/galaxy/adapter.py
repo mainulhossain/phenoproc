@@ -896,18 +896,11 @@ def run_group(*args, **kwargs):
             if check_arg('op' + str(opindex)):
                 argcount += 1
                 
-            opitems = op.split(',')
-            
+            opitems = op.split('|')
             #"operations_0|optype":"mean","operations_0|opcol":"1","operations_0|opround":"no"
-            if len(opitems) > 0:
-                if opitems[0]:
-                    opstr["operations_{0}|optype".format(opindex - 1)] = opitems[0]
-                if len(opitems) > 1:
-                    if opitems[1]:
-                        opstr["operations_{0}|opcol".format(opindex - 1)] = opitems[1]
-                    if len(opitems) > 2:
-                        if opitems[2]:
-                            opstr["operations_{0}|opround".format(opindex - 1)] = opitems[2]
+            opstr["operations_{0}|optype".format(opindex - 1)] = opitems[0] if len(opitems) > 0 and opitems[0] else "mean"
+            opstr["operations_{0}|opcol".format(opindex - 1)] = opitems[1] if len(opitems) > 1 and opitems[1] else "1"
+            opstr["operations_{0}|opround".format(opindex - 1)] = opitems[2] if len(opitems) > 2 and opitems[2] else "no"
     
     ignorecase = False
     if 'ignorecase' in kwargs.keys():
@@ -963,8 +956,8 @@ def run_sort(*args, **kwargs):
             op = args[argcount]
             argcount += 1
     if op:
-        opitems = op.split(',')
-        opstr['column'] = opitems[0] if opitems[0] else 1
+        opitems = op.split('|')
+        opstr['column'] = opitems[0] if len(opitems[0]) > 0 and opitems[0] else 1
         opstr['style'] = opitems[1] if len(opitems) > 1 and opitems[1] else "num"
         opstr['order'] = opitems[2] if len(opitems) > 2 and opitems[2] else "DESC"
         
@@ -979,7 +972,7 @@ def run_sort(*args, **kwargs):
                 
             opitems = op.split(',')
             
-            opstr['column_set_{0}|other_column'.format(opindex - 1)] = opitems[0] if opitems[0] else opindex + 1
+            opstr['column_set_{0}|other_column'.format(opindex - 1)] = opitems[0] if len(opitems) > 0 and opitems[0] else opindex + 1
             opstr['column_set_{0}|other_style'.format(opindex - 1)] = opitems[1] if len(opitems) > 1 and opitems[1] else "num"
             opstr['column_set_{0}|other_order'.format(opindex - 1)] = opitems[2] if len(opitems) > 2 and opitems[2] else "DESC"
 
