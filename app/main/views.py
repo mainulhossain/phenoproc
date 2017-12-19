@@ -515,6 +515,11 @@ def load_data_sources_biowl():
             if current_user.is_authenticated:
                 datasource['nodes'].append(posixFS.make_json(current_user.username))
             datasource['nodes'].append(posixFS.make_json(current_app.config['PUBLIC_DIR']))
+        elif ds.id == 4:
+            # file system tree
+            if current_user.is_authenticated:
+                galaxyFS = GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
+                datasource['nodes'].append(galaxyFS.make_json('/'))
  
         datasource_tree.append(datasource)
         

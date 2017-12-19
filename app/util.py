@@ -21,6 +21,8 @@ class Utility:
             return path.join(datasource.url, current_app.config['HDFS_DIR'])
         if datasource_id == 2:
             return path.join(datasource.url, current_app.config['DATA_DIR'])
+        if datasource_id == 4:
+            return path.join(datasource.url, '/')
         return ""
     
     @staticmethod

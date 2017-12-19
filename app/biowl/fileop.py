@@ -18,6 +18,14 @@ try:
 except:
     pass
 
+try:
+    from bioblend.galaxy import GalaxyInstance
+    from bioblend.galaxy.histories import HistoryClient
+    from bioblend.galaxy.libraries import LibraryClient
+    from .dsl.libraries.galaxy import adapter as gxAdapter 
+except:
+    pass
+
 class PosixFileSystemBase():
     
     def __init__(self):
@@ -385,7 +393,8 @@ class HadoopFileSystem():
             path = self.normalize_path(path)
             if self.client.status(path, False) is not None:
                 self.client.delete(path, True)
-        except Exception as e: print(e)
+        except Exception as e:
+            print(e)
            
     def rename(self, oldpath, newpath):
         try:
@@ -477,8 +486,11 @@ class GalaxyFileSystem():
             raise "Invalid name node address"
         
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
-        self.localdir = u.path
+        self.localdir = ""
         self.prefix = 'GalaxyFS'
+        self.lddaprefix = 'Libraries'
+        self.hdaprefix = 'Histories'
+        self.client = GalaxyInstance(self.url, user)
     
     def normalize_path(self, path):
         path = os.path.normpath(path)
@@ -532,27 +544,17 @@ class GalaxyFileSystem():
     
     def get_folders(self, path):
         path = self.normalize_path(path)
-        folders = []
-        for f in self.client.list(path):
-            status = self.client.status(join(path, f), False)
-            if status['type'] == "DIRECTORY":
-                folders.append(f)
-        return folders
+        
     
     def exists(self, path):
-        path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        return not (status is None)
+        return self.isdir(path) or self.ispath(path)
         
     def isdir(self, path):
         path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        return status['type'] == "DIRECTORY"
+        return path == self.lddaprefix or path == self.hdaprefix
     
     def isfile(self, path):
-        path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        return status['type'] == "FILE"
+        return not self.isdir(path) and self.name_from_id(path)
         
     def read(self, path):
         path = self.normalize_path(path)
@@ -563,16 +565,35 @@ class GalaxyFileSystem():
         path = self.normalize_path(path)
         self.client.write(path, content)
     
+    def name_from_id(self, path):
+        normalized_path = self.normalize_path(path)
+        if not normalized_path:
+            return ""
+        elif normalized_path == self.ldda:
+            return self.lddaprefix
+        elif normalized_path == self.hdaprefix:
+            return self.hdaprefix
+        else:
+            hda_or_ldda = 'ldda' if normalized_path.startswith(self.lddaprefix) else 'hda'
+            info = self.client.datasets.show_dataset(dataset_id = os.path.basename(normalized_path), hda_ldda = hda_or_ldda)
+            if info:
+                return info['name']
+        
     def make_json(self, path):
         normalized_path = self.normalize_path(path)
-        data_json = { 'path': urljoin(self.url, normalized_path), 'text': os.path.basename(path) }
-        status = self.client.status(normalized_path, False)
-
-        if status is not None:
-            data_json['folder'] = status['type'] == "DIRECTORY"
-            if status['type'] == "DIRECTORY":
-                data_json['nodes'] = [self.make_json(os.path.join(path, fn)) for fn in self.client.list(normalized_path)]
-        #print(json.dumps(data_json))
+        data_json = {}
+        if not normalized_path:
+            data_json['nodes'] = [self.make_json(self.lddaprefix), self.make_json(self.hdaprefix)]
+        else:
+            data_json = { 'path': os.path.join(self.url, normalized_path), 'text': self.name_from_id(path) }
+            if normalized_path == self.lddaprefix:
+                data_json['folder'] = True
+                libraries = gi.libraries.get_libraries()
+                data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in libraries]
+            elif normalized_path == self.hdaprefix:
+                data_json['folder'] = True
+                histories = gi.histories.get_histories()
+                data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in histories]
         return data_json
      
     def save_upload(self, file, fullpath):
