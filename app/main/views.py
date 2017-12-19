@@ -651,7 +651,7 @@ def functions():
             return json.dumps({})
     
     level = int(request.args.get('level')) if request.args.get('level') else 0
-    funcs =[func for func in interpreter.funcs if int(func['level']) >= level]
+    funcs =[func for func in interpreter.funcs if int(func['level']) <= level]
     return json.dumps({'functions':  funcs})
 
 class Samples():
