@@ -19,7 +19,7 @@ from ..decorators import admin_required, permission_required
 from .ajax import WorkflowHandler
 from ..util import Utility
 #from ..io import PosixFileSystem, HadoopFileSystem, getFileSystem
-from ..biowl.fileop import PosixFileSystem, HadoopFileSystem, IOHelper
+from ..biowl.fileop import PosixFileSystem, HadoopFileSystem, GalaxyFileSystem, IOHelper
 from ..biowl.dsl.parser import PhenoWLParser
 from ..biowl.dsl.interpreter import Interpreter
 from ..biowl.dsl.pygen import CodeGenerator
@@ -519,7 +519,11 @@ def load_data_sources_biowl():
             # file system tree
             if current_user.is_authenticated:
                 galaxyFS = GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
-                datasource['nodes'].append(galaxyFS.make_json('/'))
+                nodes = galaxyFS.make_json('/')
+                if isinstance(nodes, list):
+                    datasource['nodes'] = nodes
+                else:
+                    datasource['nodes'].append(nodes)
  
         datasource_tree.append(datasource)
         
@@ -650,7 +654,7 @@ def functions():
         if immediate:
             return json.dumps(run_script(machine, script, args))
         else:
-            task = run_script.delay(machine, script)
+            task = run_script.delay(machine, script, args)
             runnable.celery_id = task.id
             db.session.commit()
             return json.dumps({})

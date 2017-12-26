@@ -8,6 +8,7 @@ import shutil
 import sys
 import tempfile
 from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
+import pathlib
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
@@ -567,34 +568,35 @@ class GalaxyFileSystem():
     
     def name_from_id(self, path):
         normalized_path = self.normalize_path(path)
-        if not normalized_path:
+        parts = pathlib.Path(normalized_path).parts
+        if len(parts) == 0:
             return ""
-        elif normalized_path == self.ldda:
-            return self.lddaprefix
-        elif normalized_path == self.hdaprefix:
-            return self.hdaprefix
+        elif len(parts) == 1:
+             return self.lddaprefix if parts[0] == self.lddaprefix else self.hdaprefix
+        elif len(parts) == 2:
+            info = self.client.libraries.get_libraries(library_id = parts[1])[0] if parts[0] == self.lddaprefix else self.client.histories.get_histories(history_id = parts[1])[0]
         else:
             hda_or_ldda = 'ldda' if normalized_path.startswith(self.lddaprefix) else 'hda'
             info = self.client.datasets.show_dataset(dataset_id = os.path.basename(normalized_path), hda_ldda = hda_or_ldda)
-            if info:
-                return info['name']
+                
+        if info:
+            return info['name']
         
     def make_json(self, path):
         normalized_path = self.normalize_path(path)
-        data_json = {}
         if not normalized_path:
-            data_json['nodes'] = [self.make_json(self.lddaprefix), self.make_json(self.hdaprefix)]
+            return [self.make_json(self.lddaprefix), self.make_json(self.hdaprefix)]
         else:
             data_json = { 'path': os.path.join(self.url, normalized_path), 'text': self.name_from_id(path) }
             if normalized_path == self.lddaprefix:
                 data_json['folder'] = True
-                libraries = gi.libraries.get_libraries()
+                libraries = self.client.libraries.get_libraries()
                 data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in libraries]
             elif normalized_path == self.hdaprefix:
                 data_json['folder'] = True
-                histories = gi.histories.get_histories()
+                histories = self.client.histories.get_histories()
                 data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in histories]
-        return data_json
+            return data_json
      
     def save_upload(self, file, fullpath):
         localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))

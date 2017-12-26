@@ -374,7 +374,7 @@
            "internal":"run_group",
            "desc": "Allows to group the input dataset by a particular column and perform aggregate functions: Mean, Median, Mode, Sum, Max, Min, Count, Concatenate, and Randomly pick on any column(s). If your data is not TAB delimited, use Text Manipulation->Convert",
            "returns": "string",
-           "example":"grouped_data = Group(data1=, [groupcol=1], [op1='optype|opcol|opround', ...], [ignorecase=True/False], ignorelines=['>@+<*-=|?$.:&%^#'], [history_id=history_id]) # op1='Mean|1|no' optype=mean|median|mode|maximum|minimum|sum|count|count distinct|concatenate|randomly pick|standard deviation",
+           "example":"grouped_data = Group(data1=, [groupcol=1], [op1='optype|opcol|opround', ...], [ignorecase=True/False], ignorelines=['>@+<*-=|?$.:&%^#'], [history_id=history_id]) # op1='mean|1|no' optype=mean|median|mode|max|min|sum|length|unique|cat|cat_uniq|randomly|std",
            "runmode": "dist"
        },
        {
@@ -387,7 +387,7 @@
            "internal":"run_sort",
            "desc": "Sorts the dataset on any number of columns in either ascending or descending order. Sort type - Numerical, general numeric, alphabetical. If the data is not TAB delimited, use Text Manipulation->Convert",
            "returns": "string",
-           "example":"sorted_data = Sort(data1=, col='col|style|order', [col1='col|style|order',...]field1=, field2=, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id])",
+           "example":"sorted_data = Sort(data1=, col='col|style|order', [col1='col|style|order',...]field1=, field2=, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id]) # style=num|gennum|alpha, order=DESC|ASC",
            "runmode": "dist"
        },
        {
@@ -413,7 +413,7 @@
            "internal":"run_compare",
            "desc": "Outputs specified number of lines from the beginning of a dataset.",
            "returns": "string",
-           "example":"compared_data = Compare(data1=, data2=, [field1=1], [field2=1], [history_id=history_id])",
+           "example":"compared_data = Compare(data1=, data2=, [field1=1], [field2=1], [mode='N'],[history_id=history_id])#mode='N|V'",
            "runmode": "dist"
        },
        {
@@ -491,7 +491,7 @@
            "internal":"run_convert_to_tab",
            "desc": "Converts all delimiters of a specified type into TABs. Consecutive delimiters can be condensed in a single TAB.",
            "returns": "string",
-           "example":"tabular_data = ToTabular(data1=, [delimeter='Tab Whitespace , . - _ |'], [history_id=history_id])",
+           "example":"tabular_data = ToTabular(data1=, [delimeter='Tab , . - _ | : ;'], [history_id=history_id]) # delimeters can be one of T(tab), ' '(whitespace), . (dot), comma(,), dash(-), underscore(_), pipe(|), colon(:), semicolon(;)",
            "runmode": "dist"
        }
    ]

@@ -810,7 +810,7 @@ def run_join(*args, **kwargs):
         if dataparam < len(args):
             field1 = args[dataparam]
         else:
-            field1 = 1
+            field1 = "1"
     
     if 'field2' in kwargs.keys():
         field2 = kwargs['field2']
@@ -820,7 +820,7 @@ def run_join(*args, **kwargs):
         if dataparam < len(args):
             field2 = args[dataparam]
         else:
-            field2 = 1
+            field2 = "1"
                 
     inputs = {
         "input1":{
@@ -829,21 +829,21 @@ def run_join(*args, **kwargs):
                 "id":data1_id
                 }]
             },
-        "field1":field1,
+        "field1":str(field1),
         "input2":{
             "values":[{
                 "src":data2,
                 "id":data2_id
                 }]
             },
-        "field2":field2,
-        "unmatched":"-u",
-        "partial":"-p",
+        "field2":str(field2),
+        "unmatched":"", #-u",
+        "partial":"", #"-p",
         "fill_empty_columns|fill_empty_columns_switch":"no_fill"
     }
     
-    tool_id = ToolNameToID('Join two Datasets') # 'join1'
-    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    tool_id = 'join1' # ToolNameToID('Join two Datasets')
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
 def get_op(prefix, opindex, argcount, *args, **kwargs):
@@ -876,10 +876,10 @@ def run_group(*args, **kwargs):
     if check_arg('data') and check_arg('hda') and check_arg('ldda'):
         argcount += 1
     if 'groupcol' in kwargs.keys():
-        groupcol = kwargs['groupcol']
+        groupcol = int(kwargs['groupcol'])
     else:
         if len(args) > argcount:
-            groupcol = args[argcount]
+            groupcol = int(args[argcount])
         else:
             groupcol = 1
     
@@ -901,6 +901,8 @@ def run_group(*args, **kwargs):
             opstr["operations_{0}|optype".format(opindex - 1)] = opitems[0] if len(opitems) > 0 and opitems[0] else "mean"
             opstr["operations_{0}|opcol".format(opindex - 1)] = opitems[1] if len(opitems) > 1 and opitems[1] else "1"
             opstr["operations_{0}|opround".format(opindex - 1)] = opitems[2] if len(opitems) > 2 and opitems[2] else "no"
+            
+            opindex += 1
     
     ignorecase = False
     if 'ignorecase' in kwargs.keys():
@@ -926,7 +928,7 @@ def run_group(*args, **kwargs):
         inputs[k] = v
 
     #tool_id = ToolNameToID('Group') # 'Grouping1'
-    output = local_run_named_tool(history_id, 'Grouping1', inputs, *args[:3])
+    output = local_run_tool(history_id, 'Grouping1', inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
 #{"tool_id":"sort1","tool_version":"1.0.3","inputs":{"input":{"values":[{"src":"hda","name":"Cut on data 1","tags":[],"keep":false,"hid":45,"id":"fee08c51df578e3d"}],"batch":false},
@@ -949,15 +951,15 @@ def run_sort(*args, **kwargs):
     opstr = {}    
     opindex = 1
     op = ""
-    if 'col' + str(opindex) in kwargs.keys():
-        op = kwargs['col' + str(opindex)]
+    if 'col' in kwargs.keys():
+        op = kwargs['col']
     else:
         if len(args) > argcount:
             op = args[argcount]
             argcount += 1
     if op:
         opitems = op.split('|')
-        opstr['column'] = opitems[0] if len(opitems[0]) > 0 and opitems[0] else 1
+        opstr['column'] = opitems[0] if len(opitems[0]) > 0 and opitems[0] else None
         opstr['style'] = opitems[1] if len(opitems) > 1 and opitems[1] else "num"
         opstr['order'] = opitems[2] if len(opitems) > 2 and opitems[2] else "DESC"
         
@@ -970,11 +972,13 @@ def run_sort(*args, **kwargs):
             if check_arg('col' + str(opindex + 1)):
                 argcount += 1
                 
-            opitems = op.split(',')
+            opitems = op.split('|')
             
-            opstr['column_set_{0}|other_column'.format(opindex - 1)] = opitems[0] if len(opitems) > 0 and opitems[0] else opindex + 1
+            opstr['column_set_{0}|other_column'.format(opindex - 1)] = opitems[0] if len(opitems) > 0 and opitems[0] else str(opindex + 1)
             opstr['column_set_{0}|other_style'.format(opindex - 1)] = opitems[1] if len(opitems) > 1 and opitems[1] else "num"
             opstr['column_set_{0}|other_order'.format(opindex - 1)] = opitems[2] if len(opitems) > 2 and opitems[2] else "DESC"
+            
+            opindex += 1
 
     inputs = {
         "input1":{
@@ -989,7 +993,7 @@ def run_sort(*args, **kwargs):
         inputs[k] = v
         
     #tool_id = ToolNameToID('Sort') # 'sort1'
-    output = local_run_named_tool(history_id, 'sort1', inputs, *args[:3])
+    output = local_run_tool(history_id, 'sort1', inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
 #{"tool_id":"Show beginning1","tool_version":"1.0.0",
@@ -1017,7 +1021,7 @@ def run_selectfirst(*args, **kwargs):
             lines = 10
 
     inputs = {
-        "lineNum":lines,
+        "lineNum":int(lines),
         "input":{
             "values":[{
                 "src":src,
@@ -1436,13 +1440,34 @@ def run_convert_to_tab(*args, **kwargs):
     if 'delimiter' in kwargs.keys():
         delimiter = kwargs['delimiter']
     else:
-        if len(args) > argcount:
-            delimiter = args[argcount]
+        if len(args) > dataparam:
+            delimiter = args[dataparam]
         else:
-            delimiter = "Tab"
+            delimiter = "T"
+            
+    if 'delimeter' == ' ':
+        delimeter = 's'
+    elif 'delimeter' == '.':
+        delimeter = 'Dt'
+    elif 'delimeter' == '.':
+        delimeter = 'C'
+    elif 'delimeter' == '-':
+        delimeter = 'D'
+    elif 'delimeter' == '_':
+        delimeter = 'U'
+    elif 'delimeter' == '.':
+        delimeter = 'Dt'
+    elif 'delimeter' == '|':
+        delimeter = 'P'
+    elif 'delimeter' == ':':
+        delimeter = 'Co'
+    elif 'delimeter' == ';':
+        delimeter = 'Sc'
+    else:
+        delimeter = 'T'
             
     inputs = {
-        "convert_from":cond,
+        "convert_from":delimiter,
         "strip":"true",
         "condense":"true",
         "input":{
@@ -1454,8 +1479,8 @@ def run_convert_to_tab(*args, **kwargs):
         }
     
     #tool_id = ToolNameToID('Filter') # Convert characters1
-    output = local_run_named_tool(history_id, 'Convert characters1', inputs, *args[:3])
-    return output['outputs']['output_file']['id']
+    output = local_run_tool(history_id, 'Convert characters1', inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
 
 def download(*args):
     gi = create_galaxy_instance(*args)
