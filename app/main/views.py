@@ -654,6 +654,7 @@ def functions():
         if immediate:
             result = json.dumps(run_script(machine, script, args))
             runnable.update_status('SUCCESS')
+            db.session.commit()
             return result
         else:
             task = run_script.delay(machine, script, args)
