@@ -493,6 +493,97 @@
            "returns": "string",
            "example":"tabular_data = ToTabular(data1=, [delimeter='Tab , . - _ | : ;'], [history_id=history_id]) # delimeters can be one of T(tab), ' '(whitespace), . (dot), comma(,), dash(-), underscore(_), pipe(|), colon(:), semicolon(;)",
            "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"FastqToSam",
+           "internal":"run_fastq_to_sam",
+           "desc": "Converts Fastq data format to SAM data format.",
+           "returns": "string",
+           "example":"sam_data = FastqToSam(data=, [history_id=history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"BamToSam",
+           "internal":"run_bam_to_sam",
+           "desc": "Converts BAM data format to SAM data format.",
+           "returns": "string",
+           "example":"sam_data = BamToSam(data=, [history_id=history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"SamToInterval",
+           "internal":"run_sam_to_interval",
+           "desc": "Converts SAM data format to Interval data format.",
+           "returns": "string",
+           "example":"interval_data = SamToInterval(data=, [history_id=history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"iJoin",
+           "internal":"run_join_interval",
+           "desc": "Joins two interval datasets.",
+           "returns": "string",
+           "example":"ijoin_data = iJoin(data=, [min=1], [history_id=history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"GetSniffers",
+           "internal":"get_installed_sniffers",
+           "desc": "Get the list of all installed sniffers.",
+           "returns": "string[]",
+           "example":"sniffers = GetSniffers()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"GetDatatypes",
+           "internal":"get_installed_datatypes",
+           "desc": "Get the list of all installed datatypes.",
+           "returns": "string[]",
+           "example":"datatypes = GetDatatypes()",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"GetDatatype",
+           "internal":"get_datatype",
+           "desc": "Get the datatype name of a dataset.",
+           "returns": "string",
+           "example":"datatype = GetDatatype(data_id) #hda or ldda",
+           "runmode": "dist"
        }
    ]
 }

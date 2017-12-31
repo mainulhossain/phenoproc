@@ -381,6 +381,28 @@ def local_run_named_tool(history_id, tool_name, inputs, *args):
 def run_tool(*args):
     return local_run_tool(args[3], args[4], args[5], *arg[:3])
 
+def get_datatype_local(gi, id):
+    try:
+        info = gi.datasets.show_dataset(dataset_id = id, hda_ldda = 'hda')
+    except:
+        try:
+            info = gi.datasets.show_dataset(dataset_id = id, hda_ldda = 'ldda')
+        except:
+            return None
+    return info['data_type']
+
+def get_datatype(*args):
+    gi = create_galaxy_instance(*args)
+    return get_datatype_local(gi, args[3])
+
+def get_installed_datatypes(*args):
+    gi = create_galaxy_instance(*args)
+    return gi.datatypes.get_datatypes()
+
+def get_installed_sniffers(*args):
+    gi = create_galaxy_instance(*args)
+    return gi.datatypes.get_sniffers()
+
 def find_dataset(*args):
     gi = create_galaxy_instance(*args)
     try:
@@ -391,9 +413,9 @@ def find_dataset(*args):
             src = 'ldda'
             info = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = src)
         except:
-            return None, None
-        
+            return None, None        
     return src, info['id']
+
 def find_or_upload_dataset(history_id, *dataargs):
     src, data_id = find_dataset(*dataargs)
     if not data_id:
@@ -674,7 +696,7 @@ def run_cut(*args, **kwargs):
      }
 
     tool_id = ToolNameToID('Cut') # 'Cut1'
-    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
     
 # {
@@ -767,7 +789,7 @@ def run_trim(*args, **kwargs):
     }
     
     tool_id = ToolNameToID('Trim') # 'trimmer'
-    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
 #{"tool_id":"join1","tool_version":"2.0.2",
@@ -1355,7 +1377,7 @@ def run_sickle(*args, **kwargs):
         inputs["readtype|output_n"] = "false"
     
     tool_id = ToolNameToID('Sickle') # toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33
-    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70","tool_version":"0.70",
@@ -1382,7 +1404,7 @@ def run_fastqc(*args, **kwargs):
         }
     
     tool_id = ToolNameToID('FastQC') # toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70
-    output = local_run_named_tool(history_id, tool_id, inputs, *args[:3])
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output_file']['id']
 
 #{"tool_id":"Filter1","tool_version":"1.1.0","inputs":{"input":{"values":[{"src":"hda","name":"all.cDNA (as tabular)","tags":[],"keep":false,"hid":3,"id":"7ef8021ae23ac2fc"}],"batch":false},"cond":"c1=='chr22'","header_lines":0}}
@@ -1419,7 +1441,7 @@ def run_filter(*args, **kwargs):
         }
     
     #tool_id = ToolNameToID('Filter') # Filter1
-    output = local_run_named_tool(history_id, 'Filter1', inputs, *args[:3])
+    output = local_run_tool(history_id, 'Filter1', inputs, *args[:3])
     return output['outputs']['output_file']['id']
 
 #{"tool_id":"Convert characters1","tool_version":"1.0.0","inputs":{"convert_from":"Dt","input":{"values":[{"src":"hda","name":"Filter on data 3","tags":[],"keep":false,"hid":57,"id":"4eb3d2698c4eef35"}],"batch":false},"strip":"true","condense":"true"}}
@@ -1480,6 +1502,164 @@ def run_convert_to_tab(*args, **kwargs):
     
     #tool_id = ToolNameToID('Filter') # Convert characters1
     output = local_run_tool(history_id, 'Convert characters1', inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+# {"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_FastqToSam/2.7.1.0","tool_version":"2.7.1.0","inputs":{"input_type|input_type_selector":"se","input_type|fastq":{"values":[{"src":"hda","name":"FASTQ Groomer on data 1","tags":[],"keep":false,"hid":26,"id":"d343a822bd747ee4"}],"batch":false},"quality_format":"Standard","read_group_name":"A","sample_name":"sample-a","library_name":"","platform_unit":"","platform":"","sequencing_center":"","predicted_insert_size":"","comment":"","description":"","run_date":"","min_q":0,"max_q":93,"strip_unpairied_mate_number":"false","allow_and_ignore_empty_lines":"false","validation_stringency":"LENIENT"}}
+# {"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_FastqToSam/1.136.0","tool_version":"1.136.0","inputs":{"input_type|input_type_selector":"se","input_type|fastq":{"values":[{"src":"hda","name":"SP1.fq","tags":[],"keep":false,"hid":2,"id":"cff44749a1f216fe"}],"batch":false},"quality_format":"Standard","read_group_name":"A","sample_name":"sample-a","library_name":"","platform_unit":"","platform":"","sequencing_center":"","predicted_insert_size":"","comment":"","description":"","run_date":"","min_q":0,"max_q":93,"strip_unpairied_mate_number":"false","allow_and_ignore_empty_lines":"false","validation_stringency":"LENIENT"}}
+# {"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_FastqToSam/1.136.0","tool_version":"1.136.0","inputs":{"input_type|input_type_selector":"pe","input_type|fastq":{"values":[{"src":"hda","name":"SP1.fq","tags":[],"keep":false,"hid":2,"id":"cff44749a1f216fe"}],"batch":false},"input_type|fastq2":{"values":[{"src":"hda","name":"SP1.fq","tags":[],"keep":false,"hid":2,"id":"cff44749a1f216fe"}],"batch":false},"quality_format":"Standard","read_group_name":"A","sample_name":"sample-a","library_name":"","platform_unit":"","platform":"","sequencing_center":"","predicted_insert_size":"","comment":"","description":"","run_date":"","min_q":0,"max_q":93,"strip_unpairied_mate_number":"false","allow_and_ignore_empty_lines":"false","validation_stringency":"LENIENT"}}
+def run_fastq_to_sam(*args, **kwargs):    
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    dataparam = 3
+    check_arg = lambda x: x not in kwargs.keys()
+    if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+        dataparam += 1
+    
+    inputs = {
+        "input_type|input_type_selector":"se",
+        "input_type|fastq":{
+            "values":[{
+                "src":src, 
+                "id":data_id
+                }]
+            },
+        "quality_format":"Standard",
+        "read_group_name":"A",
+        "sample_name":"sample-a",
+        "library_name":"",
+        "platform_unit":"",
+        "platform":"",
+        "sequencing_center":"",
+        "predicted_insert_size":"",
+        "comment":"",
+        "description":"",
+        "run_date":"",
+        "min_q":0,
+        "max_q":93,
+        "strip_unpairied_mate_number":"false",
+        "allow_and_ignore_empty_lines":"false",
+        "validation_stringency":"LENIENT"
+    }
+    
+    tool_id = ToolNameToID('FastqToSam') # 
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['out_file1']['id']
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1","tool_version":"2.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"FastqToSam on data 2: reads as unaligned BAM","tags":[],"keep":false,"hid":4,"id":"1587e0955a89debb"}],"batch":false},"header":"-h"}}
+def run_bam_to_sam(*args, **kwargs):
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    inputs = {
+        "header":"-h",
+        "input1":{
+            "values":[{
+                "src":src, 
+                "id":data_id
+                }]
+            }
+        }
+    
+    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1" #ToolNameToID('FastQC')
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['output_file']['id']
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1","tool_version":"1.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"BAM-to-SAM on data 114: converted SAM","tags":[],"keep":false,"hid":115,"id":"c0279aab05812500"}],"batch":false},"print_all":"-p"}}
+def run_sam_to_interval():
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
+    if data_id is None:
+        raise "No dataset given. Give a dataset path or hda or ldda"
+
+    inputs = {
+        "print_all":"-p",
+        "input1":{
+            "values":[{
+                "src":src, 
+                "id":data_id
+                }]
+            }
+        }
+    
+    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1" #ToolNameToID('FastQC')
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']['output_file']['id']
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/join/gops_join_1/1.0.0","tool_version":"1.0.0","inputs":{"input1":{"values":[{"src":"hda","name":"Converted Interval","tags":[],"keep":false,"hid":116,"id":"e037fdb493429c2a"}],"batch":false},"input2":{"values":[{"src":"hda","name":"Converted Interval","tags":[],"keep":false,"hid":116,"id":"e037fdb493429c2a"}],"batch":false},"min":1,"fill":"none"}}
+def run_join_interval(*args, **kwargs):
+    
+    history_id = get_history(**kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+    
+    tempargs = list(args[:3])
+    dataparam = 3
+    data1, data1_id = get_dataset('hda1', 'ldda1', 'data1', history_id, *tempargs, **datakwargs)
+    if not data1_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data1_id:
+            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+
+    check_arg = lambda x: x not in kwargs.keys()
+    
+    tempargs = list(args[:3])
+    data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
+    if not data2_id:
+        if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
+            dataparam += 1
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data2_id:
+            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+        
+    if 'min' in kwargs.keys():
+        field1 = kwargs['min']
+    else:
+        if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
+            dataparam += 1
+        if dataparam < len(args):
+            field1 = args[dataparam]
+        else:
+            field1 = "1"
+    
+               
+    inputs = {
+        "min":str(field1),
+        "fill":"none",
+        "input1":{
+            "values":[{
+                "src":data1,
+                "id":data1_id
+                }]
+            },
+        "input2":{
+            "values":[{
+                "src":data2,
+                "id":data2_id
+                }]
+            }
+    }
+    
+    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/join/gops_join_1/1.0.0"
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
 def download(*args):
