@@ -652,7 +652,9 @@ def functions():
         db.session.commit()
         
         if immediate:
-            return json.dumps(run_script(machine, script, args))
+            result = json.dumps(run_script(machine, script, args))
+            runnable.update_status('SUCCESS')
+            return result
         else:
             task = run_script.delay(machine, script, args)
             runnable.celery_id = task.id
