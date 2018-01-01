@@ -652,14 +652,20 @@ def functions():
         db.session.commit()
         
         if immediate:
-            result = json.dumps(run_script(machine, script, args))
-            runnable.update_status('SUCCESS')
-            db.session.commit()
+            try:
+                result = json.dumps(run_script(machine, script, args))
+                runnable.status = 'SUCCESS'
+            except:
+                runnable.status = 'FAILURE'
+                result = json.dumps({})
+            runnable.out = "\n".join(machine.context.out)
+            runnable.err = "\n".join(machine.context.err)
+            runnable.update()
             return result
         else:
             task = run_script.delay(machine, script, args)
             runnable.celery_id = task.id
-            db.session.commit()
+            runnable.update()
             return json.dumps({})
     
     level = int(request.args.get('level')) if request.args.get('level') else 0
