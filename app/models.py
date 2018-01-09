@@ -617,14 +617,23 @@ class TaskLog(db.Model):
     def updateTime(self):
         self.time = datetime.utcnow()
         db.session.add(self)
-        
+
+class Status:
+    PENDING = 'PENDING'
+    RECEIVED = 'RECEIVED'
+    STARTED = 'STARTED'
+    SUCCESS = 'SUCCESS'
+    FAILURE = 'FAILURE'
+    REVOKED = 'REVOKED'
+    RETRY = 'RETRY'
+    
 class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     celery_id = db.Column(db.String(64))
     name = db.Column(db.String(64))
-    status = db.Column(db.String(30), default='PENDING')
+    status = db.Column(db.String(30), default=Status.PENDING)
     script = db.Column(db.Text)
     out = db.Column(db.Text)
     err = db.Column(db.Text)
@@ -668,7 +677,7 @@ class Runnable(db.Model):
     def create_runnable(user_id):
         runnable = Runnable()
         runnable.user_id = user_id
-        runnable.status = 'PENDING'
+        runnable.status = Status.PENDING
         db.session.add(runnable)
         db.session.commit()
         return runnable.id

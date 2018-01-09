@@ -25,7 +25,7 @@ from ..biowl.dsl.interpreter import Interpreter
 from ..biowl.dsl.pygen import CodeGenerator
  
 from ..biowl.timer import Timer
-from ..models import Runnable
+from ..models import Runnable, Status
 from ..biowl.tasks import runnable_manager
 
 import json
@@ -653,15 +653,19 @@ def functions():
         
         if immediate:
             try:
-                result = json.dumps(run_script(machine, script, args))
-                runnable.status = 'SUCCESS'
+                runnable.status = Status.STARTED
+                db.session.commit()
+                
+                result = run_script(machine, script, args)
+                runnable = Runnable.query.get(runnable_id)
+                runnable.status = Status.FAILED if result['err'] else Status.SUCCESS
+                runnable.out = "\n".join(machine.context.out)
+                runnable.err = "\n".join(machine.context.err)
+                runnable.update()
             except:
-                runnable.status = 'FAILURE'
-                result = json.dumps({})
-            runnable.out = "\n".join(machine.context.out)
-            runnable.err = "\n".join(machine.context.err)
-            runnable.update()
-            return result
+                result = {}
+                
+            return json.dumps(result)
         else:
             task = run_script.delay(machine, script, args)
             runnable.celery_id = task.id

@@ -74,7 +74,7 @@ def run_script(self, machine, script, args):
                 machine.args_to_symtab(args_tokens) 
             prog = parser.parse(script)
             machine.run(prog)
-        duration = t.secs
+        duration = float("{0:.3f}".format(t.secs))
     except:
         machine.context.err.append("Error in parse and interpretation")
     finally:

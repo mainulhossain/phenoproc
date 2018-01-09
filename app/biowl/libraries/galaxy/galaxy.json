@@ -192,7 +192,7 @@
            "internal":"history_name_to_ids",
            "desc": "Gets the ids of history name.",
            "returns": "string[]",
-           "example":"HistoryNameToIDs(history_id)",
+           "example":"HistoryNameToIDs(history_name)",
            "runmode": "dist"
        },
        {
@@ -543,7 +543,7 @@
            "internal":"run_join_interval",
            "desc": "Joins two interval datasets.",
            "returns": "string",
-           "example":"ijoin_data = iJoin(data=, [min=1], [history_id=history_id])",
+           "example":"ijoin_data = iJoin(data1=, data2=, [min=1], [history_id=history_id])",
            "runmode": "dist"
        },
        {

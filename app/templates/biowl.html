@@ -468,12 +468,12 @@ background-color: White;
         $(document).ready(function() {
             //$('[data-toggle="tooltip"]').tooltip();
             
-            refreshId = setInterval( function() 
+            refreshId = setInterval(function() 
             {
                 if (runnablesViewModel !== undefined) {
                 	runnablesViewModel.load();
                 }
-            }, 3000);
+            }, 10000); //  refresh the executables once in 10 seconds
         });
         
     });
