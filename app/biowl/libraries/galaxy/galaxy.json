@@ -192,7 +192,7 @@
            "internal":"history_name_to_ids",
            "desc": "Gets the ids of history name.",
            "returns": "string[]",
-           "example":"HistoryNameToIDs(history_name)",
+           "example":"history_ids = HistoryNameToIDs(history_name)",
            "runmode": "dist"
        },
        {
