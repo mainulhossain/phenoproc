@@ -354,7 +354,7 @@ def local_upload(*args, **kwargs):
         else:
             raise 'No http(s) or ftp addresses given.'
     else:
-        job = fs_upload(get_normalized_path(path), *args, **kwargs)
+        job = fs_upload(get_normalized_path(args[3]), *args, **kwargs)
         return job['outputs'][0]['id']
     
     job_info = wait_for_job_completion(gi, job['jobs'][0]['id'])
