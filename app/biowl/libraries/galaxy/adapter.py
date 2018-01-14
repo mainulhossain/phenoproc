@@ -478,7 +478,7 @@ def run_fastq_groomer(*args, **kwargs):
 #     dataset_id = dataset_ids[0]
     input = {"input_file":{"values":[{"src":src, "id":data_id}]}}
     
-    tool_id = tool_name_to_id('FASTQ Groomer') # 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4'
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4' #tool_name_to_id('FASTQ Groomer')
     output = local_run_tool(history_id, tool_id, input, *args[:3])
     return output['outputs']['output_file']['id']
 
@@ -615,7 +615,7 @@ def run_bwa(*args, **kwargs):
          "batch":False
          }
     
-    tool_id = tool_name_to_id('Map with BWA') #['toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa/0.7.15.2']
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa/0.7.15.2' #tool_name_to_id('Map with BWA')
     output = local_run_tool(history_id, tool_id, input, *args[:3])
 #     {'model_class': 'Job', 
 #      'outputs': {
@@ -699,7 +699,7 @@ def run_cut(*args, **kwargs):
         }
      }
 
-    tool_id = tool_name_to_id('Cut') # 'Cut1'
+    tool_id = 'Cut1' #tool_name_to_id('Cut')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
     
@@ -792,7 +792,7 @@ def run_trim(*args, **kwargs):
         "ignore":ignore
     }
     
-    tool_id = tool_name_to_id('Trim') # 'trimmer'
+    tool_id = 'trimmer' #tool_name_to_id('Trim')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1215,7 +1215,7 @@ def run_fastuniq(*args, **kwargs):
         "format":format,
     }
 
-    tool_id = tool_name_to_id('FastUniq') # 'toolshed.g2.bx.psu.edu/repos/portiahollyoak/fastuniq/fastuniq/1.1'
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/portiahollyoak/fastuniq/fastuniq/1.1' #tool_name_to_id('FastUniq')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1278,7 +1278,7 @@ def run_clip_adapter(*args, **kwargs):
         inputs["clip_source|clip_source_list"] = "user"
         inputs["clip_source|clip_sequence"] = source
 
-    tool_id = tool_name_to_id('Clip adapter') #toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1' #tool_name_to_id('Clip adapter')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1380,7 +1380,7 @@ def run_sickle(*args, **kwargs):
          }
         inputs["readtype|output_n"] = "false"
     
-    tool_id = tool_name_to_id('Sickle') # toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33' #tool_name_to_id('Sickle')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output']['id']
 
@@ -1407,7 +1407,7 @@ def run_fastqc(*args, **kwargs):
             }
         }
     
-    tool_id = tool_name_to_id('FastQC') # toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70' #tool_name_to_id('FastQC')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output_file']['id']
 
@@ -1551,7 +1551,7 @@ def run_fastq_to_sam(*args, **kwargs):
         "validation_stringency":"LENIENT"
     }
     
-    tool_id = tool_name_to_id('FastqToSam') # 
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_FastqToSam/2.7.1.0' #tool_name_to_id('FastqToSam') # 
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
