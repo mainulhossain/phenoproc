@@ -175,6 +175,10 @@ def tool_name_to_ids(*args):
         tool_ids.append(t['id'])
     return tool_ids
 
+def tool_name_to_id(*args):
+    tool_ids = tool_name_to_ids(*args)
+    return tool_ids[0] if tool_ids else None
+
 def get_tool_names(*args):
     tools = get_tools_json(*args)
     tool_names = []
@@ -474,7 +478,7 @@ def run_fastq_groomer(*args, **kwargs):
 #     dataset_id = dataset_ids[0]
     input = {"input_file":{"values":[{"src":src, "id":data_id}]}}
     
-    tool_id = ToolNameToID('FASTQ Groomer') # 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4'
+    tool_id = tool_name_to_id('FASTQ Groomer') # 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4'
     output = local_run_tool(history_id, tool_id, input, *args[:3])
     return output['outputs']['output_file']['id']
 
@@ -611,7 +615,7 @@ def run_bwa(*args, **kwargs):
          "batch":False
          }
     
-    tool_id = ToolNameToID('Map with BWA') #['toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa/0.7.15.2']
+    tool_id = tool_name_to_id('Map with BWA') #['toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa/0.7.15.2']
     output = local_run_tool(history_id, tool_id, input, *args[:3])
 #     {'model_class': 'Job', 
 #      'outputs': {
@@ -695,7 +699,7 @@ def run_cut(*args, **kwargs):
         }
      }
 
-    tool_id = ToolNameToID('Cut') # 'Cut1'
+    tool_id = tool_name_to_id('Cut') # 'Cut1'
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
     
@@ -788,7 +792,7 @@ def run_trim(*args, **kwargs):
         "ignore":ignore
     }
     
-    tool_id = ToolNameToID('Trim') # 'trimmer'
+    tool_id = tool_name_to_id('Trim') # 'trimmer'
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -864,7 +868,7 @@ def run_join(*args, **kwargs):
         "fill_empty_columns|fill_empty_columns_switch":"no_fill"
     }
     
-    tool_id = 'join1' # ToolNameToID('Join two Datasets')
+    tool_id = 'join1' # tool_name_to_id('Join two Datasets')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -949,7 +953,7 @@ def run_group(*args, **kwargs):
     for k, v in opstr.items():
         inputs[k] = v
 
-    #tool_id = ToolNameToID('Group') # 'Grouping1'
+    #tool_id = tool_name_to_id('Group') # 'Grouping1'
     output = local_run_tool(history_id, 'Grouping1', inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1014,7 +1018,7 @@ def run_sort(*args, **kwargs):
     for k, v in opstr.items():
         inputs[k] = v
         
-    #tool_id = ToolNameToID('Sort') # 'sort1'
+    #tool_id = tool_name_to_id('Sort') # 'sort1'
     output = local_run_tool(history_id, 'sort1', inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1052,7 +1056,7 @@ def run_selectfirst(*args, **kwargs):
         }
      }
     
-    #tool_id = ToolNameToID('Select First') # 'Show beginning1'
+    #tool_id = tool_name_to_id('Select First') # 'Show beginning1'
     output = local_run_tool(history_id, 'Show beginning1', inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1146,7 +1150,7 @@ def run_compare(*args, **kwargs):
         "mode":mode,
     }
 
-    #tool_id = ToolNameToID('Compare two Datasets') # 'comp1'
+    #tool_id = tool_name_to_id('Compare two Datasets') # 'comp1'
     output = local_run_tool(history_id, 'comp1', inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1211,7 +1215,7 @@ def run_fastuniq(*args, **kwargs):
         "format":format,
     }
 
-    tool_id = ToolNameToID('FastUniq') # 'toolshed.g2.bx.psu.edu/repos/portiahollyoak/fastuniq/fastuniq/1.1'
+    tool_id = tool_name_to_id('FastUniq') # 'toolshed.g2.bx.psu.edu/repos/portiahollyoak/fastuniq/fastuniq/1.1'
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1274,7 +1278,7 @@ def run_clip_adapter(*args, **kwargs):
         inputs["clip_source|clip_source_list"] = "user"
         inputs["clip_source|clip_sequence"] = source
 
-    tool_id = ToolNameToID('Clip adapter') #toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1
+    tool_id = tool_name_to_id('Clip adapter') #toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1376,7 +1380,7 @@ def run_sickle(*args, **kwargs):
          }
         inputs["readtype|output_n"] = "false"
     
-    tool_id = ToolNameToID('Sickle') # toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33
+    tool_id = tool_name_to_id('Sickle') # toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output']['id']
 
@@ -1403,7 +1407,7 @@ def run_fastqc(*args, **kwargs):
             }
         }
     
-    tool_id = ToolNameToID('FastQC') # toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70
+    tool_id = tool_name_to_id('FastQC') # toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output_file']['id']
 
@@ -1440,7 +1444,7 @@ def run_filter(*args, **kwargs):
             }
         }
     
-    #tool_id = ToolNameToID('Filter') # Filter1
+    #tool_id = tool_name_to_id('Filter') # Filter1
     output = local_run_tool(history_id, 'Filter1', inputs, *args[:3])
     return output['outputs']['output_file']['id']
 
@@ -1500,7 +1504,7 @@ def run_convert_to_tab(*args, **kwargs):
             }
         }
     
-    #tool_id = ToolNameToID('Filter') # Convert characters1
+    #tool_id = tool_name_to_id('Filter') # Convert characters1
     output = local_run_tool(history_id, 'Convert characters1', inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1547,7 +1551,7 @@ def run_fastq_to_sam(*args, **kwargs):
         "validation_stringency":"LENIENT"
     }
     
-    tool_id = ToolNameToID('FastqToSam') # 
+    tool_id = tool_name_to_id('FastqToSam') # 
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['out_file1']['id']
 
@@ -1571,7 +1575,7 @@ def run_bam_to_sam(*args, **kwargs):
             }
         }
     
-    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1" #ToolNameToID('FastQC')
+    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1" #tool_name_to_id('FastQC')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output_file']['id']
 
@@ -1595,7 +1599,7 @@ def run_sam_to_interval():
             }
         }
     
-    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1" #ToolNameToID('FastQC')
+    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1" #tool_name_to_id('FastQC')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output_file']['id']
 

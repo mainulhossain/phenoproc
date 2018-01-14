@@ -150,7 +150,7 @@
            "level": "1",
            "group": "Analysis",
            "name":"ToolNameToID",
-           "internal":"tool_name_to_ids",
+           "internal":"tool_name_to_id",
            "desc": "Gets the ids of a tool from name. It may return multiple ids if multiple tools with same name are installed. Use GetToolInfo to select the right one.",
            "returns": "string[]",
            "example":"ToolNameToID(tool_name)",
