@@ -1553,7 +1553,7 @@ def run_fastq_to_sam(*args, **kwargs):
     
     tool_id = 'toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_FastqToSam/2.7.1.0' #tool_name_to_id('FastqToSam') # 
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']['out_file1']['id']
+    return output['outputs']['outFile']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1","tool_version":"2.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"FastqToSam on data 2: reads as unaligned BAM","tags":[],"keep":false,"hid":4,"id":"1587e0955a89debb"}],"batch":false},"header":"-h"}}
 def run_bam_to_sam(*args, **kwargs):
