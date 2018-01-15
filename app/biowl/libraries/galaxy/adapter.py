@@ -986,8 +986,8 @@ def run_sort(*args, **kwargs):
     if op:
         opitems = op.split('|')
         opstr['column'] = opitems[0] if len(opitems[0]) > 0 and opitems[0] else None
-        opstr['style'] = opitems[1] if len(opitems) > 1 and opitems[1] else "num"
-        opstr['order'] = opitems[2] if len(opitems) > 2 and opitems[2] else "DESC"
+        opstr['style'] = opitems[1].lower() if len(opitems) > 1 and opitems[1] else "num"
+        opstr['order'] = opitems[2].upper() if len(opitems) > 2 and opitems[2] else "DESC"
         
     opindex = 1                        
     while True:
@@ -1664,7 +1664,7 @@ def run_join_interval(*args, **kwargs):
     
     tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/join/gops_join_1/1.0.0"
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']['out_file1']['id']
+    return output['outputs']['output']['id']
 
 def download(*args):
     gi = create_galaxy_instance(*args)
