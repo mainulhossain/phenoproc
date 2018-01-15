@@ -1580,7 +1580,7 @@ def run_bam_to_sam(*args, **kwargs):
     return output['outputs']['output1']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1","tool_version":"1.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"BAM-to-SAM on data 114: converted SAM","tags":[],"keep":false,"hid":115,"id":"c0279aab05812500"}],"batch":false},"print_all":"-p"}}
-def run_sam_to_interval():
+def run_sam_to_interval(*args, **kwargs):
     history_id = get_history(**kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
@@ -1601,7 +1601,7 @@ def run_sam_to_interval():
     
     tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1" #tool_name_to_id('FastQC')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']['output_file']['id']
+    return output['outputs']['out_file1']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/join/gops_join_1/1.0.0","tool_version":"1.0.0","inputs":{"input1":{"values":[{"src":"hda","name":"Converted Interval","tags":[],"keep":false,"hid":116,"id":"e037fdb493429c2a"}],"batch":false},"input2":{"values":[{"src":"hda","name":"Converted Interval","tags":[],"keep":false,"hid":116,"id":"e037fdb493429c2a"}],"batch":false},"min":1,"fill":"none"}}
 def run_join_interval(*args, **kwargs):
