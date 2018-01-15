@@ -66,7 +66,7 @@ class Interpreter:
         Executes "and" expression.
         :param expr:
         '''
-        if expr is empty:
+        if not expr:
             return True
         right = self.eval(expr[-1])
         if len(expr) == 1:
