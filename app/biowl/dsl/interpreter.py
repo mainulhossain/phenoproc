@@ -146,9 +146,9 @@ class Interpreter:
         '''
         cond = self.eval(expr[0])
         if cond:
-            self.run_multstmt(lambda: self.eval(expr[1]))
+            self.eval(expr[1])
         elif len(expr) > 3 and expr[3]:
-            self.run_multstmt(lambda: self.eval(expr[3]))
+            self.eval(expr[3])
     
     def dolock(self, expr):
         if not self.context.symtab.var_exists(expr[0]) or not isinstance(self.context.symtab.get_var(expr[0]), _thread.RLock):
@@ -190,14 +190,10 @@ class Interpreter:
         Execute a for expression.
         :param expr:
         '''
-        local_symtab = self.context.append_local_symtab()
-        local_symtab.add_var(expr[0], None)
-        try:
-            for var in self.eval(expr[1]):
-                local_symtab.update_var(expr[0], var)
-                self.eval(expr[2])
-        finally:
-            self.context.pop_local_symtab()
+        self.context.add_var(expr[0], None)
+        for var in self.eval(expr[1]):
+            self.context.update_var(expr[0], var)
+            self.eval(expr[2])
     
     def eval_value(self, str_value):
         '''
