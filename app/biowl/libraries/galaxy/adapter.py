@@ -1577,7 +1577,7 @@ def run_bam_to_sam(*args, **kwargs):
     
     tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1" #tool_name_to_id('FastQC')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']['output_file']['id']
+    return output['outputs']['output1']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1","tool_version":"1.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"BAM-to-SAM on data 114: converted SAM","tags":[],"keep":false,"hid":115,"id":"c0279aab05812500"}],"batch":false},"print_all":"-p"}}
 def run_sam_to_interval():
