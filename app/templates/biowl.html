@@ -771,12 +771,16 @@ background-color: White;
             
             self.runBioWL = function(task) {
               $('#refresh').show();
-              ajaxcalls.simple(self.tasksURI, 'GET', {'script': editor.getSession().getValue(), 'args': $('#args').val(), 'immediate': $('#immediate').prop('checked')}).done(function(data) {
-
+              var formdata = new FormData();
+              formdata.append('script', editor.getSession().getValue());
+              formdata.append('args', $('#args').val());
+              formdata.append('immediate', $('#immediate').prop('checked'));
+              ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
             	  $('#refresh').hide();
                 	
                 	if (data === undefined)
                 		return;
+                	data = JSON.parse(data)
                 	if ($('#immediate').prop('checked'))
                 	{
 	                	var text = '';
@@ -798,12 +802,23 @@ background-color: White;
                     $("#error").val(data['err']);
                     $("#duration").text(data['duration']);
                     runnablesViewModel.load();                    
+                }).fail(function(jqXHR, textStatus) {
+                	$('#refresh').hide();
+                	$("#error").val(textStatus);
                 });
             }
             self.generatePythonCode = function(task) {
-                $('#refresh').show();
-              ajaxcalls.simple(self.tasksURI, 'POST', {'code': editor.getSession().getValue()}).done(function(data) {
+            	$('#refresh').show();
+            	var formdata = new FormData();
+                formdata.append('code', editor.getSession().getValue());
+                formdata.append('args', $('#args').val());
+                formdata.append('immediate', $('#immediate').prop('checked'));
+                ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                     $('#refresh').hide();
+                    if (data === undefined)
+                        return;
+                    
+                    data = JSON.parse(data)
 
                     $("#output").val(data.out);
                     

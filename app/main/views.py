@@ -637,44 +637,49 @@ def datasources():
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
-    if request.args.get('script') or request.args.get('code'):
-        script = request.args.get('script') if request.args.get('script') else request.args.get('code')
-        machine = interpreter.interpreter if request.args.get('script') else interpreter.codeGenerator
-        args = request.args.get('args') if request.args.get('args') else ''
-        immediate = request.args.get('immediate') == 'true' if request.args.get('immediate') else False
-        
-        runnable_id = Runnable.create_runnable(current_user.id)
-        runnable = Runnable.query.get(runnable_id)
-        runnable.script = script
-        runnable.name = script[:min(40, len(script))]
-        if len(script) > len(runnable.name):
-            runnable.name += "..."
-        db.session.commit()
-        
-        if immediate:
-            try:
-                runnable.status = Status.STARTED
-                db.session.commit()
-                
-                result = run_script(machine, script, args)
-                runnable = Runnable.query.get(runnable_id)
-                runnable.status = Status.FAILED if result['err'] else Status.SUCCESS
-                runnable.out = "\n".join(machine.context.out)
-                runnable.err = "\n".join(machine.context.err)
+    if request.method == "POST":
+        if request.form.get('script') or request.form.get('code'):
+            script = request.form.get('script') if request.form.get('script') else request.form.get('code')
+            machine = interpreter.interpreter if request.form.get('script') else interpreter.codeGenerator
+            args = request.form.get('args') if request.form.get('args') else ''
+            immediate = request.form.get('immediate') == 'true' if request.form.get('immediate') else False
+            
+            runnable_id = Runnable.create_runnable(current_user.id)
+            runnable = Runnable.query.get(runnable_id)
+            runnable.script = script
+            runnable.name = script[:min(40, len(script))]
+            if len(script) > len(runnable.name):
+                runnable.name += "..."
+            db.session.commit()
+            
+            if immediate:
+                try:
+                    runnable.status = Status.STARTED
+                    db.session.commit()
+                    
+                    result = run_script(machine, script, args)
+                    runnable = Runnable.query.get(runnable_id)
+                    if result:
+                        runnable.status = Status.FAILURE if result['err'] else Status.SUCCESS
+                        runnable.out = "\n".join(result['out'])
+                        runnable.err = "\n".join(result['err'])
+                    else:
+                        runnable.status = Status.FAILURE
+                        
+                    runnable.update()
+                except:
+                    result = {}
+                    
+                return json.dumps(result)
+            else:
+                task = run_script.delay(machine, script, args)
+                runnable.celery_id = task.id
                 runnable.update()
-            except:
-                result = {}
-                
-            return json.dumps(result)
-        else:
-            task = run_script.delay(machine, script, args)
-            runnable.celery_id = task.id
-            runnable.update()
-            return json.dumps({})
-    
-    level = int(request.args.get('level')) if request.args.get('level') else 0
-    funcs =[func for func in interpreter.funcs if int(func['level']) <= level]
-    return json.dumps({'functions':  funcs})
+                return json.dumps({})
+    elif request.method == "GET":
+        level = int(request.args.get('level')) if request.args.get('level') else 0
+        funcs =[func for func in interpreter.funcs if int(func['level']) <= level]
+        return json.dumps({'functions':  funcs})
 
 class Samples():
     @staticmethod
