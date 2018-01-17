@@ -6,7 +6,7 @@
         "    history_ids = HistoryNameToIDs('celery') ",
         "    history_id = history_ids[0]",
         "    input1 = Upload('/public/paeruginosa-reads/SRR396636.sra_1.fastq', history_id = history_id)",
-        "    input2 = Upload('/public/paeruginosa-reads/SRR396636.sra_1.fastq')",
+        "    input2 = Upload('/public/paeruginosa-reads/SRR396636.sra_2.fastq')",
         "    ",
         "    sam_input1 = FastqToSam(data=input1, history_id=history_id)",
         "    sam_input2 = FastqToSam(data=input2, history_id=history_id)",
