@@ -8,7 +8,20 @@ import subprocess
 from ..fileop import IOHelper
 from ..exechelper import func_exec_run
 
-#from phenoparser import Context
+# import_module can't load the following modules in the NGINX server
+# while running in 'immediate' mode. The early imports here are needed.
+# This needs to be fixed, otherwise dynamic loading will not work.
+try:
+    import app.biowl.libraries.fastqc.adapter
+    import app.biowl.libraries.flash.adapter
+    import app.biowl.libraries.hadoop.adapter
+    import app.biowl.libraries.pear.adapter
+    import app.biowl.libraries.seqtk.adapter
+    import app.biowl.libraries.usearch.adapter
+    import app.biowl.libraries.vsearch.adapter
+    import app.biowl.libraries.galaxy.adapter
+except:
+    pass
 
 def load_module(modulename):
     '''
