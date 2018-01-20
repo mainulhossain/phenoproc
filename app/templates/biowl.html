@@ -29,6 +29,27 @@ background-color: LightGray;
 background-color: White;
 }
 
+.panel-actions {
+  margin-top: -20px;
+  margin-bottom: 0;
+  text-align: right;
+}
+.panel-actions a {
+  color:#333;
+}
+.panel-fullscreen {
+    display: block;
+    z-index: 9999;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    overflow: auto;
+}
+
 </style>
 
 {% endblock %}
@@ -88,13 +109,16 @@ background-color: White;
            <div class="col-md-6" style="padding:2px" data-bind="with: tasksViewModel">
                <div class="panel panel-primary" style="margin:2px">
                    <div class="panel-heading">
-                    <h3>Bioinformatics Workflow Language</h3>
+                    <h3 class="panel-title">Bioinformatics Workflow Language</h3>
                     <span class="bg-info text-info">Write script to create a pipeline. Drag functions/samples from the right.</span><br>
+                    <ul class="list-inline panel-actions">
+                        <li><a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a></li>
+                    </ul>
                    </div>
                    <div class="panel-body" style="padding=0; margin=0px;">
        		        <textarea rows="16" style="width: 100%; height=100%; padding=0; margin=0px;" id="script"></textarea><br>
                     <span class="text-secondary">Arguments:</span>
-       		        <textarea rows="1" style="width: 100%; height=100%; padding=0; margin=0px;" id="args"></textarea><br>
+       		        <textarea rows="1" style="width: 100%; padding=0; margin=0px;" id="args"></textarea><br>
 	            </div>
 	        </div>
 	        <div class="panel panel-primary" style="padding:0px; border:0;margin:4px">
@@ -474,6 +498,26 @@ background-color: White;
                 	runnablesViewModel.load();
                 }
             }, 10000); //  refresh the executables once in 10 seconds
+            
+          //Toggle fullscreen
+            $("#panel-fullscreen").click(function (e) {
+                e.preventDefault();
+                
+                var $this = $(this);
+            
+                if ($this.children('i').hasClass('glyphicon-resize-full'))
+                {
+                    $this.children('i').removeClass('glyphicon-resize-full');
+                    $this.children('i').addClass('glyphicon-resize-small');
+                }
+                else if ($this.children('i').hasClass('glyphicon-resize-small'))
+                {
+                    $this.children('i').removeClass('glyphicon-resize-small');
+                    $this.children('i').addClass('glyphicon-resize-full');
+                }
+                $(this).closest('.panel').toggleClass('panel-fullscreen');
+                $('#aceeditor').css("width", "100%");
+            });
         });
         
     });
@@ -691,6 +735,7 @@ background-color: White;
 //     editor.setOptions({       
 //         fontSize: "12pt"
 //       });
+    editor.setShowPrintMargin(false);
     
     $("#aceeditor").droppable({
 
@@ -727,7 +772,9 @@ background-color: White;
         }
       });
 
-    
+    textarea.on('resize', function(){
+        alert()
+  });
         function TasksViewModel() {
             var self = this;
             self.tasksURI = '/functions';
