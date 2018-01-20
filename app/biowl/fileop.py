@@ -637,7 +637,7 @@ class GalaxyFileSystem():
                     histories = self.client.histories.get_histories()
                     data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in histories]
                 elif len(parts) == 2:
-                    data_json['folder'] = True
+                    data_json['folder'] =  True
                     datasets = gi.histories.show_matching_datasets(historyid, parts[1])
                     data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in datasets]
             return data_json
