@@ -637,9 +637,9 @@ class GalaxyFileSystem():
                     histories = self.client.histories.get_histories()
                     data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in histories]
                 elif len(parts) == 2:
-                    if parts[0] == self.hdaprefix:
-                        datasets = gi.histories.show_matching_datasets(historyid, name)
-                        data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in datasets]
+                    data_json['folder'] = True
+                    datasets = gi.histories.show_matching_datasets(historyid, parts[1])
+                    data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in datasets]
             return data_json
      
     def save_upload(self, file, fullpath):
