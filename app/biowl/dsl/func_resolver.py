@@ -12,14 +12,18 @@ from ..exechelper import func_exec_run
 # while running in 'immediate' mode. The early imports here are needed.
 # This needs to be fixed, otherwise dynamic loading will not work.
 try:
+    import app.biowl.libraries.galaxy.adapter
+except:
+    pass
+
+try:
     import app.biowl.libraries.fastqc.adapter
     import app.biowl.libraries.flash.adapter
     import app.biowl.libraries.hadoop.adapter
     import app.biowl.libraries.pear.adapter
     import app.biowl.libraries.seqtk.adapter
     import app.biowl.libraries.usearch.adapter
-    import app.biowl.libraries.vsearch.adapter
-    import app.biowl.libraries.galaxy.adapter
+    import app.biowl.libraries.vsearch.adapter    
 except:
     pass
 

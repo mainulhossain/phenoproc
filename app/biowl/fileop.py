@@ -23,7 +23,6 @@ try:
     from bioblend.galaxy import GalaxyInstance
     from bioblend.galaxy.histories import HistoryClient
     from bioblend.galaxy.libraries import LibraryClient
-    from .dsl.libraries.galaxy import adapter as gxAdapter 
 except:
     pass
 
