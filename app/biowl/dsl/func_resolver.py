@@ -101,12 +101,12 @@ class Library():
                     name = f["name"] if f.get("name") else f["internal"]
                     internal = f["internal"] if f.get("internal") else f["name"]
                     module = f["module"] if f.get("module") else None
-                    package = f["package"] if f.get("package") else None
-                    example = f["example"] if f.get("example") else None
-                    desc = f["desc"] if f.get("desc") else None
-                    runmode = f["runmode"] if f.get("runmode") else None
+                    package = f["package"] if f.get("package") else ""
+                    example = f["example"] if f.get("example") else ""
+                    desc = f["desc"] if f.get("desc") else ""
+                    runmode = f["runmode"] if f.get("runmode") else ""
                     level = int(f["level"]) if f.get("level") else 0
-                    group = f["group"] if f.get("group") else None
+                    group = f["group"] if f.get("group") else ""
                     params = []
                     if f.get("params"):
                         for param in f["params"]:

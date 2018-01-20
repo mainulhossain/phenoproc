@@ -587,7 +587,7 @@ class InterpreterHelper():
         for f in self.interpreter.context.library.funcs.values():
             funclist.extend(f)
         
-        funclist.sort(key=lambda x: (x.package, x.name))
+        funclist.sort(key=lambda x: (x.group, x.name))
         for f in funclist:
             self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": f.example if f.example else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else ""}) 
     
