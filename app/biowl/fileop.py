@@ -510,21 +510,41 @@ class GalaxyFileSystem():
         if not path.startswith(self.localdir):
             return path
         return path[len(self.localdir):]
+    
+    def make_fullpath(self, path):
+        path = self.normalize_path(path)
+        return os.path.join(self.prefix, path)
         
     def create_folder(self, path):
         try:
             path = self.normalize_path(path)
-            self.client.makedirs(path)
+            parts = pathlib.Path(normalized_path).parts
+            if len(parts) > 3:
+                raise ValueError("Galaxy path may have maximum 3 parts.")
+            if parts[0] == self.lddaprefix:
+                id = self.client.libraries.create_library(parts[-1])
+            else:
+                id = self.client.histories.create_history(parts[-1])
+            parts[-1] = id
+            
+            path = os.sep.join(parts)
+            return self.make_fullpath(path)
         except:
             return None
         return path
     
     def remove(self, path):
-        try: 
+        try:
             path = self.normalize_path(path)
-            if self.client.status(path, False) is not None:
-                self.client.delete(path, True)
-        except Exception as e: print(e)
+            parts = pathlib.Path(normalized_path).parts
+            if len(parts) == 3:
+                raise ValueError("Galaxy path may have maximum 3 parts.")
+            if parts[0] == self.lddaprefix:
+                id = self.client.libraries.delete_library(library_id = parts[-1])
+            else:
+                id = self.client.histories.delete_history(history_id = parts[-1])
+        except Exception as e:
+            print(e)
            
     def rename(self, oldpath, newpath):
         try:
@@ -544,8 +564,22 @@ class GalaxyFileSystem():
         return files
     
     def get_folders(self, path):
-        path = self.normalize_path(path)
-        
+        try:
+            path = self.normalize_path(path)
+            parts = pathlib.Path(normalized_path).parts
+            if len(parts) > 3:
+                raise ValueError("Galaxy path may have maximum 3 parts.")
+            if parts[0] == self.lddaprefix:
+                id = self.client.libraries.create_library(parts[-1])
+            else:
+                id = self.client.histories.create_history(parts[-1])
+            parts[-1] = id
+            
+            path = os.sep.join(parts)
+            return self.make_fullpath(path)
+        except:
+            return []
+        return path       
     
     def exists(self, path):
         return self.isdir(path) or self.ispath(path)
@@ -576,7 +610,7 @@ class GalaxyFileSystem():
         elif len(parts) == 2:
             info = self.client.libraries.get_libraries(library_id = parts[1])[0] if parts[0] == self.lddaprefix else self.client.histories.get_histories(history_id = parts[1])[0]
         else:
-            hda_or_ldda = 'ldda' if normalized_path.startswith(self.lddaprefix) else 'hda'
+            hda_or_ldda = 'ldda' if parts[0] == self.lddaprefix else 'hda'
             info = self.client.datasets.show_dataset(dataset_id = os.path.basename(normalized_path), hda_ldda = hda_or_ldda)
                 
         if info:
@@ -588,14 +622,25 @@ class GalaxyFileSystem():
             return [self.make_json(self.lddaprefix), self.make_json(self.hdaprefix)]
         else:
             data_json = { 'path': os.path.join(self.url, normalized_path), 'text': self.name_from_id(path) }
-            if normalized_path == self.lddaprefix:
-                data_json['folder'] = True
-                libraries = self.client.libraries.get_libraries()
-                data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in libraries]
-            elif normalized_path == self.hdaprefix:
-                data_json['folder'] = True
-                histories = self.client.histories.get_histories()
-                data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in histories]
+            parts = pathlib.Path(normalized_path).parts
+            if parts[0] == self.lddaprefix:
+                if len(parts) == 1:
+                    data_json['folder'] = True
+                    libraries = self.client.libraries.get_libraries()
+                    data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in libraries]
+                elif len(parts) == 2:
+                    data_json['folder'] = True
+                    #library = self.client.libraries.get_libraries(library_id = parts[1])
+                    #data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in libraries]
+            elif parts[0] == self.hdaprefix:
+                if len(parts) == 1:
+                    data_json['folder'] = True
+                    histories = self.client.histories.get_histories()
+                    data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in histories]
+                elif len(parts) == 2:
+                    if parts[0] == self.hdaprefix:
+                        datasets = gi.histories.show_matching_datasets(historyid, name)
+                        data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in datasets]
             return data_json
      
     def save_upload(self, file, fullpath):

@@ -515,15 +515,18 @@ def load_data_sources_biowl():
             if current_user.is_authenticated:
                 datasource['nodes'].append(posixFS.make_json(current_user.username))
             datasource['nodes'].append(posixFS.make_json(current_app.config['PUBLIC_DIR']))
-        elif ds.id == 4:
+        elif ds.id == 3:
             # file system tree
             if current_user.is_authenticated:
-                galaxyFS = GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
-                nodes = galaxyFS.make_json('/')
-                if isinstance(nodes, list):
-                    datasource['nodes'] = nodes
-                else:
-                    datasource['nodes'].append(nodes)
+                try:
+                    galaxyFS = GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
+                    nodes = galaxyFS.make_json('/')
+                    if isinstance(nodes, list):
+                        datasource['nodes'] = nodes
+                    else:
+                        datasource['nodes'].append(nodes)
+                except:
+                    pass
  
         datasource_tree.append(datasource)
         
@@ -540,6 +543,8 @@ def fs_id_by_prefix(path):
         dsid = 1
     elif fs[0] == 'LocalFS':
         dsid = 2
+    elif fs[0] == 'GalaxyFS':
+        dsid = 3
     else:
         return None
 
@@ -548,6 +553,8 @@ def fs_id_by_prefix(path):
     
     if dsid == 1:
         return HadoopFileSystem(ds.url, 'hdfs')
+    elif dsid == 3:
+        return GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
     else:
         return PosixFileSystem(root)
 
