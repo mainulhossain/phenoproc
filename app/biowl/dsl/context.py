@@ -206,7 +206,13 @@ class Context:
             for s in reversed(self.symtab_stack[threading.get_ident()]):
                 if s.var_exists(name):
                     return s.update_var(name, value)
-                    
+    
+    def add_or_update_var(self, name, value):
+        if self.var_exists(name):
+            return self.update_var(name, value)
+        else:
+            return self.add_var(name, value)
+                                
     def var_exists(self, name):
         '''
         Checks if a variable exists in any of the symbol tables.

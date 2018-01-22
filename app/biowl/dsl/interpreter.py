@@ -276,7 +276,7 @@ class Interpreter:
     def dotaskdefstmt(self, expr):
         if not expr[0]:
             #v = self.get_args(expr[1])
-            return self.dotaskstmt(expr[1:], None)
+            return self.dotaskstmt(expr[1:], None) # anonymous task; run immediately
         else:
             self.context.library.add_task(expr[0], expr)
     
@@ -298,20 +298,17 @@ class Interpreter:
             local_symtab = self.context.append_local_symtab()
             symtab_added = True
             for k,v in kwparams.items():
-                local_symtab.add_var(k, v)
+                self.context.add_or_update_var(k, v)
             
             if args:
                 arguments, kwargs = Library.split_args(args)
                 for k, v in kwargs.items():
-                    if local_symtab.var_exists(k):
-                        local_symtab.update_var(k, v)
-                    else:
-                        local_symtab.add_var(k, v)
+                    self.context.add_or_update_var(k, v)
                 
                 for index, param in enumerate(params, start = 0):
                     if index >= len(arguments):
                         break
-                    local_symtab.add_var(param, arguments[0])
+                    self.context.add_or_update_var(k, v)
              
             if not local_symtab.var_exists('server'):
                 local_symtab.add_var('server', None)
