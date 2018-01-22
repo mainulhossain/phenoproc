@@ -208,6 +208,11 @@ class Library():
         function = getattr(module_obj, func[0].internal)
         if func[0].runmode == 'dist':
             arguments = context.get_activedci() + arguments
+        
+        # special handling for galaxy if history_id is not given, use history id from symbol table
+        if (func[0].module == 'app.biowl.libraries.galaxy.adapter'):
+            if not history_id in kwargs and context.var_exists('history_id'):
+                kwargs['history_id'] = context.get_var('history_id')
         return function(*arguments, **kwargs)
 
     def code_func(self, context, package, function, arguments):
