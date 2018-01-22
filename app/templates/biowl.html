@@ -127,7 +127,8 @@ background-color: White;
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddLibrary">Add Library</button>
 <!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddSample">Save</button> -->
-			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: generatePythonCode">Python Code</button>
+<!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: generatePythonCode">Python Code</button> -->
+                    <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
 			        <label class="checkbox-inline"><input type="checkbox" id="immediate">Immediate</label> 
 			        <span class="label label-default">Time: </span><span id="duration">0s</span>
 		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
@@ -854,6 +855,10 @@ background-color: White;
                 	$("#error").val(textStatus);
                 });
             }
+            self.provenance = function() {
+            	$.redirect(self.tasksURI, { 'provenance': true });
+           	}
+            
             self.generatePythonCode = function(task) {
             	$('#refresh').show();
             	var formdata = new FormData();

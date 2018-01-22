@@ -35,6 +35,7 @@ import mimetypes
 from ..jobs import long_task, run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
 
 app = Flask(__name__)
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 @main.after_app_request
 def after_request(response):
@@ -683,7 +684,11 @@ def functions():
                 runnable.celery_id = task.id
                 runnable.update()
                 return json.dumps({})
-    elif request.method == "GET":
+        elif request.form.get('provenance'):
+            fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
+            mime = mimetypes.guess_type(fullpath)[0]
+            return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
+    else:
         level = int(request.args.get('level')) if request.args.get('level') else 0
         funcs =[func for func in interpreter.funcs if int(func['level']) <= level]
         return json.dumps({'functions':  funcs})
