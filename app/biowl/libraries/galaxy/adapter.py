@@ -286,7 +286,7 @@ def ftp_upload(u, *args, **kwargs):
     destDir = '/home/phenodoop/galaxy_import/' + str(uuid.uuid4())
     status = ssh_download(src, destDir)
     if status != 0:
-        raise "ssh download failed."
+        raise ValueError("ssh download failed.")
 #     srcFTP = FTP(u.netloc)
 #     srcFTP.login()
 #     srcFTP.cwd(os.path.dirname(u.path))
@@ -356,7 +356,7 @@ def local_upload(*args, **kwargs):
         elif u.scheme.lower() == 'ftp':
             return ftp_upload(u, *args, **kwargs) if get_galaxy_server(*args) == srlab_galaxy else classic_ftp_upload(u, *args, **kwargs)
         else:
-            raise 'No http(s) or ftp addresses given.'
+            raise ValueError('No http(s) or ftp addresses given.')
     else:
         job = fs_upload(get_normalized_path(args[3]), *args, **kwargs)
         return job['outputs'][0]['id']
@@ -379,7 +379,7 @@ def local_run_named_tool(history_id, tool_name, inputs, *args):
     server_args.append(tool_name)
     tool_ids = tool_name_to_ids(*server_args)
     if not tool_ids:
-        raise 'Tool {0} not found.'.format(tool_name)
+        raise ValueError('Tool {0} not found.'.format(tool_name))
     return local_run_tool(history_id, tool_ids[0], inputs)
             
 def run_tool(*args):
@@ -466,14 +466,14 @@ def run_fastq_groomer(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     #history_id = args[4] if len(args) > 4 else get_most_recent_history(*args)
 #    history_id = get_most_recent_history(*args)
 
 #     dataset_ids = dataset_name_to_ids(*args)
 #     if len(dataset_ids) == 0:
-#         raise "Input dataset not found"
+#         raise ValueError("Input dataset not found")
 
 #     dataset_id = dataset_ids[0]
     input = {"input_file":{"values":[{"src":src, "id":data_id}]}}
@@ -532,7 +532,7 @@ def run_bwa(*args, **kwargs):
     
     refsrc, refdata_id = get_dataset('refhda', 'refldda', 'ref', history_id, *args, **datakwargs)
     if not refdata_id:
-        raise "No dataset given for reference data. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given for reference data. Give a dataset path or hda or ldda")
         
     tempargs = list(args[:3])
     data, data_id = get_dataset('hda', 'ldda', 'data', history_id, *tempargs, **datakwargs)
@@ -550,7 +550,7 @@ def run_bwa(*args, **kwargs):
             tempargs.append(args[dataparam])
             data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
         if not data1_id:
-            raise "No input dataset given. Give a dataset path or hda or ldda"
+            raise ValueError("No input dataset given. Give a dataset path or hda or ldda")
     
     tempargs = list(args[:3])
     input_type = "paired"
@@ -660,7 +660,7 @@ def run_cut(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
@@ -673,7 +673,7 @@ def run_cut(*args, **kwargs):
             columns = args[argcount]
             argcount += 1
         else:
-            raise "Invalid arugements: columns not given."
+            raise ValueError("Invalid arugements: columns not given.")
 
     if 'delimiter' in kwargs.keys():
         delimiter = kwargs['delimiter']
@@ -729,7 +729,7 @@ def run_trim(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
@@ -813,7 +813,7 @@ def run_join(*args, **kwargs):
             tempargs.append(args[dataparam])
             data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
         if not data1_id:
-            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+            raise ValueError("No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1")
 
     check_arg = lambda x: x not in kwargs.keys()
     
@@ -826,7 +826,7 @@ def run_join(*args, **kwargs):
             tempargs.append(args[dataparam])
             data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
         if not data2_id:
-            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+            raise ValueError("No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2")
         
     if 'field1' in kwargs.keys():
         field1 = kwargs['field1']
@@ -895,7 +895,7 @@ def run_group(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
@@ -967,7 +967,7 @@ def run_sort(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
@@ -1032,7 +1032,7 @@ def run_selectfirst(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
@@ -1081,7 +1081,7 @@ def run_compare(*args, **kwargs):
             tempargs.append(args[dataparam])
             data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
         if not data1_id:
-            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+            raise ValueError("No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1")
     
     check_arg = lambda x: x not in kwargs.keys()
     if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
@@ -1094,7 +1094,7 @@ def run_compare(*args, **kwargs):
             tempargs.append(args[dataparam])
             data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
         if not data2_id:
-            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+            raise ValueError("No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2")
     
     if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
         dataparam += 1
@@ -1173,7 +1173,7 @@ def run_fastuniq(*args, **kwargs):
             tempargs.append(args[dataparam])
             data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
         if not data1_id:
-            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+            raise ValueError("No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1")
     
     check_arg = lambda x: x not in kwargs.keys()
     if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
@@ -1186,7 +1186,7 @@ def run_fastuniq(*args, **kwargs):
             tempargs.append(args[dataparam])
             data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
         if not data2_id:
-            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+            raise ValueError("No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2")
     
     if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
         dataparam += 1
@@ -1227,7 +1227,7 @@ def run_clip_adapter(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     check_arg = lambda x: x not in kwargs.keys()
     argcount = 3
@@ -1308,7 +1308,7 @@ def run_sickle(*args, **kwargs):
             tempargs.append(args[dataparam])
             data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
         if not data1_id:
-            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+            raise ValueError("No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1")
     
     check_arg = lambda x: x not in kwargs.keys()
     if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
@@ -1393,7 +1393,7 @@ def run_fastqc(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
 
     inputs = {
@@ -1419,7 +1419,7 @@ def run_filter(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     dataparam = 3
     check_arg = lambda x: x not in kwargs.keys()
@@ -1432,7 +1432,7 @@ def run_filter(*args, **kwargs):
         if dataparam < len(args):
             condition = args[dataparam]
         else:
-            raise "No filtering condition is given."
+            raise ValueError("No filtering condition is given.")
             
     inputs = {
         "cond":cond,
@@ -1456,7 +1456,7 @@ def run_convert_to_tab(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     dataparam = 3
     check_arg = lambda x: x not in kwargs.keys()
@@ -1518,7 +1518,7 @@ def run_fastq_to_sam(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     dataparam = 3
     check_arg = lambda x: x not in kwargs.keys()
@@ -1563,7 +1563,7 @@ def run_bam_to_sam(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     inputs = {
         "header":"-h",
@@ -1587,7 +1587,7 @@ def run_sam_to_interval(*args, **kwargs):
         del datakwargs['history_id']
     src, data_id = get_dataset('hda', 'ldda', 'data', history_id, *args, **datakwargs)
     if data_id is None:
-        raise "No dataset given. Give a dataset path or hda or ldda"
+        raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
     inputs = {
         "print_all":"-p",
@@ -1619,7 +1619,7 @@ def run_join_interval(*args, **kwargs):
             tempargs.append(args[dataparam])
             data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
         if not data1_id:
-            raise "No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1"
+            raise ValueError("No input dataset1 given. Give a dataset path or hda1 or ldda1 or data1")
 
     check_arg = lambda x: x not in kwargs.keys()
     
@@ -1632,7 +1632,7 @@ def run_join_interval(*args, **kwargs):
             tempargs.append(args[dataparam])
             data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
         if not data2_id:
-            raise "No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2"
+            raise ValueError("No input dataset2 given. Give a dataset path or hda2 or ldda2 or data2")
         
     if 'min' in kwargs.keys():
         field1 = kwargs['min']

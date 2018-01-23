@@ -9,7 +9,7 @@ def prepare_args(function, *arguments):
     #                     uname = arguments[2]
     #                     password = arguments[3]
         if len(arguments) < 5:
-            raise "Wrong number of arguments for image registration."
+            raise ValueError("Wrong number of arguments for image registration.")
         
         arguments = list(arguments)
         arguments.insert(0, function)

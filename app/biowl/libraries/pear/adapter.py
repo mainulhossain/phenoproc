@@ -21,7 +21,7 @@ def run_pear(*args):
         output_file = fs.normalize_path(Utility.get_quota_path(args[2]))
         cmdargs.append("-o {0}".format(output_file))
     else:
-        raise "Invalid call format for PEAR."
+        raise ValueError("Invalid call format for PEAR.")
     
     for arg in args[3:]:
         cmdargs.append(arg)
@@ -31,6 +31,6 @@ def run_pear(*args):
     func_exec_run(pear, *cmdargs)
     
     if not os.path.exists(output_file):
-        raise "Pear could not generate the file " + fs.strip_root(output_file)
+        raise ValueError("Pear could not generate the file " + fs.strip_root(output_file))
     
     return fs.strip_root(output_file)

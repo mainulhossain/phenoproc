@@ -28,6 +28,6 @@ def run_fastqc(*args):
     
     stripped_path = fs.strip_root(outpath)
     if not os.path.exists(stripped_path):
-        raise "FastQC could not generate the file " + stripped_path
+        raise ValueError("FastQC could not generate the file " + stripped_path)
     return stripped_path
     

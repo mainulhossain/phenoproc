@@ -174,11 +174,11 @@ class Library():
                 return range(*arguments)
             elif function.lower() == "read":
                 if not arguments:
-                    raise "Read must have one argument."
+                    raise ValueError("Read must have one argument.")
                 return IOHelper.read(arguments[0])
             elif function.lower() == "write":
                 if len(arguments) < 2:
-                    raise "Write must have two arguments."
+                    raise ValueError("Write must have two arguments.")
                 return IOHelper.write(arguments[0], arguments[1])
             elif function.lower() == "getfiles":
                 return IOHelper.get_files(arguments[0])
@@ -198,7 +198,7 @@ class Library():
                 return func_exec_run(arguments[0], *arguments[1:])
             #    return func_exec(arguments[0], *arguments[1:])
 #             else:
-#                 raise "{0} function not implemented".format(function)
+#                 raise ValueError("{0} function not implemented".format(function))
     #             possibles = globals().copy()
     #             possibles.update(locals())
     #             function = possibles.get(function)

@@ -58,7 +58,7 @@ def run_flash_recursive(*args):
     #iterate through filenames and call Flash joining  
     
     if len(R1) != len(R2):
-        raise "R1 and R2 different lengths"
+        raise ValueError("R1 and R2 different lengths")
     
     for i in range(len(R1)):
         if R1[i][:-12] == R2[i][:-12]:

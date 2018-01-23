@@ -230,7 +230,7 @@ class HadoopFileSystemBase():
     def __init__(self, url, user):
         u = urlsplit(url)
         if u.scheme != 'http' and u.scheme != 'https':
-            raise "Invalid name node address"
+            raise ValueError("Invalid name node address")
         
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
         self.client = InsecureClient(self.url, user=user)
@@ -355,7 +355,7 @@ class HadoopFileSystem():
     def __init__(self, url, user):
         u = urlsplit(url)
         if u.scheme != 'http' and u.scheme != 'https':
-            raise "Invalid name node address"
+            raise ValueError("Invalid name node address")
         
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
         self.client = InsecureClient(self.url, user=user)
@@ -483,7 +483,7 @@ class GalaxyFileSystem():
     def __init__(self, url, user):
         u = urlsplit(url)
         if u.scheme != 'http' and u.scheme != 'https':
-            raise "Invalid name node address"
+            raise ValueError("Invalid name node address")
         
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
         self.localdir = ""

@@ -41,7 +41,7 @@ class SymbolTable():
     
     def check_var(self, name):
         if not self.var_exists(name):
-            raise "var {0} does not exist".format(name)
+            raise ValueError("var {0} does not exist".format(name))
         return True
             
     def add_func(self, module, internal_name, func_name, args):
@@ -66,7 +66,7 @@ class SymbolTable():
     def check_func(self, module, internal_name):
         key = ','.join([module, internal_name])
         if not key in self.funcs:
-            raise "Function {0} does not exist".format(key)
+            raise ValueError("Function {0} does not exist".format(key))
         return True
     
     def get_func(self, module, internal_name):
@@ -104,7 +104,7 @@ class SymbolTable():
             if v[0] == func_name:
                 mod_func = k.split(',')
                 return mod_func[0]
-        raise "Function {0} does not exist.".format(func_name)
+        raise ValueError("Function {0} does not exist.".format(func_name))
         
     def __str__(self):
         '''

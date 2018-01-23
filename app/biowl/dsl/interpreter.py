@@ -176,7 +176,7 @@ class Interpreter:
                 elif isinstance(v, dict):
                     v[idx] = self.eval(right)
                 else:
-                    raise "Not a list or dictionary"
+                    raise ValueError("Not a list or dictionary")
             else:
                 v = []
                 while len(v) <= idx:
