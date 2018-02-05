@@ -67,8 +67,8 @@ def get_workflow_ids(*args):
 
 def get_workflow_info(*args):
     gi = create_galaxy_instance(*args)
-    workflows = gi.workflows.show_workflow(args[3])
-    return workflows[0] if workflows else None
+    workflow_info = gi.workflows.show_workflow(args[3])
+    return workflow_info
 
 def run_workflow(*args):
     gi = create_galaxy_instance(*args)
