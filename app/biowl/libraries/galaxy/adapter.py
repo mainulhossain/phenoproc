@@ -73,7 +73,7 @@ def get_workflow_info(*args):
 def run_workflow(*args, **kwargs):
     gi = create_galaxy_instance(*args)
     
-    if args <= 3:
+    if len(args) <= 3:
         raise ValueError("Parameter for workflow id is missing.")
     workflow_id = args[3]
     
@@ -296,7 +296,8 @@ def classic_ftp_upload(u, *args, **kwargs):
         
 def ftp_upload(u, *args, **kwargs):
     src = urlunparse(list(u))
-    destDir = '/home/phenodoop/galaxy_import/' + str(uuid.uuid4())
+    #destDir = '/home/phenodoop/galaxy_import/' + str(uuid.uuid4())
+    destDir = '/hadoop/galaxy/galaxy_import/' + str(uuid.uuid4())
     status = ssh_download(src, destDir)
     if status != 0:
         raise ValueError("ssh download failed.")
