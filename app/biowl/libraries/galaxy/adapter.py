@@ -70,12 +70,25 @@ def get_workflow_info(*args):
     workflow_info = gi.workflows.show_workflow(args[3])
     return workflow_info
 
-def run_workflow(*args):
+def run_workflow(*args, **kwargs):
     gi = create_galaxy_instance(*args)
+    
+    if args <= 3:
+        raise ValueError("Parameter for workflow id is missing.")
     workflow_id = args[3]
+    
+    history_name = args[4] if len(args) > 4 else 'New Workflow Execution History'
+    
     datamap = dict()
-    datamap['252'] = { 'src':'hda', 'id':str(args[4]) }
-    return gi.workflows.run_workflow(args[3], datamap, history_name='New Workflow Execution History')
+    for k,v in kwargs.items():
+        if v:
+            values = v.split("=")
+            if len(values) == 2:
+                datamap[k] = { 'src': str(values[0]), 'id':str(values[1]) }
+                continue 
+        datamap[k] = v
+    
+    return gi.workflows.run_workflow(workflow_id, datamap, history_name)
 
 #library       
 def get_libraries_json(*args):
