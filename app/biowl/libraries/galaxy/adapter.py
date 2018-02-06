@@ -1689,4 +1689,5 @@ def download(*args):
     path = get_normalized_path(args[4] if len(args) > 4 else None)
     fullpath = os.path.join(path, name)
     gi.datasets.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
-    return path
+    fs = PosixFileSystem(Utility.get_rootdir(2))       
+    return fs.strip_root(fullpath)
