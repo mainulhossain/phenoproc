@@ -1617,13 +1617,13 @@ def run_sam_to_bam(*args, **kwargs):
     
     check_arg = lambda x: x not in kwargs.keys()
     dataparam = 3
-    if not data1_id:
+    if not data_id:
         if check_arg('refhda') and check_arg('refldda') and check_arg('ref'):
             dataparam += 1
         if dataparam < len(args):
             tempargs.append(args[dataparam])
-            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
-        if not data1_id:
+            data, data_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data_id:
             raise ValueError("No input dataset given. Give a dataset path or hda or ldda.")
     
     inputs = {
