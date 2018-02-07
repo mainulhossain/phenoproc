@@ -399,6 +399,15 @@ def local_run_named_tool(history_id, tool_name, inputs, *args):
 def run_tool(*args):
     return local_run_tool(args[3], args[4], args[5], *arg[:3])
 
+#galaxy.datatypes.tabular:Vcf
+#galaxy.datatypes.binary:TwoBit
+#galaxy.datatypes.binary:Bam
+#galaxy.datatypes.binary:Sff
+#galaxy.datatypes.xml:Phyloxml
+#galaxy.datatypes.xml:GenericXml
+#galaxy.datatypes.sequence:Maf
+#galaxy.datatypes.sequence:Lav
+#galaxy.datatypes.sequence:csFasta
 def get_datatype_local(gi, id):
     try:
         info = gi.datasets.show_dataset(dataset_id = id, hda_ldda = 'hda')
@@ -447,10 +456,11 @@ def get_dataset(hda, ldda, dataname, history_id, *args, **kwargs):
         return 'ldda', kwargs[ldda]
     
     data = None
-    if dataname in kwargs.keys():
+    dataindex = 3
+    if dataname and dataname in kwargs.keys():
         data = kwargs[dataname]
-    elif len(args) >= 4:
-        data = args[3]
+    elif len(args) > dataindex:
+        data = args[dataindex]
     
     if data:
         dataargs = list(args[:3])
@@ -482,15 +492,13 @@ def run_fastq_groomer(*args, **kwargs):
     if data_id is None:
         raise ValueError("No dataset given. Give a dataset path or hda or ldda")
 
-    #history_id = args[4] if len(args) > 4 else get_most_recent_history(*args)
-#    history_id = get_most_recent_history(*args)
-
-#     dataset_ids = dataset_name_to_ids(*args)
-#     if len(dataset_ids) == 0:
-#         raise ValueError("Input dataset not found")
-
-#     dataset_id = dataset_ids[0]
-    input = {"input_file":{"values":[{"src":src, "id":data_id}]}}
+    input = {
+        "input_file":{
+            "values":[{
+                "src":src, "id":data_id
+                }]
+            }
+        }
     
     tool_id = 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4' #tool_name_to_id('FASTQ Groomer')
     output = local_run_tool(history_id, tool_id, input, *args[:3])
@@ -1592,6 +1600,51 @@ def run_bam_to_sam(*args, **kwargs):
     tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1" #tool_name_to_id('FastQC')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     return output['outputs']['output1']['id']
+
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/sam_to_bam/sam_to_bam/2.1.1","tool_version":"2.1.1","inputs":{"source|index_source":"history","source|input1":{"values":[{"src":"hda","name":"BAM-to-SAM on data 4: converted SAM","tags":[],"keep":false,"hid":5,"id":"c903e9d706700fc8"}],"batch":false},"source|ref_file":{"values":[{"src":"hda","name":"Chr1.cdna","tags":[],"keep":false,"hid":3,"id":"b7c1d0811979026c"}],"batch":false}}}
+def run_sam_to_bam(*args, **kwargs):
+    history_id = get_or_create_history(*args, **kwargs)
+    datakwargs = dict(kwargs)
+    if 'history_id' in datakwargs.keys():
+        del datakwargs['history_id']
+        
+    refsrc, refdata_id = get_dataset('refhda', 'refldda', 'ref', history_id, *args, **datakwargs)
+    if not refdata_id:
+        raise ValueError("No dataset given for reference data. Give a dataset path or hda or ldda.")
+        
+    tempargs = list(args[:3])
+    data, data_id = get_dataset('hda', 'ldda', 'data', history_id, *tempargs, **datakwargs)
+    
+    check_arg = lambda x: x not in kwargs.keys()
+    dataparam = 3
+    if not data1_id:
+        if check_arg('refhda') and check_arg('refldda') and check_arg('ref'):
+            dataparam += 1
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data1, data1_id = find_or_upload_dataset(history_id, *tempargs)
+        if not data1_id:
+            raise ValueError("No input dataset given. Give a dataset path or hda or ldda.")
+    
+    inputs = {
+        "source|index_source":"history",
+        "source|input1":{
+            "values":[{
+                "src":data,
+                "id":data_id
+                }]
+            },
+        "source|ref_file":{
+            "values":[{
+                "src":refsrc,
+                "id":refdata_id
+                }]
+            }
+        }
+
+    tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/sam_to_bam/sam_to_bam/2.1.1"
+    output = local_run_tool(history_id, tool_id, inputs, *args[:3])
+    return output['outputs']#['output1']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1","tool_version":"1.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"BAM-to-SAM on data 114: converted SAM","tags":[],"keep":false,"hid":115,"id":"c0279aab05812500"}],"batch":false},"print_all":"-p"}}
 def run_sam_to_interval(*args, **kwargs):
