@@ -463,7 +463,7 @@ def get_history(**kwargs):
     if 'history_id' in kwargs.keys():
         return kwargs['history_id']
     else:
-        return create_history(*args[:3])
+        return create_history("New History")
                        
 #===============================================================================
 # run_fastq_groomer
