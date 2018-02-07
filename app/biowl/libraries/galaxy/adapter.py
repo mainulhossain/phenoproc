@@ -459,11 +459,11 @@ def get_dataset(hda, ldda, dataname, history_id, *args, **kwargs):
     else:
         return None, None   
 
-def get_history(**kwargs):
+def get_or_create_history(*args, **kwargs):
     if 'history_id' in kwargs.keys():
         return kwargs['history_id']
     else:
-        return create_history("New History")
+        return create_history(*args[:3])
                        
 #===============================================================================
 # run_fastq_groomer
@@ -474,7 +474,7 @@ def get_history(**kwargs):
 #===============================================================================
 def run_fastq_groomer(*args, **kwargs):
     
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -539,7 +539,7 @@ def run_fastq_groomer(*args, **kwargs):
 #===============================================================================
 def run_bwa(*args, **kwargs):
     
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -668,7 +668,7 @@ def run_bwa(*args, **kwargs):
 # }
 def run_cut(*args, **kwargs):
 
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -737,7 +737,7 @@ def run_cut(*args, **kwargs):
 #               }
 def run_trim(*args, **kwargs):
 
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -814,7 +814,7 @@ def run_trim(*args, **kwargs):
 # "inputs":{"input1":{"values":[{"src":"hda","name":"Cut on data 1","tags":[],"keep":false,"hid":45,"id":"fee08c51df578e3d"}],"batch":false},"field1":"2","input2":{"values":[{"src":"hda","name":"Cut on data 43","tags":[],"keep":false,"hid":44,"id":"1c84aa7fc4490e6d"}],"batch":false},"field2":"1","unmatched":"-u","partial":"-p","fill_empty_columns|fill_empty_columns_switch":"no_fill"}}
 def run_join(*args, **kwargs):
 
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -903,7 +903,7 @@ def get_op(prefix, opindex, argcount, *args, **kwargs):
 #"groupcol":"1","ignorecase":"false","ignorelines":["62","64","43"],"operations_0|optype":"mean","operations_0|opcol":"1","operations_0|opround":"no"}}
 def run_group(*args, **kwargs):
 
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -975,7 +975,7 @@ def run_group(*args, **kwargs):
 # "column":"1","style":"num","order":"DESC","column_set_0|other_column":"2","column_set_0|other_style":"gennum","column_set_0|other_order":"ASC","column_set_1|other_column":"1","column_set_1|other_style":"alpha","column_set_1|other_order":"DESC"}}
 def run_sort(*args, **kwargs):
 
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1040,7 +1040,7 @@ def run_sort(*args, **kwargs):
 #"inputs":{"lineNum":10,
 #"input":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":33,"id":"bb7d1d57fc91145a"}],"batch":false}}}
 def run_selectfirst(*args, **kwargs):
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1082,7 +1082,7 @@ def run_selectfirst(*args, **kwargs):
 #"field2":"1","mode":"N"}}
 def run_compare(*args, **kwargs):
 
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1174,7 +1174,7 @@ def run_compare(*args, **kwargs):
 #"select_output_format":"f/q"}}
 def run_fastuniq(*args, **kwargs):
 
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1235,7 +1235,7 @@ def run_fastuniq(*args, **kwargs):
 
 # {"tool_id":"toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1","tool_version":"2.0.1","inputs":{"input":{"values":[{"src":"hda","name":"Select first on data 33","tags":[],"keep":false,"hid":53,"id":"b735ed9e5e005602"}],"batch":false},"min":15,"max":36,"out_format":"fasta","Nmode":"accept","clip_source|clip_source_list":"prebuilt","clip_source|clip_sequence":"TGGAATTCTCGGGTGCCAAG"}}
 def run_clip_adapter(*args, **kwargs):
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1309,7 +1309,7 @@ def run_clip_adapter(*args, **kwargs):
 #"inputs":{"readtype|single_or_paired":"pe_combo","readtype|input_combo":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":39,"id":"f2f5db583bb871d6"}],"batch":false},"readtype|output_n":"false","qual_threshold":20,"length_threshold":20,"no_five_prime":"true","trunc_n":"true"}}
 def run_sickle(*args, **kwargs):
     
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1401,7 +1401,7 @@ def run_sickle(*args, **kwargs):
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70","tool_version":"0.70",
 #"inputs":{"input_file":{"values":[{"src":"hda","name":"FASTQ Groomer on data 1","tags":[],"keep":false,"hid":26,"id":"d343a822bd747ee4"}],"batch":false},"contaminants":null,"limits":null}}
 def run_fastqc(*args, **kwargs):    
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1427,7 +1427,7 @@ def run_fastqc(*args, **kwargs):
 
 #{"tool_id":"Filter1","tool_version":"1.1.0","inputs":{"input":{"values":[{"src":"hda","name":"all.cDNA (as tabular)","tags":[],"keep":false,"hid":3,"id":"7ef8021ae23ac2fc"}],"batch":false},"cond":"c1=='chr22'","header_lines":0}}
 def run_filter(*args, **kwargs):    
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1464,7 +1464,7 @@ def run_filter(*args, **kwargs):
 
 #{"tool_id":"Convert characters1","tool_version":"1.0.0","inputs":{"convert_from":"Dt","input":{"values":[{"src":"hda","name":"Filter on data 3","tags":[],"keep":false,"hid":57,"id":"4eb3d2698c4eef35"}],"batch":false},"strip":"true","condense":"true"}}
 def run_convert_to_tab(*args, **kwargs):    
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1526,7 +1526,7 @@ def run_convert_to_tab(*args, **kwargs):
 # {"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_FastqToSam/1.136.0","tool_version":"1.136.0","inputs":{"input_type|input_type_selector":"se","input_type|fastq":{"values":[{"src":"hda","name":"SP1.fq","tags":[],"keep":false,"hid":2,"id":"cff44749a1f216fe"}],"batch":false},"quality_format":"Standard","read_group_name":"A","sample_name":"sample-a","library_name":"","platform_unit":"","platform":"","sequencing_center":"","predicted_insert_size":"","comment":"","description":"","run_date":"","min_q":0,"max_q":93,"strip_unpairied_mate_number":"false","allow_and_ignore_empty_lines":"false","validation_stringency":"LENIENT"}}
 # {"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_FastqToSam/1.136.0","tool_version":"1.136.0","inputs":{"input_type|input_type_selector":"pe","input_type|fastq":{"values":[{"src":"hda","name":"SP1.fq","tags":[],"keep":false,"hid":2,"id":"cff44749a1f216fe"}],"batch":false},"input_type|fastq2":{"values":[{"src":"hda","name":"SP1.fq","tags":[],"keep":false,"hid":2,"id":"cff44749a1f216fe"}],"batch":false},"quality_format":"Standard","read_group_name":"A","sample_name":"sample-a","library_name":"","platform_unit":"","platform":"","sequencing_center":"","predicted_insert_size":"","comment":"","description":"","run_date":"","min_q":0,"max_q":93,"strip_unpairied_mate_number":"false","allow_and_ignore_empty_lines":"false","validation_stringency":"LENIENT"}}
 def run_fastq_to_sam(*args, **kwargs):    
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1571,7 +1571,7 @@ def run_fastq_to_sam(*args, **kwargs):
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/bam_to_sam/bam_to_sam/2.0.1","tool_version":"2.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"FastqToSam on data 2: reads as unaligned BAM","tags":[],"keep":false,"hid":4,"id":"1587e0955a89debb"}],"batch":false},"header":"-h"}}
 def run_bam_to_sam(*args, **kwargs):
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1595,7 +1595,7 @@ def run_bam_to_sam(*args, **kwargs):
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1","tool_version":"1.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"BAM-to-SAM on data 114: converted SAM","tags":[],"keep":false,"hid":115,"id":"c0279aab05812500"}],"batch":false},"print_all":"-p"}}
 def run_sam_to_interval(*args, **kwargs):
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
@@ -1620,7 +1620,7 @@ def run_sam_to_interval(*args, **kwargs):
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/join/gops_join_1/1.0.0","tool_version":"1.0.0","inputs":{"input1":{"values":[{"src":"hda","name":"Converted Interval","tags":[],"keep":false,"hid":116,"id":"e037fdb493429c2a"}],"batch":false},"input2":{"values":[{"src":"hda","name":"Converted Interval","tags":[],"keep":false,"hid":116,"id":"e037fdb493429c2a"}],"batch":false},"min":1,"fill":"none"}}
 def run_join_interval(*args, **kwargs):
     
-    history_id = get_history(**kwargs)
+    history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
         del datakwargs['history_id']
