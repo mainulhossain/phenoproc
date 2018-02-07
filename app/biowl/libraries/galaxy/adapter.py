@@ -449,15 +449,15 @@ def find_or_upload_dataset(history_id, *dataargs):
         src, data_id = 'hda', upload(*dataargs, history_id = history_id)
     return src, data_id
     
-def get_dataset(hda, ldda, dataname, history_id, *args, **kwargs):
-    if hda in kwargs.keys():
-        return 'hda', kwargs[hda]
-    elif ldda in kwargs.keys():
-        return 'ldda', kwargs[ldda]
+def get_dataset(hdastr, lddastr, dataname, history_id, *args, **kwargs):
+    if hdastr in kwargs.keys():
+        return 'hda', kwargs[hdastr]
+    elif lddastr in kwargs.keys():
+        return 'ldda', kwargs[lddastr]
     
     data = None
     dataindex = 3
-    if dataname and dataname in kwargs.keys():
+    if dataname in kwargs.keys():
         data = kwargs[dataname]
     elif len(args) > dataindex:
         data = args[dataindex]
