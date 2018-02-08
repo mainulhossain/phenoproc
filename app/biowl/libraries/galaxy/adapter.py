@@ -1307,7 +1307,7 @@ def run_clip_adapter(*args, **kwargs):
 
     tool_id = 'toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1' #tool_name_to_id('Clip adapter')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']['id']
+    return output['outputs']['output']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33","tool_version":"1.33",
 #"inputs":{"readtype|single_or_paired":"se","readtype|input_single":{"values":[{"src":"hda","name":"SRR034608.fastq","tags":[],"keep":false,"hid":33,"id":"bb7d1d57fc91145a"}],"batch":false},
