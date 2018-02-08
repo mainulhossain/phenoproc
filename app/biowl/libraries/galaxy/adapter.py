@@ -1411,11 +1411,11 @@ def run_sickle(*args, **kwargs):
     tool_id = 'toolshed.g2.bx.psu.edu/repos/iuc/sickle/sickle/1.33.1' #tool_name_to_id('Sickle')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     if mode == 'se':
-        return output['outputs']['output_single']['id']
+        return [ output['outputs']['output_single']['id'] ]
     elif mode == 'pe_sep':
-        return output
+        return [ output['outputs']['output_paired1']['id'], output['outputs']['output_paired2']['id'], output['outputs']['output_paired_single']['id'] ]
     else:
-        return output
+        return [ output['outputs']['output_paired']['id'], output['outputs']['output_paired_single']['id'] ]
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70","tool_version":"0.70",
 #"inputs":{"input_file":{"values":[{"src":"hda","name":"FASTQ Groomer on data 1","tags":[],"keep":false,"hid":26,"id":"d343a822bd747ee4"}],"batch":false},"contaminants":null,"limits":null}}
