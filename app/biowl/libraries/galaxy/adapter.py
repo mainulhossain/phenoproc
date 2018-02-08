@@ -1274,7 +1274,7 @@ def run_clip_adapter(*args, **kwargs):
     if 'format' in kwargs.keys():
         format = kwargs['format']
     else:
-        if dataparam < len(args):
+        if argcount < len(args):
             format = args[argcount]
         else:
             format = "q"
