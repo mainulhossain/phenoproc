@@ -1340,26 +1340,27 @@ def run_sickle(*args, **kwargs):
     check_arg = lambda x: x not in kwargs.keys()
     if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
         dataparam += 1
+#     
+#     if 'mode' in kwargs.keys():
+#         mode = kwargs['mode']
+#     else:
+#         if dataparam < len(args):
+#             mode = args[dataparam]
+#         else:
+#             mode = "se"
+    
+    tempargs = list(args[:3])
+    data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
+    if not data2_id:
+        if dataparam < len(args):
+            tempargs.append(args[dataparam])
+            data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
     
     if 'mode' in kwargs.keys():
         mode = kwargs['mode']
     else:
-        if dataparam < len(args):
-            mode = args[dataparam]
-        else:
-            mode = "se"
-    
-    if mode == "pe":                
-        tempargs = list(args[:3])
-        data2, data2_id = get_dataset('hda2', 'ldda2', 'data2', history_id, *tempargs, **datakwargs)
-        if not data2_id:
-            if dataparam < len(args):
-                tempargs.append(args[dataparam])
-                data2, data2_id = find_or_upload_dataset(history_id, *tempargs)
-                    
-        if check_arg('hda2') and check_arg('ldda2') and check_arg('data2'):
-            dataparam += 1
-            
+        mode = 'pe' if data2_id else 'se'
+
     if 'quality' in kwargs.keys():
         field1 = kwargs['quality']
     else:
