@@ -1268,6 +1268,17 @@ def run_clip_adapter(*args, **kwargs):
     else:
         max = args[argcount] if len(args) > argcount else 15
     
+    if check_arg('max'):
+        argcount += 1
+        
+    if 'format' in kwargs.keys():
+        format = kwargs['format']
+    else:
+        if dataparam < len(args):
+            format = args[argcount]
+        else:
+            format = "q"
+            
     nmode = "accept" if check_arg('nmode') else kwargs['nmode']
     adapter = "TGGAATTCTCGGGTGCCAAG" if check_arg('adapter') else kwargs['adapter']
     source = None
