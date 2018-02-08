@@ -1408,7 +1408,7 @@ def run_sickle(*args, **kwargs):
          }
         inputs["readtype|output_n"] = "false"
     
-    tool_id = 'toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33' #tool_name_to_id('Sickle')
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/iuc/sickle/sickle/1.33.1' #tool_name_to_id('Sickle')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
     if mode == 'se':
         return output['outputs']['output_single']['id']
