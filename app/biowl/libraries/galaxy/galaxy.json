@@ -425,8 +425,8 @@
            "name":"Unique",
            "internal":"run_fastuniq",
            "desc": "Removes duplicates in paired short DNA sequence reads in FASTQ format. It identifies duplicates by comparing sequences between read pairs and does not require complete genome sequences as prerequisites. It is also capable of simultaneously handling reads with different lengths and results in highly efficient running time.",
-           "returns": "string",
-           "example":"unique_data = Unique(data1=, data2=, [format=q/f], [history_id=history_id])",
+           "returns": "[string, string]",
+           "example":"unique_data = Unique(data1=, data2=, [format=q/f])",
            "runmode": "dist"
        },
        {
@@ -439,7 +439,7 @@
            "internal":"run_clip_adapter",
            "desc": "Clips adapter sequences. Renumbers sequence headers. Filters sequences on their size. Filters sequences containing unknown nucleotides (optional).",
            "returns": "string",
-           "example":"clipped_data = Clip(data=, [min=], [max=], [format=q/f], [history_id=history_id])",
+           "example":"clipped_data = Clip(hda=, min=0, max=15)",
            "runmode": "dist"
        },
        {

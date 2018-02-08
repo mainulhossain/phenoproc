@@ -1239,7 +1239,7 @@ def run_fastuniq(*args, **kwargs):
 
     tool_id = 'toolshed.g2.bx.psu.edu/repos/portiahollyoak/fastuniq/fastuniq/1.1' #tool_name_to_id('FastUniq')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']['out_file1']['id']
+    return [output['outputs']['fastq_R1_rmdup']['id'], output['outputs']['fastq_R2_rmdup']['id']]
 
 # {"tool_id":"toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1","tool_version":"2.0.1","inputs":{"input":{"values":[{"src":"hda","name":"Select first on data 33","tags":[],"keep":false,"hid":53,"id":"b735ed9e5e005602"}],"batch":false},"min":15,"max":36,"out_format":"fasta","Nmode":"accept","clip_source|clip_source_list":"prebuilt","clip_source|clip_sequence":"TGGAATTCTCGGGTGCCAAG"}}
 def run_clip_adapter(*args, **kwargs):
@@ -1259,25 +1259,19 @@ def run_clip_adapter(*args, **kwargs):
     if 'min' in kwargs.keys():
         min = kwargs['min']
     else:
-        if len(args) > argcount:
-            min = args[argcount]
-        else:
-            min = 15
+        min = args[argcount] if len(args) > argcount else 0
     
     if check_arg('min'):
         argcount += 1
     if 'max' in kwargs.keys():
         max = kwargs['max']
     else:
-        if len(args) > argcount:
-            max = args[argcount]
-        else:
-            max = 15
+        max = args[argcount] if len(args) > argcount else 15
     
-    nmode = "accept" if check_args('nmode') else kwargs['nmode']
-    adapter = "TGGAATTCTCGGGTGCCAAG" if check_args('adapter') else kwargs['adapter']
+    nmode = "accept" if check_arg('nmode') else kwargs['nmode']
+    adapter = "TGGAATTCTCGGGTGCCAAG" if check_arg('adapter') else kwargs['adapter']
     source = None
-    if not check_args('src'):
+    if not check_arg('src'):
         source = kwargs['src']
     
 #    {"tool_id":"toolshed.g2.bx.psu.edu/repos/artbio/yac_clipper/yac/2.0.1","tool_version":"2.0.1","inputs":{"input":{"values":[{"src":"hda","name":"Select first on data 33","tags":[],"keep":false,"hid":53,"id":"b735ed9e5e005602"}],"batch":false},"min":15,"max":36,"out_format":"fastq","Nmode":"accept","clip_source|clip_source_list":"user","clip_source|clip_sequence":"GAATCC"}}            
@@ -1644,7 +1638,7 @@ def run_sam_to_bam(*args, **kwargs):
 
     tool_id = "toolshed.g2.bx.psu.edu/repos/devteam/sam_to_bam/sam_to_bam/2.1.1"
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']#['output1']['id']
+    return output#['outputs']#['output1']['id']
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/sam2interval/sam2interval/1.0.1","tool_version":"1.0.1","inputs":{"input1":{"values":[{"src":"hda","name":"BAM-to-SAM on data 114: converted SAM","tags":[],"keep":false,"hid":115,"id":"c0279aab05812500"}],"batch":false},"print_all":"-p"}}
 def run_sam_to_interval(*args, **kwargs):
