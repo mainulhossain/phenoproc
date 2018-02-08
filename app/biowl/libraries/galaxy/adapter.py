@@ -1387,7 +1387,7 @@ def run_sickle(*args, **kwargs):
              }]
          }
     elif mode == "pe_sep":
-        inputs["readtype|input_single"] = {
+        inputs["readtype|input_paired1"] = {
          "values":[{
              "src":data1,
              "id": data1_id
