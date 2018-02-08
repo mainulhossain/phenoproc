@@ -99,7 +99,7 @@ class BasicGrammar():
                 
         self.expr << (self.stringaddexpr | self.string | self.funccall | self.listidx | self.listdecl | self.dictdecl | self.numexpr).setParseAction(lambda x : x.asList())
         
-        self.namedarg = Group(self.identifier + Literal("=") + self.expr).setParseAction(lambda t: ['NAMEDARG'] + t.asList())
+        self.namedarg = Group(self.identifier + Literal("=") + Group(self.expr)).setParseAction(lambda t: ['NAMEDARG'] + t.asList())
         self.arguments << delimitedList(Group(self.namedarg | self.expr))
         
         self.params = delimitedList(Group(self.namedarg | self.identifier))
