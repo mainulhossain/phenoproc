@@ -1359,7 +1359,7 @@ def run_sickle(*args, **kwargs):
     if 'mode' in kwargs.keys():
         mode = kwargs['mode']
     else:
-        mode = 'pe' if data2_id else 'se'
+        mode = 'pe_sep' if data2_id else 'se'
 
     if 'quality' in kwargs.keys():
         field1 = kwargs['quality']
@@ -1386,7 +1386,7 @@ def run_sickle(*args, **kwargs):
              "id": data1_id
              }]
          }
-    elif mode == "pe":
+    elif mode == "pe_sep":
         inputs["readtype|input_single"] = {
          "values":[{
              "src":data1,
@@ -1410,7 +1410,12 @@ def run_sickle(*args, **kwargs):
     
     tool_id = 'toolshed.g2.bx.psu.edu/repos/slegras/sickle_1_33/sickle/1.33' #tool_name_to_id('Sickle')
     output = local_run_tool(history_id, tool_id, inputs, *args[:3])
-    return output['outputs']['output_single']['id']
+    if mode == 'se':
+        return output['outputs']['output_single']['id']
+    elif mode == 'pe_sep':
+        return output
+    else:
+        return output
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70","tool_version":"0.70",
 #"inputs":{"input_file":{"values":[{"src":"hda","name":"FASTQ Groomer on data 1","tags":[],"keep":false,"hid":26,"id":"d343a822bd747ee4"}],"batch":false},"contaminants":null,"limits":null}}
