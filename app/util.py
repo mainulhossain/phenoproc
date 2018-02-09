@@ -5,6 +5,7 @@ from os import path
 from .models import DataSource, Data
 from flask import current_app
 import sys
+from app.biowl.fileop import PosixFileSystem, HadoopFileSystem, GalaxyFileSystem
 
 class Utility:
     @staticmethod

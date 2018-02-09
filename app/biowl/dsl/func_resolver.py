@@ -7,6 +7,7 @@ import subprocess
 import inspect
 
 from ..fileop import IOHelper
+from ...util import Utility
 from ..exechelper import func_exec_run
 
 # import_module can't load the following modules in the NGINX server
@@ -176,21 +177,28 @@ class Library():
             elif function.lower() == "read":
                 if not arguments:
                     raise ValueError("Read must have one argument.")
-                return IOHelper.read(arguments[0])
+                fs = Utility.fs_by_prefix(arguments[0])
+                return fs.read(arguments[0])
             elif function.lower() == "write":
                 if len(arguments) < 2:
                     raise ValueError("Write must have two arguments.")
-                return IOHelper.write(arguments[0], arguments[1])
+                fs = Utility.fs_by_prefix(arguments[0])
+                return fs.write(arguments[0], arguments[1])
             elif function.lower() == "getfiles":
-                return IOHelper.get_files(arguments[0])
+                fs = Utility.fs_by_prefix(arguments[0])
+                return fs.get_files(arguments[0])
             elif function.lower() == "getfolders":
-                return IOHelper.get_folders(arguments[0])
+                fs = Utility.fs_by_prefix(arguments[0])
+                return fs.get_folders(arguments[0])
             elif function.lower() == "createfolder":
-                return IOHelper.create_folder(arguments[0])
+                fs = Utility.fs_by_prefix(arguments[0])
+                return fs.create_folder(arguments[0])
             elif function.lower() == "remove":
-                return IOHelper.remove(arguments[0])
+                fs = Utility.fs_by_prefix(arguments[0])
+                return fs.remove(arguments[0])
             elif function.lower() == "makedirs":
-                return IOHelper.makedirs(arguments[0])
+                fs = Utility.fs_by_prefix(arguments[0])
+                return fs.makedirs(arguments[0])
             elif function.lower() == "getcwd":
                 return getcwd()
             elif function.lower() == "len":
