@@ -42,19 +42,22 @@ class Utility:
     
     @staticmethod
     def fs_by_prefix(path):
-        path = os.path.normpath(path)
-        fs = path.split(os.sep)
-        if not fs:
-            return None
-        
-        dsid = 0
-        if fs[0] == 'HDFS':
-            dsid = 1
-        elif fs[0] == 'GalaxyFS':
-            dsid = 3
+        if path:
+            path = os.path.normpath(path)
+            fs = path.split(os.sep)
+            if not fs:
+                return None
+            
+            dsid = 0
+            if fs[0] == 'HDFS':
+                dsid = 1
+            elif fs[0] == 'GalaxyFS':
+                dsid = 3
+            else:
+                dsid = 2 # fs[0] == 'LocalFS':
         else:
-            return 2 # fs[0] == 'LocalFS':
-    
+            dsid = 2 # LocalFS is default
+        
         ds = DataSource.query.get(dsid)
         root = Utility.get_rootdir(ds.id)
         
