@@ -533,42 +533,15 @@ def load_data_sources_biowl():
         
     return datasource_tree
 
-def fs_id_by_prefix(path):
-    path = os.path.normpath(path)
-    fs = path.split(os.sep)
-    if not fs:
-        return None
-    
-    dsid = 0
-    if fs[0] == 'HDFS':
-        dsid = 1
-    elif fs[0] == 'LocalFS':
-        dsid = 2
-    elif fs[0] == 'GalaxyFS':
-        dsid = 3
-    else:
-        return None
-
-    ds = DataSource.query.get(dsid)
-    root = Utility.get_rootdir(ds.id)
-    
-    if dsid == 1:
-        return HadoopFileSystem(ds.url, 'hdfs')
-    elif dsid == 3:
-        return GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
-    else:
-        return PosixFileSystem(root)
-
-       
 def download_biowl(path):
     # construct data source tree
-    fs = fs_id_by_prefix(path)
+    fs = Utility.fs_by_prefix(path)
     fullpath = fs.download(path)
     mime = mimetypes.guess_type(fullpath)[0]
     return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
 def upload_biowl(file, fullpath):
-    fs = fs_id_by_prefix(fullpath)
+    fs = Utility.fs_by_prefix(fullpath)
     return fs.save_upload(file, fullpath)
                 
 class InterpreterHelper():
@@ -626,16 +599,16 @@ def datasources():
         upload_biowl(request.files['upload'], request.form['path'])
     elif request.args.get('addfolder'):
         path = request.args['addfolder']
-        fileSystem = fs_id_by_prefix(path)
+        fileSystem = Utility.fs_by_prefix(path)
         parent = path if fileSystem.isdir(path) else os.path.dirname(path)
         unique_filename = IOHelper.unique_fs_name(fileSystem, parent, 'newfolder', '')
         return json.dumps({'path' : fileSystem.create_folder(unique_filename) })
     elif request.args.get('delete'):
         path = request.args['delete']
-        fileSystem = fs_id_by_prefix(path)
+        fileSystem = Utility.fs_by_prefix(path)
         return json.dumps({'path' : fileSystem.remove(fileSystem.strip_root(path))})
     elif request.args.get('rename'):
-        fileSystem = fs_id_by_prefix(request.args['oldpath'])
+        fileSystem = Utility.fs_by_prefix(request.args['oldpath'])
         oldpath = fileSystem.strip_root(request.args['oldpath'])
         newpath = os.path.join(os.path.dirname(oldpath), request.args['rename'])
         return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})

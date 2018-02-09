@@ -39,3 +39,35 @@ class Utility:
         elif not path.startswith(current_app.config['PUBLIC_DIR']):
             path = os.path.join(current_app.config['CURRENT_USER'], path)
         return path
+    
+    @staticmethod
+    def fs_by_prefix(path):
+        path = os.path.normpath(path)
+        fs = path.split(os.sep)
+        if not fs:
+            return None
+        
+        dsid = 0
+        if fs[0] == 'HDFS':
+            dsid = 1
+        elif fs[0] == 'GalaxyFS':
+            dsid = 3
+        else:
+            return 2 # fs[0] == 'LocalFS':
+    
+        ds = DataSource.query.get(dsid)
+        root = Utility.get_rootdir(ds.id)
+        
+        if dsid == 1:
+            return HadoopFileSystem(ds.url, 'hdfs')
+        elif dsid == 3:
+            return GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
+        else:
+            return PosixFileSystem(root)
+    
+    @staticmethod
+    def get_normalized_path(path):
+        fs = Utility.fs_by_prefix(path)
+        path = fs.strip_root(path)
+        path = Utility.get_quota_path(path)
+        return fs.normalize_path(path)

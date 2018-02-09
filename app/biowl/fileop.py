@@ -123,9 +123,7 @@ class PosixFileSystem():
         
     def normalize_path(self, path):
         path = os.path.normpath(path)
-        if path.startswith(self.prefix):
-            path = path[len(self.prefix):]
-            
+        path = self.strip_prefix(path)
         while path and path[0] == os.sep:
             path = path[1:]
              
@@ -139,11 +137,13 @@ class PosixFileSystem():
         if not path.startswith(os.sep):
             path = os.sep + path
         return self.prefix + path
+    
+    def strip_prefix(self, path):
+        return path[len(self.prefix):] if path.startswith(self.prefix) else path
         
     def strip_root(self, path):
-        if not path.startswith(self.localdir):
-            return path
-        return path[len(self.localdir):]
+        path = self.strip_prefix(path)
+        return path[len(self.localdir):] if path.startswith(self.localdir) else path
             
     def create_folder(self, path):
         path = self.normalize_path(path)
@@ -364,21 +364,21 @@ class HadoopFileSystem():
     
     def normalize_path(self, path):
         path = os.path.normpath(path)
-        if path.startswith(self.prefix):
-            path = path[len(self.prefix):]
+        path = self.strip_prefix(path)
         while path and path[0] == os.sep:
             path = path[1:]
         return os.path.join(self.localdir, path)
     
+    def strip_prefix(self, path):
+        return path[len(self.prefix):] if path.startswith(self.prefix) else path
+    
     def strip_root(self, path):
+        path = self.strip_prefix(path)
         if path.startswith(self.url):
             path = path[len(self.url):]
             if not path.startswith(self.localdir):
                 raise 'Invalid hdfs path. It must start with the root directory'
-      
-        if not path.startswith(self.localdir):
-            return path
-        return path[len(self.localdir):]
+        return path[len(self.localdir):] if path.startswith(self.localdir) else path
         
     def create_folder(self, path):
         try:

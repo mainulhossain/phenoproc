@@ -451,7 +451,7 @@
            "name":"TrimAdaptive",
            "internal":"run_sickle",
            "desc": "Uses sliding windows along with quality and length thresholds to determine when quality is sufficiently low to trim the 3'-end of reads and also determines when the quality is sufficiently high enough to trim the 5'-end of reads. It will also discard reads based upon the length threshold.",
-           "returns": "string",
+           "returns": "[string]",
            "example":"trimmed_data = TrimAdaptive(data1=, [data2=], [mode=se/pe/pe-combo], [quality=], [length=], [history_id=history_id])",
            "runmode": "dist"
        },

@@ -351,11 +351,6 @@ def ftp_upload(u, *args, **kwargs):
                 return dataset['id']
     except:
         return classic_ftp_upload(u, *args **kwargs)
-
-def get_normalized_path(path):
-    path = Utility.get_quota_path(path)
-    fs = PosixFileSystem(Utility.get_rootdir(2))       
-    return fs.normalize_path(path)
               
 def local_upload(*args, **kwargs):
     u = urlparse(args[3])
@@ -372,7 +367,7 @@ def local_upload(*args, **kwargs):
         else:
             raise ValueError('No http(s) or ftp addresses given.')
     else:
-        job = fs_upload(get_normalized_path(args[3]), *args, **kwargs)
+        job = fs_upload(Utility.get_normalized_path(args[3]), *args, **kwargs)
         return job['outputs'][0]['id']
     
     job_info = wait_for_job_completion(gi, job['jobs'][0]['id'])
@@ -1750,7 +1745,7 @@ def download(*args):
     dataset = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = 'hda')
     name = dataset['name']
     
-    path = get_normalized_path(args[4] if len(args) > 4 else None)
+    path = Utility.get_normalized_path(args[4] if len(args) > 4 else None)
     fullpath = os.path.join(path, name)
     gi.datasets.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
     fs = PosixFileSystem(Utility.get_rootdir(2))       
