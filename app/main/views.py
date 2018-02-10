@@ -9,6 +9,15 @@ from sqlalchemy import text
 import os
 import sys
 import flask_sijax
+import json
+from werkzeug import secure_filename
+import mimetypes
+from os import path
+import zipfile
+import tarfile
+import shutil
+import tempfile
+import pathlib
 
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -27,10 +36,6 @@ from ..biowl.dsl.pygen import CodeGenerator
 from ..biowl.timer import Timer
 from ..models import Runnable, Status
 from ..biowl.tasks import runnable_manager
-
-import json
-from werkzeug import secure_filename
-import mimetypes
 
 from ..jobs import long_task, run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
 
@@ -657,6 +662,73 @@ def functions():
                 runnable.celery_id = task.id
                 runnable.update()
                 return json.dumps({})
+        elif request.form.get('mapper'):
+            try:
+                # Get the name of the uploaded file
+                file = request.files['library']
+                # Check if the file is one of the allowed types/extensions
+                if file:
+                    this_path = os.path.dirname(os.path.abspath(__file__))
+                    #os.chdir(this_path) #set dir of this file to current directory
+                    app_path = os.path.dirname(this_path)
+                    librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/libraries'))
+
+                    user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
+                    if not os.path.isdir(user_package_dir):
+                        os.makedirs(user_package_dir)
+                    package = request.form.get('package')
+                    path = Samples.unique_filename(user_package_dir, package if package else 'mylib', '')
+                    if not os.path.isdir(path):
+                        os.makedirs(path)
+                
+                    # Make the filename safe, remove unsupported chars
+                    filename = secure_filename(file.filename)
+                    temppath = os.path.join(tempfile.gettempdir(), filename)
+                    file.save(temppath)
+                    
+                    if zipfile.is_zipfile(temppath):
+                        with zipfile.ZipFile(temppath,"r") as zip_ref:
+                            zip_ref.extractall(path)
+                    elif tarfile.is_tarfile(temppath):
+                        with tarfile.open(temppath,"r") as tar_ref:
+                            tar_ref.extractall(path)
+                    else:
+                        shutil.move(temppath, path)
+                    
+                    base = Samples.unique_filename(path, package if package else 'mylib', '.json')
+                    with open(base, 'w') as mapper:
+                        mapper.write(request.form.get('mapper'))
+                    
+                    org = request.form.get('org')
+                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
+                    pkgpath = pkgpath.replace(os.sep, '.')
+
+                    with open(base, 'r') as json_data:
+                        data = json.load(json_data)
+                        libraries = data["functions"]
+                        for f in libraries:
+                            if 'internal' in f and f['internal']:
+                                if 'name' not in f:
+                                    f['name'] = f['internal']
+                            elif 'name' in f and f['name']:
+                                if 'internal' not in f:
+                                    f['internal'] = f['name']
+                            if not f['internal'] and not f['name']:
+                                continue
+                                    
+                            f['module'] = pkgpath
+                            if package:
+                                f['package'] = package
+                            if org:
+                                f['org'] = org
+                                
+                    os.remove(base)
+                    with open(base, 'w') as f:
+                        json.dump(data, f, indent=4)
+                    interpreter.reload()
+            except:
+                return json.dumps({ 'out': '', 'err': 'Library add unsuccessful'})
+            return json.dumps({ 'out': 'Library successfully added', 'err': ''})
         elif request.form.get('provenance'):
             fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
             mime = mimetypes.guess_type(fullpath)[0]
@@ -700,11 +772,21 @@ class Samples():
         return samples
     
     @staticmethod
+    def make_fn(path, prefix, ext, suffix):
+        path = os.path.join(path, '{0}'.format(prefix))
+        if suffix:
+            path = '{0}({1})'.format(path, suffix)
+        if ext:
+            path = '{0}.{1}'.format(path, ext)
+        return path
+    
+    @staticmethod
     def unique_filename(path, prefix, ext):
-        make_fn = lambda i: os.path.join(path, '{0}({1}).{2}'.format(prefix, i, ext))
-
+        uni_fn = Samples.make_fn(path, prefix, ext, '')
+        if not os.path.exists(uni_fn):
+            return uni_fn
         for i in range(1, sys.maxsize):
-            uni_fn = make_fn(i)
+            uni_fn = Samples.make_fn(path, prefix, ext, i)
             if not os.path.exists(uni_fn):
                 return uni_fn
             
