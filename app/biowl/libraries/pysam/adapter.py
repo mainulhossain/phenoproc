@@ -33,6 +33,6 @@ def run_sam_to_bam(*args, **kwargs):
     
     fs = PosixFileSystem(Utility.get_rootdir(2))
     if not os.path.exists(output):
-        raise ValueError("bwa could not generate the file " + fs.strip_root(output))
+        raise ValueError("pysam could not generate the file " + fs.strip_root(output))
     
     return fs.strip_root(output)
