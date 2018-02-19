@@ -25,7 +25,9 @@ try:
     import app.biowl.libraries.pear.adapter
     import app.biowl.libraries.seqtk.adapter
     import app.biowl.libraries.usearch.adapter
-    import app.biowl.libraries.vsearch.adapter    
+    import app.biowl.libraries.vsearch.adapter
+    import app.biowl.libraries.bwa.adapter
+    import app.biowl.libraries.pysam.adapter
 except:
     pass
 
