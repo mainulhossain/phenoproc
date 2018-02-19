@@ -5,7 +5,11 @@ from ...fileop import PosixFileSystem
 from ....util import Utility
 
 bwa = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bwa'))
-   
+
+def build_bwa_index(ref):
+    cmdargs = ['index', ref]
+    return func_exec_run(bwa, *cmdargs)
+    
 def run_bwa(*args, **kwargs):
     
     paramindex = 0
@@ -18,6 +22,7 @@ def run_bwa(*args, **kwargs):
         paramindex +=1
         
     ref = Utility.get_normalized_path(ref)
+    build_bwa_index(ref)
     
     if 'data1' in kwargs.keys():
         data1 = kwargs['data1']

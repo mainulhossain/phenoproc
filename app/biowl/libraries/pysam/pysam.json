@@ -1,0 +1,16 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "pysam",
+           "module": "app.biowl.libraries.pysam.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"SamToBam",
+           "internal":"run_sam_to_bam",
+           "desc": "Converts SAM data format to BAM binary data format.",
+           "returns": "string",
+           "example":"bam_data = SamToBam(data=, [output=])"
+       }
+   ]
+}

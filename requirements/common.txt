@@ -32,3 +32,4 @@ future==0.16.0
 sijax==0.3.2
 Flask-Sijax==0.4.1
 hdfs==2.0.15
+pysam
