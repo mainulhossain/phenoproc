@@ -1,0 +1,16 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "bwa",
+           "module": "app.biowl.libraries.bwa.adapter",
+           "group": "Alignment",
+           "level": 0,
+           "name":"BWAlign",
+           "internal":"run_bwa",
+           "desc": "Map with BWA. mapping low-divergent sequences against a large reference genome, such as the human genome and is designed for Illumina sequence reads up to 100bp.",
+           "returns": "string",
+           "example":"aligned_data = BWAlign(ref=, data1=, [data2=], [output=])"
+       }
+   ]
+}
