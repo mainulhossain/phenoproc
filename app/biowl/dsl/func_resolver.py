@@ -19,6 +19,8 @@ except:
     pass
 
 try:
+    import app.biowl.libraries.bwa.adapter
+    import app.biowl.libraries.pysam.adapter
     import app.biowl.libraries.fastqc.adapter
     import app.biowl.libraries.flash.adapter
     import app.biowl.libraries.hadoop.adapter
@@ -26,8 +28,6 @@ try:
     import app.biowl.libraries.seqtk.adapter
     import app.biowl.libraries.usearch.adapter
     import app.biowl.libraries.vsearch.adapter
-    import app.biowl.libraries.bwa.adapter
-    import app.biowl.libraries.pysam.adapter
 except:
     pass
 
