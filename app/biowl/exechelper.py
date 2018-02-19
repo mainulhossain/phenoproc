@@ -9,7 +9,7 @@ def func_exec_stdout(app, *args):
 
 def func_exec_run(app, *args):
     out, err = func_exec_stdout(app, *args)
-    return out.decode('utf-8'), err
+    return out.decode('utf-8'), err.decode('utf-8')
 
 def func_exec(app, *args):
 
