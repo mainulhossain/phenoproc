@@ -11,14 +11,14 @@
            "runmode": "local",
            "desc": "Measure the quality of a fastq file using fastqc tool.",
            "returns": "string",
-           "example":"FastQC(input_file, [output_dir])",
+           "example":"FastQC(data=, [outdir=])",
            "params":[  
             {  
-               "name":"input_file",
+               "name":"data",
                "type":"string"
             },
             {
-                "name": "output_dir",
+                "name": "outdir",
                 "type": "string"
             }            
             ]
