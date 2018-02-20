@@ -64,6 +64,9 @@ def run_bwa(*args, **kwargs):
         output = os.path.join(os.path.dirname(data1), os.path.basename(output))
         output = Utility.get_normalized_path(output)
     
+    if not os.path.exists(path.dirname(output)):
+        os.makedirs(path.dirname(output))
+        
     if os.path.exists(output):
         os.remove(output)
             
@@ -76,10 +79,7 @@ def run_bwa(*args, **kwargs):
     for arg in args[paramindex + 1:]:
         cmdargs.append(arg)
     
-    try:
-        _,err = func_exec_run(bwa, *cmdargs)
-    except Exception as e:
-        err = e
+    _,err = func_exec_run(bwa, *cmdargs)
     
     fs = PosixFileSystem(Utility.get_rootdir(2))
     if not os.path.exists(output):
