@@ -13,6 +13,8 @@ def run_sam_to_bam(*args, **kwargs):
             raise ValueError("Argument not given.")
         data = args[paramindex]
         paramindex += 1
+    
+    data = Utility.get_normalized_path(data)
                 
     if 'output' in kwargs.keys():
         output = kwargs['output']
