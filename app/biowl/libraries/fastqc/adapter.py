@@ -39,11 +39,13 @@ def run_fastqc(*args, **kwargs):
     for arg in args[2:]:
         cmdargs.append(arg)
     
-    _,err = func_exec_run(fastqc, *cmdargs)
-
     output = path.basename(data)
     output = os.extsep.join(output.split(os.extsep)[:-1]) + "_fastqc.html"
     outpath = path.join(outdir, output)
+    if os.path.exists(outpath):
+        os.remove(outpath)
+    
+    _,err = func_exec_run(fastqc, *cmdargs)
         
     fs = PosixFileSystem(Utility.get_rootdir(2))
     stripped_path = fs.strip_root(outpath)
