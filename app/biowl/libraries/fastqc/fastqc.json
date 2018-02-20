@@ -6,7 +6,7 @@
            "module": "app.biowl.libraries.fastqc.adapter",
            "group": "Quality",
            "level": 0,
-           "name":"FastQC",
+           "name":"CheckQuality",
            "internal":"run_fastqc",
            "runmode": "local",
            "desc": "Measure the quality of a fastq file using fastqc tool.",
