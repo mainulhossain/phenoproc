@@ -6,22 +6,57 @@ from ....util import Utility
 
 flash = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'flash'))
 
-def run_flash(*args):
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-    input1 = fs.normalize_path(Utility.get_quota_path(args[0]))
-    input2 = fs.normalize_path(Utility.get_quota_path(args[1]))
-    cmdargs = []
-    if len(args) > 2 and args[2]:
-        cmdargs.append("-d {0}".format(fs.normalize_path(Utility.get_quota_path(args[2]))))
+def run_flash(*args, **kwargs):
+    paramindex = 0
+    if 'data1' in kwargs.keys():
+        data1 = kwargs['data1']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument missing error in FastQC.")
+        data1 = args[paramindex]
+        paramindex +=1
     
-    if len(args) > 3:
-         cmdargs.append(" -M " + str(args[3]))
+    data1 = Utility.get_normalized_path(data1)
     
-    for arg in args[4:]:
+    if 'data2' in kwargs.keys():
+        data2 = kwargs['data2']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument missing error in FastQC.")
+        data2 = args[paramindex]
+        paramindex +=1
+    
+    data2 = Utility.get_normalized_path(data2)
+    
+    if 'outdir' in kwargs.keys():
+        outdir = kwargs['outdir']
+    else:
+        if len(args) > paramindex:
+            outdir = args[paramindex]
+            paramindex +=1
+            
+    if outdir:
+        outdir = Utility.get_normalized_path(outdir)
+    else:
+        outdir = path.dirname(data1)
+    
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
+    if 'max_overlap' in kwargs.keys():
+        max_overlap = kwargs['max_overlap']
+    else:
+        if len(args) > paramindex:
+            max_overlap = args[paramindex]
+            paramindex +=1
+                        
+    cmdargs = ["-d {0}".format(outdir), " -M {0}".format(max_overlap)]
+
+    for arg in args[paramindex + 1:]:
         cmdargs.append(arg)
             
-    cmdargs.append(input1)
-    cmdargs.append(input2)
+    cmdargs.append(data1)
+    cmdargs.append(data2)
 
     return func_exec_run(flash, *cmdargs)
 

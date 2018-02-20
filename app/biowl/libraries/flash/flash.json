@@ -11,18 +11,18 @@
            "runmode": "local",
            "desc": "Merge mates from fragments that are shorter than twice the read length.",
            "returns": "string",
-           "example":"Merge(input1, input2, [output_path=], [max_overlap=50])",
+           "example":"Merge(data1, data2, [outdir=], [max_overlap=50])",
            "params":[  
             {  
-               "name":"input1",
+               "name":"data1",
                "type":"string"
             },
             {  
-               "name":"input2",
+               "name":"data2",
                "type":"string"
             },
             {  
-               "name":"output_path",
+               "name":"outdir",
                "type":"string"
             },
             {
@@ -42,14 +42,14 @@
            "runmode": "local",
            "desc": "Merge mates from fragments that are shorter than twice the read length.",
            "returns": "string",
-           "example":"MergeR(input_path, output_path, [max_overlap=50])",
+           "example":"MergeR(indir=, outdir=, [max_overlap=50])",
            "params":[  
             {  
-               "name":"input_path",
+               "name":"indir",
                "type":"string"
             },
             {  
-               "name":"output_path",
+               "name":"outdir",
                "type":"string"
             },
             {
