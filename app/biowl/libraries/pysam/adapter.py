@@ -33,7 +33,7 @@ def run_sam_to_bam(*args, **kwargs):
         os.remove(output)
                
     infile = pysam.AlignmentFile(data, "r")
-    outfile = pysam.AlignmentFile(output, "wb")
+    outfile = pysam.AlignmentFile(output, "wb", template=infile)
     for s in infile:
         outfile.write(s)
     
