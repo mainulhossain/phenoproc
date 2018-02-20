@@ -5,7 +5,7 @@
            "package": "fastqc",
            "module": "app.biowl.libraries.fastqc.adapter",
            "group": "Quality",
-           "level": 1,
+           "level": 0,
            "name":"FastQC",
            "internal":"run_fastqc",
            "runmode": "local",

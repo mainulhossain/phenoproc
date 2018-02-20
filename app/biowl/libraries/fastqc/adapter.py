@@ -42,7 +42,7 @@ def run_fastqc(*args, **kwargs):
     _,err = func_exec_run(fastqc, *cmdargs)
 
     output = path.basename(data)
-    output = output.split(os.extsep)[0] + "_fastqc.html"
+    output = os.extsep.join(output.split(os.extsep)[:-1]) + "_fastqc.html"
     outpath = path.join(outdir, output)
         
     fs = PosixFileSystem(Utility.get_rootdir(2))
