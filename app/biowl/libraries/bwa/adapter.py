@@ -1,5 +1,7 @@
 import os
 from os import path
+from pathlib import Path
+
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
 from ....util import Utility
@@ -22,7 +24,11 @@ def run_bwa(*args, **kwargs):
         paramindex +=1
         
     ref = Utility.get_normalized_path(ref)
-    build_bwa_index(ref)
+    
+    indexpath = Path(ref).stem + ".bwt"
+    indexpath = os.path.join(os.path.dirname(ref), os.path.basename(indexpath))
+    if not os.path.exists(indexpath):
+        build_bwa_index(ref)
     
     if 'data1' in kwargs.keys():
         data1 = kwargs['data1']
@@ -54,9 +60,13 @@ def run_bwa(*args, **kwargs):
     if output:
         output = Utility.get_normalized_path(output)
     else:
-        output = data1 + ".sam"
+        output = Path(data1).stem + ".sam"
+        output = os.path.join(os.path.dirname(data1), os.path.basename(output))
         output = Utility.get_normalized_path(output)
-        
+    
+    if os.path.exists(output):
+        os.remove(output)
+            
     cmdargs = ['mem', ref, data1]
     if data2:
         cmdargs.append(data2)

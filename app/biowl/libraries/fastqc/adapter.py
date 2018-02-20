@@ -1,5 +1,7 @@
 import os
 from os import path
+from pathlib import Path
+
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
 from ....util import Utility
@@ -39,9 +41,8 @@ def run_fastqc(*args, **kwargs):
     for arg in args[2:]:
         cmdargs.append(arg)
     
-    output = path.basename(data)
-    output = os.extsep.join(output.split(os.extsep)[:-1]) + "_fastqc.html"
-    outpath = path.join(outdir, output)
+    outpath = Path(data).stem + "_fastqc.html"
+    outpath = os.path.join(outdir, os.path.basename(outpath))
     if os.path.exists(outpath):
         os.remove(outpath)
     
