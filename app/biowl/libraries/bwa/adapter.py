@@ -57,7 +57,7 @@ def run_bwa(*args, **kwargs):
         output = data1 + ".sam"
         output = Utility.get_normalized_path(output)
         
-    cmdargs = [mem, ref, data1]
+    cmdargs = ['mem', ref, data1]
     if data2:
         cmdargs.append(data2)
         
