@@ -23,9 +23,13 @@ def run_sam_to_bam(*args, **kwargs):
     if output:
         output = Utility.get_normalized_path(output)
     else:
-        output = data + ".bam"
+        output = Path(data).stem + ".bam"
+        output = os.path.join(os.path.dirname(data), os.path.basename(output))
         output = Utility.get_normalized_path(output)
     
+    if os.path.exists(output):
+        os.remove(output)
+               
     infile = pysam.AlignmentFile(data, "r")
     outfile = pysam.AlignmentFile(output, "wb")
     for s in infile:
