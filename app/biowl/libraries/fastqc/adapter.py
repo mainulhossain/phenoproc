@@ -47,7 +47,7 @@ def run_fastqc(*args, **kwargs):
         
     fs = PosixFileSystem(Utility.get_rootdir(2))
     stripped_path = fs.strip_root(outpath)
-    if not os.path.exists(stripped_path):
+    if not os.path.exists(outpath):
         raise ValueError("FastQC could not generate the file " + stripped_path + " due to error " + err)
     
     return stripped_path
