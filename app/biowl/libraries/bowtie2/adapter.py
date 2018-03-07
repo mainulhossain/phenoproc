@@ -73,9 +73,9 @@ def run_bwa(*args, **kwargs):
             
     cmdargs = ['-q -p 4 -x', ref]
     if data2:
-        cmdargs.extend("-1 {0}".format(data1), "-2 {0}".format(data2))
+        cmdargs.extend(["-1 {0}".format(data1), "-2 {0}".format(data2)])
     else:
-        cmdargs.extend("-U {0}".format(data1))
+        cmdargs.append("-U {0}".format(data1))
         
     cmdargs.append("-S {0}".format(output))
     
