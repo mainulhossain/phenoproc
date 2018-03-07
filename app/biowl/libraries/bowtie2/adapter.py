@@ -82,7 +82,7 @@ def run_bwa(*args, **kwargs):
     for arg in args[paramindex + 1:]:
         cmdargs.append(arg)
     
-    _,err = func_exec_run(bwa, *cmdargs)
+    _,err = func_exec_run(bowtie2, *cmdargs)
     
     fs = PosixFileSystem(Utility.get_rootdir(2))
     if not os.path.exists(output):
