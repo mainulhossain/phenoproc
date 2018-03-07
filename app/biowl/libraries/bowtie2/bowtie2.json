@@ -6,7 +6,7 @@
            "module": "app.biowl.libraries.bowtie2.adapter",
            "group": "Alignment",
            "level": 0,
-           "name":"BWAlign",
+           "name":"Align",
            "internal":"run_bwa",
            "desc": "Align sequencing reads to long reference sequences.",
            "returns": "string",

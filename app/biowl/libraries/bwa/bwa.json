@@ -6,7 +6,7 @@
            "module": "app.biowl.libraries.bwa.adapter",
            "group": "Alignment",
            "level": 0,
-           "name":"BWAlign",
+           "name":"Align",
            "internal":"run_bwa",
            "desc": "Map with BWA. Mapping low-divergent sequences against a large reference genome, such as the human genome and is designed for Illumina sequence reads up to 100bp.",
            "returns": "string",
