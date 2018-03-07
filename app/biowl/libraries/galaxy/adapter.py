@@ -1425,8 +1425,8 @@ def run_fastqc(*args, **kwargs):
 
 
     inputs = {
-        "contaminants":null,
-        "limits":null,
+        "contaminants":'null',
+        "limits":'null',
         "input_file":{
             "values":[{
                 "src":src, 
