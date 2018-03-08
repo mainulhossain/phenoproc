@@ -102,6 +102,7 @@ def seqtk_trim(*args, **kwargs):
             output = args[paramindex]
             paramindex += 1
     
+    begin = None
     if 'begin' in kwargs.keys():
         begin = kwargs['begin']
     else:
@@ -109,6 +110,7 @@ def seqtk_trim(*args, **kwargs):
             begin = args[paramindex]
             paramindex += 1
     
+    end = None
     if 'end' in kwargs.keys():
         end = kwargs['end']
     else:
