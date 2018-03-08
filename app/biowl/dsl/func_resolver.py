@@ -19,6 +19,7 @@ except:
     pass
 
 try:
+    import app.biowl.libraries.seqtk.adapter
     import app.biowl.libraries.bowtie2.adapter
     import app.biowl.libraries.bwa.adapter
     import app.biowl.libraries.pysam.adapter
