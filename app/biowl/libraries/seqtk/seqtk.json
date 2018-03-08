@@ -4,15 +4,16 @@
            "org": "srlab",
            "package": "seqtk",
            "module": "app.biowl.libraries.seqtk.adapter",
+           "level": 1,
            "name":"Seqtk",
            "internal":"run_seqtk",
            "runmode": "local",
            "desc": "Processing sequences in the FASTA or FASTQ format. https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"Seqtk(input, command, output)",
+           "example":"Seqtk(data, command, output)",
            "params":[  
             {  
-               "name":"input",
+               "name":"data",
                "type":"string"
             },
             {  
@@ -36,10 +37,10 @@
            "runmode": "local",
            "desc": "Convert FASTQ to FASTA format. https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"FastqToFasta(input, output)",
+           "example":"FastqToFasta(data=, output=)",
            "params":[  
             {  
-               "name":"input",
+               "name":"data",
                "type":"string"
             },
             {  
@@ -59,10 +60,10 @@
            "runmode": "local",
            "desc": "Extracts a random sample. Apply the seed if it's given. 'https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"Extract(input, output, sample, [seed])",
+           "example":"Extract(data=, output=, sample=10)",
            "params":[  
             {  
-               "name":"input",
+               "name":"data",
                "type":"string"
             },
             {  
@@ -85,15 +86,15 @@
            "module": "app.biowl.libraries.seqtk.adapter",
            "group": "Text",
            "level": 1,
-           "name":"TrimReads",
+           "name":"Trim",
            "internal":"seqtk_trim",
            "runmode": "local",
            "desc": "Trim reads with the modified Mott trimming algorithm. https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"TrimReads(input, output, [begin], [end], [-q error_threshold])",
+           "example":"Trim(data, output, [begin=], [end=], [quality=])",
            "params":[  
             {  
-               "name":"input",
+               "name":"data",
                "type":"string"
             },
             {  
