@@ -73,7 +73,7 @@ def seqtk_extract_sample(*args, **kwargs):
             
     cmdargs = ['sample -s {0}'.format(sample)]
     
-    cmdargs.extend([input, str(args[2])])
+    cmdargs.extend([data, output])
 
     outdata,_ = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
@@ -81,17 +81,42 @@ def seqtk_extract_sample(*args, **kwargs):
     return fs.strip_root(output)
 
 def seqtk_trim(*args, **kwargs):
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-
-    input = fs.normalize_path(Utility.get_quota_path(args[0]))
-    output = fs.normalize_path(Utility.get_quota_path(args[1]))
+    paramindex = 0
+    if 'data' in kwargs.keys():
+        data = kwargs['data']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument not given.")
+        data = args[paramindex]
+        paramindex += 1
+                
+    if 'output' in kwargs.keys():
+        output = kwargs['output']
+    else:
+        if len(args) > paramindex:
+            output = args[paramindex]
+            paramindex += 1
     
-    cmdargs = [input, 'trimfq', output]
-    if len(args) > 2:
-        cmdargs.append('-b ' + str(args[2]))
+    if 'begin' in kwargs.keys():
+        begin = kwargs['begin']
+    else:
+        if len(args) > paramindex:
+            begin = args[paramindex]
+            paramindex += 1
+    
+    if 'end' in kwargs.keys():
+        end = kwargs['end']
+    else:
+        if len(args) > paramindex:
+            end = args[paramindex]
+            paramindex += 1
+            
+    cmdargs = [data, 'trimfq', output]
+    if begin:
+        cmdargs.append('-b ' + str(begin))
         
-    if len(args) > 3:
-        cmdargs.append('-e ' + str(args[3]))
+    if end:
+        cmdargs.append('-e ' + str(end))
     
     for arg in args[4:]:
         cmdargs.append(arg)
