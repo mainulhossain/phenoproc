@@ -71,13 +71,18 @@ def seqtk_extract_sample(*args, **kwargs):
         else:
             sample = 10
             
-    cmdargs = ['sample -s {0}'.format(sample)]
+    cmdargs = ['sample -s{0}'.format(sample)]
     
-    cmdargs.extend([data, output])
-
+    data = Utility.get_normalized_path(data)
+    output = Utility.get_normalized_path(output)
+    
+    cmdargs.append(data)
+    
     outdata,_ = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
         f.write(outdata)
+        
+    fs = PosixFileSystem(Utility.get_rootdir(2))
     return fs.strip_root(output)
 
 def seqtk_trim(*args, **kwargs):
