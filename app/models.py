@@ -403,14 +403,15 @@ class DataSource(db.Model):
     name = db.Column(db.String(100))
     type = db.Column(db.String(30), nullable=True)
     url = db.Column(db.Text, nullable=True)
+    root = db.Column(db.Text, nullable=True)
     
     @staticmethod
     def insert_datasources():
-        datasrc = DataSource(name='Phenodoop', type='Hadoop', url='hdfs://sr-p2irc-big1.usask.ca:8020')
+        datasrc = DataSource(name='Phenodoop', type='Hadoop', url='hdfs://sr-p2irc-big1.usask.ca:8020', root='/user/phenodoop')
         db.session.add(datasrc)
-        datasrc = DataSource(name='Folder', type='FileSystem', url='/var/www/phenoproc/userdata')
+        datasrc = DataSource(name='Folder', type='FileSystem', url='/var/www/phenoproc/userdata', root='')
         db.session.add(datasrc)
-        datasrc = DataSource(name='One Drive', type='Cloud', url='sr-p2irc-big6.usask.ca:8020')
+        datasrc = DataSource(name='One Drive', type='Cloud', url='sr-p2irc-big6.usask.ca:8020', root='/')
         db.session.add(datasrc)
         db.session.commit()
 

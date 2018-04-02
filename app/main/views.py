@@ -620,48 +620,53 @@ def datasources():
         
     return json.dumps({'datasources': load_data_sources_biowl() })
 
+def run_biowl(user_id, script, args, immediate = True, pygen = False):
+    machine = interpreter.codeGenerator if pygen else interpreter.interpreter
+                
+    runnable_id = Runnable.create_runnable(user_id)
+    runnable = Runnable.query.get(runnable_id)
+    runnable.script = script
+    runnable.name = script[:min(40, len(script))]
+    if len(script) > len(runnable.name):
+        runnable.name += "..."
+    db.session.commit()
+    
+    if immediate:
+        try:
+            runnable.status = Status.STARTED
+            db.session.commit()
+            
+            result = run_script(machine, script, args)
+            runnable = Runnable.query.get(runnable_id)
+            if result:
+                runnable.status = Status.FAILURE if result['err'] else Status.SUCCESS
+                runnable.out = "\n".join(result['out'])
+                runnable.err = "\n".join(result['err'])
+            else:
+                runnable.status = Status.FAILURE
+                
+            runnable.update()
+        except:
+            result = {}
+            
+        return json.dumps(result)
+    else:
+        task = run_script.delay(machine, script, args)
+        runnable.celery_id = task.id
+        runnable.update()
+        return json.dumps({})
+    
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
     if request.method == "POST":
         if request.form.get('script') or request.form.get('code'):
             script = request.form.get('script') if request.form.get('script') else request.form.get('code')
-            machine = interpreter.interpreter if request.form.get('script') else interpreter.codeGenerator
             args = request.form.get('args') if request.form.get('args') else ''
-            immediate = request.form.get('immediate') == 'true' if request.form.get('immediate') else False
-            
-            runnable_id = Runnable.create_runnable(current_user.id)
-            runnable = Runnable.query.get(runnable_id)
-            runnable.script = script
-            runnable.name = script[:min(40, len(script))]
-            if len(script) > len(runnable.name):
-                runnable.name += "..."
-            db.session.commit()
-            
-            if immediate:
-                try:
-                    runnable.status = Status.STARTED
-                    db.session.commit()
-                    
-                    result = run_script(machine, script, args)
-                    runnable = Runnable.query.get(runnable_id)
-                    if result:
-                        runnable.status = Status.FAILURE if result['err'] else Status.SUCCESS
-                        runnable.out = "\n".join(result['out'])
-                        runnable.err = "\n".join(result['err'])
-                    else:
-                        runnable.status = Status.FAILURE
-                        
-                    runnable.update()
-                except:
-                    result = {}
-                    
-                return json.dumps(result)
-            else:
-                task = run_script.delay(machine, script, args)
-                runnable.celery_id = task.id
-                runnable.update()
-                return json.dumps({})
+            immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
+            pygen = True if request.form.get('code') else False
+            return run_biowl(current_user.id, script, args, immediate, pygen)
+        
         elif request.form.get('mapper'):
             try:
                 # Get the name of the uploaded file
@@ -826,12 +831,18 @@ def samples():
         return Samples.add_sample(request.form.get('sample'), request.form.get('name'), request.form.get('desc'))
     return json.dumps({'samples': Samples.get_samples_as_list()})
 
+def get_user_status(user_id):
+    return jsonify(runnables =[i.to_json() for i in Runnable.query.filter(Runnable.user_id == user_id)])
+
+def get_task_status(task_id):
+    runnable = Runnable.query.get(task_id)
+    return jsonify(runnable = runnable.to_json())
+    
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
 def runnables():
     if request.args.get('id'):
-        runnable = Runnable.query.get(int(request.args.get('id')))
-        return jsonify(runnable = runnable.to_json())
+        return get_task_status(int(request.args.get('task_id')))
     elif request.args.get('stop'):
         ids = request.args.get('stop')
         ids = ids.split(",")
@@ -849,4 +860,4 @@ def runnables():
 #     for r in runnables_db:
 #       rs.append(r.to_json())
 #     return jsonify(runnables = rs)
-    return jsonify(runnables =[i.to_json() for i in Runnable.query.filter(Runnable.user_id == current_user.id)])
+    return get_user_status(current_user.id)

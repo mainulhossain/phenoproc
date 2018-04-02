@@ -2,8 +2,7 @@ from __future__ import print_function
 
 import os
 from os import path
-from .models import DataSource, Data
-from flask import current_app
+from .models import DataSource
 import sys
 from app.biowl.fileop import PosixFileSystem, HadoopFileSystem, GalaxyFileSystem
 
@@ -19,9 +18,9 @@ class Utility:
     def get_rootdir(datasource_id):
         datasource = DataSource.query.get(datasource_id)
         if datasource_id == 1:
-            return path.join(datasource.url, current_app.config['HDFS_DIR'])
+            return path.join(datasource.url, datasource.root)
         if datasource_id == 2:
-            return path.join(datasource.url, current_app.config['DATA_DIR'])
+            return path.join(datasource.root)
         if datasource_id == 3:
             return path.join(datasource.url, '/')
         return ""
@@ -34,11 +33,11 @@ class Utility:
         return path.join(Utility.get_rootdir(data.datasource_id), data.url)
     
     @staticmethod
-    def get_quota_path(path):
+    def get_quota_path(path, username):
         if not path:
-            path = current_app.config['PUBLIC_DIR']
-        elif not path.startswith(current_app.config['PUBLIC_DIR']):
-            path = os.path.join(current_app.config['CURRENT_USER'], path)
+            path = 'public'
+        elif not path.startswith('public'):
+            path = os.path.join(username, path)
         return path
     
     @staticmethod
