@@ -233,6 +233,12 @@ background-color: White;
                         <textarea rows="12" style="width: 460px;" id="mapper"></textarea>
                     </div>
                 </div>
+                <div class="control-group">
+                    <label class="control-label" for="pippkgs">pip Install</label>
+                    <div class="controls">
+                        <input type="text" id="pippkgs" style="width: 300px;">
+                    </div>
+                </div>
             </form>
         </div>
         <div class="modal-footer">
@@ -1128,6 +1134,7 @@ background-color: White;
             		formdata.append('package', self.name());
             	if (self.org() !== undefined)
             		   formdata.append('org', self.org());
+            	formdata.append('pip', $('#pippkgs'));
 
                 ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                    	

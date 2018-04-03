@@ -25,7 +25,7 @@ from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 from flask_login import login_required, login_user, logout_user, current_user
 from app.models import User
-from app.main.views import load_data_sources_biowl, run_biowl, get_user_status, get_task_status
+from app.main.views import load_data_sources_biowl, run_biowl, get_user_status, get_task_status, get_functions
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
@@ -67,8 +67,17 @@ def run_rest_script():
     finally:
         logout_user()
 
-@app.route('/api/status/<string:task_id>', methods=['GET'])
-@app.route('/api/status/', defaults={'task_id': ''}, methods=['GET'])
+@app.route('/api/functions/<int:level>', methods=['GET'])
+@app.route('/api/functions', methods=['GET'])
+@auth.login_required
+def get_functions_api(level):
+    try:
+        return get_function(level if level else 0)
+    finally:
+        logout_user()
+        
+@app.route('/api/status/<int:task_id>', methods=['GET'])
+@app.route('/api/status', defaults={'task_id': 0}, methods=['GET'])
 @auth.login_required
 def get_status_api(task_id):
     if task_id:

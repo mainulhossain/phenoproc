@@ -655,6 +655,15 @@ def run_biowl(user_id, script, args, immediate = True, pygen = False):
         runnable.celery_id = task.id
         runnable.update()
         return json.dumps({})
+
+import pip
+
+def install(package):
+    pip.main(['install', package])
+        
+def get_functions(level):
+    funcs =[func for func in interpreter.funcs if int(func['level']) <= level]
+    return json.dumps({'functions':  funcs})
     
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
@@ -668,7 +677,17 @@ def functions():
             return run_biowl(current_user.id, script, args, immediate, pygen)
         
         elif request.form.get('mapper'):
+            result = {"out": [], "err": []}
             try:
+                if request.form.get('pip'):
+                    pippkgs = request.form.get('pip')
+                    pippkgs = pippkgs.split(",")
+                    for pkg in pippkgs:
+                        try:
+                            install(pkg)
+                        except Exception as e:
+                            result['err'].append(e)
+                    
                 # Get the name of the uploaded file
                 file = request.files['library']
                 # Check if the file is one of the allowed types/extensions
@@ -731,18 +750,19 @@ def functions():
                     with open(base, 'w') as f:
                         json.dump(data, f, indent=4)
                     interpreter.reload()
-            except:
-                return json.dumps({ 'out': '', 'err': 'Library add unsuccessful'})
-            return json.dumps({ 'out': 'Library successfully added', 'err': ''})
+                    
+                    result['out'].append("Library successfully added.")
+            except Exception as e:
+                result['err'].append(e)
+            return json.dumps(result)
         elif request.form.get('provenance'):
             fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
     else:
         level = int(request.args.get('level')) if request.args.get('level') else 0
-        funcs =[func for func in interpreter.funcs if int(func['level']) <= level]
-        return json.dumps({'functions':  funcs})
-
+        return get_functions(level)
+    
 class Samples():
     @staticmethod
     def load_samples_recursive(library_def_file):
